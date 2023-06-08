@@ -14,25 +14,28 @@ pub fn create_device() -> Result<PtyMaster> {
   let pty_path = ptsname_r(&ptys) ?;
 
   // Create symlink pty_path -> $HOME/.local/share/anytone-emu/anytoneport
-  let mut port_dir = match home::home_dir()  {
-    Some(path) => Ok(path),
-    None => Err(Error::new(ErrorKind::Other, "Cannot obtain home directory."))
-  } ?;
-  port_dir.push(".local/share/anytone-emu");
+  let mut port_dir = home::home_dir().ok_or(
+    Error::new(ErrorKind::Other, "Cannot obtain home directory."))?;
+  port_dir.push(".local");
+  port_dir.push("share");
+  port_dir.push("anytone-emu");
+  if ! port_dir.is_dir() {
+    debug!("Create directory '{}'.", &port_dir.to_str().ok_or(
+      Error::new(ErrorKind::Other, "Cannot obtain port-directory path.")
+    )?);
+    DirBuilder::new().recursive(true).create(&port_dir) ?;
+  }
+
   let mut port_path = port_dir.clone();
   port_path.push("anytoneport");
-  DirBuilder::new().recursive(true).create(&port_dir) ?;
-
-  let port_path_str = match port_path.to_str() {
-    Some(path) => Ok(path),
-    None => Err(Error::new(ErrorKind::Other, "Cannot convert path to string."))
-  } ?;
-
   if port_path.exists() {
-    std::fs::remove_file(port_path_str)?;
+    std::fs::remove_file(&port_path)?;
   }
-  std::os::unix::fs::symlink(&pty_path, &port_path_str) ?;
-  debug!("Linked pty {} to {}. You may need to edit wine registry.", pty_path, port_path_str);
+
+  debug!("Link pty {} to {}. You may need to edit wine registry.", pty_path, 
+    port_path.to_str().ok_or(Error::new(ErrorKind::Other, "Cannot obtain port path."))?);
+  std::os::unix::fs::symlink(&pty_path, &port_path) ?;
+
 
   // Assemble device
   Ok(ptys)
