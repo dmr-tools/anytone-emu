@@ -1,5 +1,7 @@
 use std::io::{Result, Error, ErrorKind};
 
+use nix::NixPath;
+
 pub trait DeviceHandler {
   fn model(&self) -> &[u8; 6];
   fn version(&self) -> &[u8; 6];
@@ -74,7 +76,7 @@ impl DeviceHandler for DMR6X2UV {
     }
     let line = payload.iter().map(|x| format!("{:02x}", x)).fold(String::new(), |a, b| a+" "+&b);
     println!("{:08x}: {}",address, line);
-    self.current_write_address += 10;
+    self.current_write_address = address + payload.len();
     Ok(())
   }
 }
