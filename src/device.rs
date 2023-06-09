@@ -55,12 +55,18 @@ impl<T: Read+Write, H: DeviceHandler> Device<T,H> {
       if (self.buffer.len() >= 1) && (0x02 == self.buffer[0]) {
         self.buffer.drain(..1);
         return Ok(Request::device_info());
-      }
-      if (self.buffer.len() >= 6) && (b'R' == self.buffer[0]) {
+      } else if (self.buffer.len() >= 6) && (b'R' == self.buffer[0]) {
         let packet = self.buffer.drain(..6).collect::<Vec<_>>();
         return Ok(Request::read(
           u32::from_be_bytes(<[u8;4]>::try_from(&packet[1..5]).unwrap()), 
           packet[5]));      
+      } else if (self.buffer.len() >= 8) && (b'W' == self.buffer[0]) {
+        let header = self.buffer.drain(..6).collect::<Vec<_>>();
+        let address = u32::from_be_bytes(<[u8;4]>::try_from(&header[1..5]).unwrap());
+        let length : usize = header[5].into();
+        let payload: [u8;16] = self.buffer.drain(..16).collect::<Vec<_>>().try_into().unwrap();
+        let crc_ack = self.buffer.drain(..2);
+        return Ok(Request::write(address, payload));      
       }
     }
 
@@ -80,8 +86,12 @@ impl<T: Read+Write, H: DeviceHandler> Device<T,H> {
             self.handler.model(), 
             self.handler.version()));
       } else if RequestType::Read == request.request_type {
-        debug!("Read from addr {} length {}",request.address, request.length);
-        return Ok(Response::read(request.address, &self.handler.read(request.address, request.length)?));
+        debug!("Read from addr {:08x}h length {:02x}h",request.address, request.length);
+        return Ok(Response::read(request.address, self.handler.read(request.address)?));
+      } else if RequestType::Write == request.request_type {
+        debug!("Write to address {:08x}h length {:02x}h", request.address, request.length);
+        self.handler.write(request.address, &(request.payload.into()))?;
+        return Ok(Response::write())
       }
     }
 

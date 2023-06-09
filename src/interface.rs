@@ -28,7 +28,9 @@ pub fn create_pty_interface() -> Result<PtyMaster> {
 
   let mut port_path = port_dir.clone();
   port_path.push("anytoneport");
-  if port_path.exists() {
+  if port_path.is_symlink() {
+    debug!("File '{}' already exists, remove it.", &port_path.to_str().ok_or(
+      Error::new(ErrorKind::Other, "Cannot obtain port path."))?);
     std::fs::remove_file(&port_path)?;
   }
 

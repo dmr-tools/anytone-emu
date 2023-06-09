@@ -1,3 +1,4 @@
+use core::cmp::min;
 
 
 #[derive(PartialEq)]
@@ -9,7 +10,7 @@ pub struct Request {
   pub request_type: RequestType,
   pub address: u32,
   pub length: u8,
-  pub payload: Vec<u8>
+  pub payload: [u8; 16]
 }
 
 impl Request {
@@ -18,7 +19,7 @@ impl Request {
       request_type : RequestType::Program,
       address : 0,
       length : 0,
-      payload : Vec::new()
+      payload : [0;16]
     }
   }
 
@@ -27,7 +28,7 @@ impl Request {
       request_type : RequestType::DeviceInfo,
       address: 0,
       length: 0,
-      payload : Vec::new()
+      payload : [0;16]
     }
   }
 
@@ -36,7 +37,16 @@ impl Request {
       request_type: RequestType::Read,
       address: addr,
       length : len,
-      payload : Vec::new()
+      payload : [0;16]
+    }
+  }
+
+  pub fn write(addr : u32, payload: [u8;16]) -> Self {
+    Request { 
+      request_type: RequestType::Write, 
+      address: addr, 
+      length: min(16, payload.len().try_into().unwrap()), 
+      payload: payload 
     }
   }
 }

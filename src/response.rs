@@ -1,12 +1,22 @@
 
 use std::io::{Result, Error, ErrorKind};
+use std::num::Wrapping;
 use core::cmp::min;
 
 use nix::NixPath;
 
+fn crc(data: &[u8]) -> u8 {
+  let mut crc = Wrapping::<u8>(0);
+  for i in 0..data.len() {
+    crc += data[i];
+  }
+  return crc.0
+}
+
+
 #[derive(PartialEq)]
 pub enum ResponseType {
-  ProgramOk, DeviceInfo, Read
+  ProgramOk, DeviceInfo, Read, Write
 }
 
 pub struct Response {
@@ -40,16 +50,27 @@ impl Response {
   pub fn read(address : u32, payload : &[u8]) -> Self {
     let n = min(16, payload.len());
     let mut packet : Vec<u8> = Vec::new();
-    packet.resize(n+6, 0);
+    packet.resize(n+8, 0);
     packet[0] = b'W';
     packet[1..5].copy_from_slice(&(address.to_be_bytes()));
-    packet[5..(5+n)].copy_from_slice(&payload[..n]);
-    packet[5+n] = 0x06;
+    packet[5] = payload.len().try_into().unwrap();
+    packet[6..(6+n)].copy_from_slice(&payload[..n]);
+    packet[6+n] = crc(&packet[1..(5+n)]);
+    packet[7+n] = 0x06;
 
     Response {
       response_type : ResponseType::Read,
       packet : packet
     }
   }
+
+  pub fn write() -> Self {
+    let mut packet : Vec<u8> = Vec::new();
+    packet.push(0x06); // <- just ACK
+    Response {
+      response_type : ResponseType::Write,
+      packet : packet
+    }
+  } 
 
 }
