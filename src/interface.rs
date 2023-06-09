@@ -1,39 +1,42 @@
-use std::io;
+use std::fs::DirBuilder;
+use std::io::{Result, Error, ErrorKind};
+use nix::pty::{posix_openpt, ptsname_r, PtyMaster, grantpt, unlockpt};
+use nix::fcntl::OFlag;
+use home;
+use log::debug;
 
 
-enum InterfaceState {
-  S_OPEN, S_PROGRAM, S_READ, S_WRITE, S_ERROR
-}
+pub fn create_pty_interface() -> Result<PtyMaster> {
+  // Open PTY
+  let ptys = posix_openpt(OFlag::O_RDWR) ?;
+  grantpt(&ptys)?;
+  unlockpt(&ptys)?;
+  let pty_path = ptsname_r(&ptys) ?;
 
-pub struct Interface {
-  state: InterfaceState,
-  interface: &(Read + Write),
-  buffer: VecDeque<u8>,
-  device: Device
-}
-
-impl Interface {
-  pub fn new(interface: &mut (Read + Write), device : &mut Device) -> Interface {
-    Interface {
-      state: InterfaceState::OPEN,
-      interface: interface,
-      buffer: VecDeque::new()
-    };
+  // Create symlink pty_path -> $HOME/.local/share/anytone-emu/anytoneport
+  let mut port_dir = home::home_dir().ok_or(
+    Error::new(ErrorKind::Other, "Cannot obtain home directory."))?;
+  port_dir.push(".local");
+  port_dir.push("share");
+  port_dir.push("anytone-emu");
+  if ! port_dir.is_dir() {
+    debug!("Create directory '{}'.", &port_dir.to_str().ok_or(
+      Error::new(ErrorKind::Other, "Cannot obtain port-directory path.")
+    )?);
+    DirBuilder::new().recursive(true).create(&port_dir) ?;
   }
 
-  pub fn loop() -> bool {
-    let buffer : u8[256]; 
-    let n = read(self.interface, buffer);
-    self.buffer.append(buffer.into());
-    return self.process_buffer();
+  let mut port_path = port_dir.clone();
+  port_path.push("anytoneport");
+  if port_path.exists() {
+    std::fs::remove_file(&port_path)?;
   }
 
-  fn process_buffer() -> bool {
-    if (InterfaceState::S_OPEN == self.state) {
-      if ((7 <= self.buffer.len()) and ("PROGRAM" == String::from_utf8_lossy(self.buffer[..8]))) {
-        self.state = S_PROGRAM;
-        self.buffer.drain(..6);
-      }
-    }
-  }
+  debug!("Link pty {} to {}. You may need to edit wine registry.", pty_path, 
+    port_path.to_str().ok_or(Error::new(ErrorKind::Other, "Cannot obtain port path."))?);
+  std::os::unix::fs::symlink(&pty_path, &port_path) ?;
+
+
+  // Assemble device
+  Ok(ptys)
 }
