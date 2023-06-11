@@ -1,10 +1,15 @@
 use std::fs::DirBuilder;
-use std::io::{Result, Error, ErrorKind};
+use std::os::unix::io::AsRawFd;
+use std::io::{Result, Error, ErrorKind, Read, Write};
 use nix::pty::{posix_openpt, ptsname_r, PtyMaster, grantpt, unlockpt};
-use nix::fcntl::OFlag;
+use nix::fcntl::{OFlag, fcntl, F_GETFD};
 use home;
 use log::debug;
 
+
+pub trait DeviceInterface: Read + Write + Drop {
+  fn is_open(&self) -> bool;
+}
 
 pub fn create_pty_interface() -> Result<PtyMaster> {
   // Open PTY
@@ -41,4 +46,11 @@ pub fn create_pty_interface() -> Result<PtyMaster> {
 
   // Assemble device
   Ok(ptys)
+}
+
+
+impl DeviceInterface for PtyMaster {
+  fn is_open(&self) -> bool {
+    return fcntl(self.as_raw_fd(), F_GETFD).is_ok();
+  }
 }

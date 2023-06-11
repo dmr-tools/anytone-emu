@@ -4,28 +4,33 @@ use log::{error, info, debug};
 use std::io::{Result, Error, ErrorKind};
 use crate::request::{Request, RequestType};
 use crate::response::Response;
+use crate::interface::DeviceInterface;
 use crate::devicehandler::DeviceHandler;
 
 #[derive(PartialEq)]
 enum DeviceState {
-  Open, Program, SError
+  Open, Program, Error, Closed
 }
 
-pub struct Device<T : Read+Write, H: DeviceHandler> {
+pub struct Device {
   state: DeviceState,
-  interface: T,
+  interface: Box<dyn DeviceInterface+'static>,
   buffer: VecDeque<u8>,
-  handler: H
+  handler: Box<dyn DeviceHandler+'static>
 }
 
-impl<T: Read+Write, H: DeviceHandler> Device<T,H> {
-  pub fn new(mut interface: T, mut handler: H) -> Device<T,H> {
+impl Device {
+  pub fn new(mut interface: Box<dyn DeviceInterface+'static>, mut handler: Box<dyn DeviceHandler+'static>) -> Device {
     Device { 
       state: DeviceState::Open, 
       interface: interface, 
       buffer: VecDeque::new(),
-      handler : handler
+      handler: handler
     }
+  }
+
+  pub fn is_ready(&self) -> bool {
+    return DeviceState::Error != self.state && DeviceState::Closed != self.state && self.interface.is_open();
   }
 
   fn has_string(&self, string: &[u8]) -> bool {
@@ -40,7 +45,7 @@ impl<T: Read+Write, H: DeviceHandler> Device<T,H> {
     return true;
   }
 
-  pub fn read_request(&mut self) -> Result<Request> {
+  pub fn read_request(&mut self) -> Result<Option<Request>> {
     let mut data = [0u8; 256];
     
     let n = self.interface.read(&mut data)?;
@@ -49,49 +54,63 @@ impl<T: Read+Write, H: DeviceHandler> Device<T,H> {
     if DeviceState::Open == self.state {
       if self.has_string(b"PROGRAM") {
         self.buffer.drain(..7);
-        return Ok(Request::program());
+        return Ok(Some(Request::program()));
       }
     } else if DeviceState::Program == self.state {
       if (self.buffer.len() >= 1) && (0x02 == self.buffer[0]) {
         self.buffer.drain(..1);
-        return Ok(Request::device_info());
+        return Ok(Some(Request::device_info()));
       } else if (self.buffer.len() >= 6) && (b'R' == self.buffer[0]) {
         let packet = self.buffer.drain(..6).collect::<Vec<_>>();
-        return Ok(Request::read(
+        return Ok(Some(Request::read(
           u32::from_be_bytes(<[u8;4]>::try_from(&packet[1..5]).unwrap()), 
-          packet[5]));      
+          packet[5])));      
       } else if (self.buffer.len() >= 8) && (b'W' == self.buffer[0]) {
         let header = self.buffer.drain(..6).collect::<Vec<_>>();
         let address = u32::from_be_bytes(<[u8;4]>::try_from(&header[1..5]).unwrap());
         let length : usize = header[5].into();
         let payload: [u8;16] = self.buffer.drain(..16).collect::<Vec<_>>().try_into().unwrap();
         let crc_ack = self.buffer.drain(..2);
-        return Ok(Request::write(address, payload));      
+        return Ok(Some(Request::write(
+          address, 
+          payload)));      
+      } else if self.has_string(b"END") {
+        return Ok(Some(Request::end()));
+      } else if 0 != self.buffer.len() {
+        let line = self.buffer.iter().map(|x| format!("{:02x}", x)).fold(String::new(), |a, b| a+" "+&b);
+        return Err(Error::new(ErrorKind::Other, format!("Unkown request: {}.", line)));
       }
     }
 
-    Err(Error::new(ErrorKind::Other, "Unknown request."))
+    Ok(None)
   }
 
-  pub fn process(&mut self, request : & Request) -> Result<Response> {
+  pub fn process(&mut self, request : & Request) -> Result<Option<Response>> {
     if DeviceState::Open == self.state {
       if RequestType::Program == request.request_type {
         self.state = DeviceState::Program;
-        return Ok(Response::program_ok());
+        return Ok(Some(Response::program_ok()));
       }
     } else if DeviceState::Program == self.state {
       if RequestType::DeviceInfo == request.request_type {
         debug!("Device info");
-        return Ok(Response::device_info(
+        return Ok(Some(Response::device_info(
             self.handler.model(), 
-            self.handler.version()));
+            self.handler.version())));
       } else if RequestType::Read == request.request_type {
         debug!("Read from addr {:08x}h length {:02x}h",request.address, request.length);
-        return Ok(Response::read(request.address, self.handler.read(request.address)?));
+        return Ok(Some(Response::read(
+          request.address, 
+          self.handler.read(request.address)?)));
       } else if RequestType::Write == request.request_type {
         debug!("Write to address {:08x}h length {:02x}h", request.address, request.length);
         self.handler.write(request.address, &(request.payload.into()))?;
-        return Ok(Response::write())
+        return Ok(Some(Response::write()))
+      } else if RequestType::End == request.request_type {
+        debug!("End of transfer.");
+        self.handler.end()?;
+        self.state = DeviceState::Closed;
+        return Ok(None);
       }
     }
 

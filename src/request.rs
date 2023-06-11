@@ -3,7 +3,7 @@ use core::cmp::min;
 
 #[derive(PartialEq)]
 pub enum RequestType {
-  Program, DeviceInfo, Read, Write
+  Program, DeviceInfo, Read, Write, End
 }
 
 pub struct Request {
@@ -47,6 +47,15 @@ impl Request {
       address: addr, 
       length: min(16, payload.len().try_into().unwrap()), 
       payload: payload 
+    }
+  }
+
+  pub fn end() -> Self {
+    Request { 
+      request_type: RequestType::End, 
+      address: 0, 
+      length: 0, 
+      payload: [0; 16]
     }
   }
 }
