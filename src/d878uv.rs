@@ -2,25 +2,25 @@ use crate::devicehandler::DeviceHandler;
 use crate::writer::Writer;
 use std::io::{Result, Error, ErrorKind};
 
-pub struct DMR6X2UV {
+pub struct D878UV {
   writer: Option<Box<dyn Writer+'static>>
 }
 
-impl DMR6X2UV {
+impl D878UV {
   pub fn new(writer : Option<Box<dyn Writer+'static>>) -> Self {
-    DMR6X2UV {
+    D878UV {
       writer : writer
     }
   }
 }
 
-impl DeviceHandler for DMR6X2UV {
+impl DeviceHandler for D878UV {
   fn model(&self) -> &[u8; 6] {
-    return b"6X2UV\x00";
+    return b"878UV\x00";
   }
 
   fn version(&self) -> &[u8; 6] {
-    return b"V102\x00\x00";
+    return b"V100\x00\x00";
   }
 
   fn read(&mut self, address : u32) -> Result<&[u8; 16]> {

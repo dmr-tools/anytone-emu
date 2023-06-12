@@ -1,10 +1,11 @@
+use std::borrow::Borrow;
 use std::io::{Read, Write};
 use std::collections::VecDeque;
 use log::{error, info, debug};
 use std::io::{Result, Error, ErrorKind};
 use crate::request::{Request, RequestType};
 use crate::response::Response;
-use crate::interface::DeviceInterface;
+use crate::interface::Interface;
 use crate::devicehandler::DeviceHandler;
 
 #[derive(PartialEq)]
@@ -14,23 +15,29 @@ enum DeviceState {
 
 pub struct Device {
   state: DeviceState,
-  interface: Box<dyn DeviceInterface+'static>,
+  interface: Option<Box<Interface>>,
   buffer: VecDeque<u8>,
   handler: Box<dyn DeviceHandler+'static>
 }
 
 impl Device {
-  pub fn new(mut interface: Box<dyn DeviceInterface+'static>, mut handler: Box<dyn DeviceHandler+'static>) -> Device {
+  pub fn new(handler: Box<dyn DeviceHandler+'static>) -> Device {
     Device { 
-      state: DeviceState::Open, 
-      interface: interface, 
+      state: DeviceState::Closed, 
+      interface: None, 
       buffer: VecDeque::new(),
       handler: handler
     }
   }
 
+  pub fn open(&mut self, interface: Box<Interface>) {
+    self.interface = Some(interface);
+    self.state = DeviceState::Open;
+  }
+
   pub fn is_ready(&self) -> bool {
-    return DeviceState::Error != self.state && DeviceState::Closed != self.state && self.interface.is_open();
+    return self.interface.is_some() && DeviceState::Error != self.state && 
+      DeviceState::Closed != self.state;
   }
 
   fn has_string(&self, string: &[u8]) -> bool {
@@ -48,13 +55,18 @@ impl Device {
   pub fn read_request(&mut self) -> Result<Option<Request>> {
     let mut data = [0u8; 256];
     
-    let n = self.interface.read(&mut data)?;
+    let n = self.interface.as_mut()
+      .ok_or(Error::new(ErrorKind::NotConnected, "No interface set."))?
+      .read(&mut data)?;
     self.buffer.extend(data[..n].iter());
 
     if DeviceState::Open == self.state {
       if self.has_string(b"PROGRAM") {
         self.buffer.drain(..7);
         return Ok(Some(Request::program()));
+      } else if 0 != self.buffer.len() {
+        let line = self.buffer.iter().map(|x| format!("{:02x}", x)).fold(String::new(), |a, b| a+" "+&b);
+        return Err(Error::new(ErrorKind::Other, format!("Unknown request: {}.", line)));
       }
     } else if DeviceState::Program == self.state {
       if (self.buffer.len() >= 1) && (0x02 == self.buffer[0]) {
@@ -75,17 +87,19 @@ impl Device {
           address, 
           payload)));      
       } else if self.has_string(b"END") {
+        self.buffer.drain(..3);
         return Ok(Some(Request::end()));
       } else if 0 != self.buffer.len() {
         let line = self.buffer.iter().map(|x| format!("{:02x}", x)).fold(String::new(), |a, b| a+" "+&b);
-        return Err(Error::new(ErrorKind::Other, format!("Unkown request: {}.", line)));
+        return Err(Error::new(ErrorKind::Other, format!("Unknown request: {}.", line)));
       }
     }
 
+    debug!("No packet read, {}b in buffer.", self.buffer.len());
     Ok(None)
   }
 
-  pub fn process(&mut self, request : & Request) -> Result<Option<Response>> {
+  pub fn process(&mut self, request : &Request) -> Result<Option<Response>> {
     if DeviceState::Open == self.state {
       if RequestType::Program == request.request_type {
         self.state = DeviceState::Program;
@@ -110,6 +124,7 @@ impl Device {
         debug!("End of transfer.");
         self.handler.end()?;
         self.state = DeviceState::Closed;
+        self.interface = None;
         return Ok(None);
       }
     }
@@ -118,8 +133,9 @@ impl Device {
   }
 
   pub fn send_response(&mut self, response: &Response) -> Result<()> {
-    self.interface.write(&(response.packet))?;
-
+    self.interface.as_mut()
+      .ok_or(Error::new(ErrorKind::NotConnected, "No interface set."))? 
+      .write(&(response.packet))?;
     Ok(())
   }
 }

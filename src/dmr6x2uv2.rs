@@ -1,14 +1,15 @@
 use crate::devicehandler::DeviceHandler;
+use crate::writer::Writer;
 use std::io::{Result, Error, ErrorKind};
 
 pub struct DMR6X2UV2 {
-  current_write_address : u32
+  writer: Option<Box<dyn Writer + 'static>>
 }
 
 impl DMR6X2UV2 {
-  pub fn new() -> Self {
+  pub fn new(writer : Option<Box<dyn Writer + 'static>>) -> Self {
     DMR6X2UV2 {
-      current_write_address : 0
+      writer: writer
     }
   }
 }
@@ -61,12 +62,16 @@ impl DeviceHandler for DMR6X2UV2 {
   }
 
   fn write(&mut self, address: u32, payload : &[u8;16]) -> Result<()> {
-    if self.current_write_address != address {
-      println!("--------------------------------------------------------");
+    self.writer.as_mut()
+      .ok_or(Error::new(ErrorKind::Other, "No writer specified."))?
+      .write(address, payload)?;
+    Ok(())
+  }
+
+  fn end(&mut self) -> Result<()> {
+    if let Some(writer) = self.writer.as_mut() {
+      writer.reset()?
     }
-    let line = payload.iter().map(|x| format!("{:02x}", x)).fold(String::new(), |a, b| a+" "+&b);
-    println!("{:08x}: {}",address, line);
-    self.current_write_address = address + 16;
     Ok(())
   }
 }

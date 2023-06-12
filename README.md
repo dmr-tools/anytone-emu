@@ -53,10 +53,14 @@ the device within the CPS.
 There are several CPSs, which do not appear to run easily under wine. This table collects which 
 CPSs appear to work with wine.
 
- | CPS                       | Version | Wine 6     | Wine 8     |
- | ------------------------- | ------- | ---------- | ---------- |
- | AnyTone D878UV 3.02n      | 3.02n   | no         | crashes    |
- | BTECH DMR-6X2UV Pro 1.01k | 1.01k   | yes        | not tested |
+ | CPS                  | Version | Wine 6     | Wine 8     | Remark                           |
+ | ---------------------| ------- | ---------- | ---------- | -------------------------------- |
+ | AnyTone D868UVE      | 1.40    | not tested | yes        |                                  |
+ | AnyTone D878UV       | 3.02n   | no         | crashes    |                                  |
+ | AnyTone D878UV II    | 3.02n   | not tested | crashes    |                                  |
+ | AnyTone D578UV (II)  | 1.18    | not tested | crashes    |                                  |
+ | BTECH DMR-6X2UV      | 2.04    | not tested | yes        |                                  |
+ | BTECH DMR-6X2UV Pro  | 1.01k   | yes        | not tested |                                  |
 
 
 ## Anytone protocol

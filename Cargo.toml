@@ -10,4 +10,5 @@ clap = { version = "4.3.2", features = ["derive"] }
 home = "0.5.5"
 log = "0.4.18"
 nix = "0.26.2"
+serialport = "4.2.1"
 stderrlog = "0.5.4"
