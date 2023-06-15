@@ -1,6 +1,6 @@
 use crate::writer::Writer;
 use std::fs::File;
-use std::io::{Result, Error, ErrorKind, Write};
+use std::io::{Result, Write};
 
 pub struct HexWriter {
   prefix : String,

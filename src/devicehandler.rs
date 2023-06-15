@@ -1,9 +1,4 @@
-use std::io::{Result, Error, ErrorKind};
-
-use nix::NixPath;
-
-use crate::reader::Reader;
-use crate::writer::Writer;
+use std::io::Result;
 
 pub trait DeviceHandler {
   fn model(&self) -> &[u8; 6];

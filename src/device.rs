@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-use std::io::{Read, Write};
 use std::collections::VecDeque;
 use log::{error, info, debug};
 use std::io::{Result, Error, ErrorKind};

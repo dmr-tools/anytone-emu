@@ -7,7 +7,7 @@ the manufacturer CPS in wine, eliminating the need for a windows VM.
 
 
 ## Build & install
-Being a pure Rust application, the build and install process is straigt forward. First, install 
+Being a pure Rust application, the build and install process is straight forward. First, install 
 `cargo`, the Rust library manager. E.g.
 ```
 > sudo apt-get install cargo 
@@ -33,7 +33,7 @@ will create a pseudo-terminal and connect the emulation of a BTECH DMR-6X2UV to 
 then linked to `~/.local/share/anytone-emu/anytoneport`. From there, your CPS can access it through
 wine.
 
-To expose this PTY to applicaions running under wine, run
+To expose this PTY to applications running under wine, run
 ```
 > wine regedit
 ```
@@ -63,11 +63,28 @@ CPSs appear to work with wine.
  | BTECH DMR-6X2UV Pro  | 1.01k   | yes        | not tested |                                  |
 
 
-## Anytone protocol
-The AnyTone protocol follows a strict request/response pattern. The host (computer) sends a request 
-to the device, which will send a response back. 
+## Command line options
+  - `--help` -- Obvious help message.
+  - `--version` -- Show version number
+  - `--debug` -- Enables debug messages.
+  - `--interface=IF` -- Specifies the interface to the CPS. This is either `wine` or `comX`. The 
+    former will create a PTY pair and link `$HOME/.local/share/anytone-emu/anytoneport` to it. This
+    then allows to set this PTY as a COM port in the wine `regedit`. If `anytone-emu` is run under 
+    windows, a null-modem emulator (e.g., [com2com](https://com0com.sourceforge.net/)) can be used
+    to connect the CPS to the emulator. In this case, the null-modem emulator will create two 
+    virtual COM ports. One is passed to `anytone-emu` as `comX` the other is set in the CPS.
+  - `--radio=DEVICE_ID` -- Specifies which radio to emulate. Must be one of `d868uve`, `d878uv`, 
+    `d878uv2`, `d578uv`, `d578uv2`, `dmr6x2uv` or `dmr6x2uv2`.
+  - `--output=FORMAT` -- Specifies the output format. For now, only `hex` is implemented. It will 
+    dump the received codeplug as a series of hex-files. (see `--single`)
+  - `--prefix=PREFIX` -- Specifies the output file name prefix. 
+  - `--single` -- Enables single codeplug reception. Only receives a single codeplug and exits the 
+    programm.
+  - `--source=DFU_FILE` -- (not implemented yet) Specifies the DFU file, to read the codeplug from. 
+    In future, this will allow to test the decoding of generated codeplugs with the manufacturer 
+    CPS. 
 
-
+    
 ## License
 anytone-emu  Copyright (C) 2023  Hannes Matuschek
 

@@ -2,10 +2,9 @@ use std::io::{Read, Write};
 
 use serialport::SerialPort;
 use std::fs::DirBuilder;
-use std::os::unix::io::AsRawFd;
 use std::io::{Result, Error, ErrorKind};
 use nix::pty::{posix_openpt, ptsname_r, PtyMaster, grantpt, unlockpt};
-use nix::fcntl::{OFlag, fcntl, F_GETFD};
+use nix::fcntl::OFlag;
 use home;
 use log::debug;
 

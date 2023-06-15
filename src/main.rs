@@ -77,10 +77,10 @@ fn main() {
     writer = Some(Box::new(HexWriter::new(&args.prefix).unwrap()));
   } 
 
-  /// TODO: Dispatch by source
+  // TODO: Dispatch by source
   
   // Dispatch by device ID
-  let mut handler: Box<dyn DeviceHandler>; 
+  let handler: Box<dyn DeviceHandler>; 
   if "d578uv" == radio_id {
     debug!("Emulate AnyTone D578UV.");
     handler = Box::new(D578UV::new(writer));

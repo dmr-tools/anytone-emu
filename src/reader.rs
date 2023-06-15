@@ -1,7 +1,6 @@
-use std::io::{Result, Error, ErrorKind};
-use std::io::Read;
+use std::io::Result;
 
-pub trait Reader : Drop {
+pub trait Reader {
   fn read(&mut self, addr : u32) -> Result<[u8;16]>;
 }
 

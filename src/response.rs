@@ -1,9 +1,6 @@
 
-use std::io::{Result, Error, ErrorKind};
 use std::num::Wrapping;
 use core::cmp::min;
-
-use nix::NixPath;
 
 fn crc(data: &[u8]) -> u8 {
   let mut crc = Wrapping::<u8>(0);
