@@ -3,6 +3,7 @@ use crate::interface::Interface;
 use crate::{device::Device};
 use crate::{d868uve::D868UVE, d878uv::D878UV, d878uv2::D878UV2, d578uv::D578UV, d578uv2::D578UV2};
 use crate::{dmr6x2uv::DMR6X2UV, dmr6x2uv2::DMR6X2UV2};
+use crate::{djmd5::DJMD5, djmd5x::DJMD5X};
 use crate::{writer::Writer, hexwriter::HexWriter, reader::Reader};
 
 use log::{info, debug};
@@ -24,6 +25,9 @@ pub mod d578uv;
 pub mod d578uv2;
 pub mod dmr6x2uv;
 pub mod dmr6x2uv2;
+pub mod djmd5;
+pub mod djmd5x;
+
 
 #[derive(Parser)]
 #[command(author="Hannes Matuschek <dm3mat [at] darc [dot] de>", 
@@ -37,7 +41,7 @@ struct Args {
   #[arg(long, default_value="wine")]
   interface: String,
   /// Specifies the radio to emulate. Must be one of "d868uve", "d878uv", "d878uv2", "d578uv", 
-  /// "d578uv2", "dmr6x2uv", "dmr6x2uv2".
+  /// "d578uv2", "dmr6x2uv", "dmr6x2uv2, djmd5".
   #[arg(long)]
   radio: String,
   /// Specifies the way, the received codeplug is stored. Must be either "hex" or "dfu".
@@ -102,6 +106,12 @@ fn main() {
   } else if "dmr6x2uv2" == radio_id {
     debug!("Emulate BTECH DMR-6X2UV PRO.");
     handler = Box::new(DMR6X2UV2::new(writer));
+  } else if "djmd5" == radio_id {
+    debug!("Emulate Alinco DJ-MD-5.");
+    handler = Box::new(DJMD5::new(writer));
+  } else if "djmd5x" == radio_id {
+    debug!("Emulate Alinco DJ-MD-5X.");
+    handler = Box::new(DJMD5X::new(writer));
   } else {
     panic!("Unknown radio ID '{}'", args.radio);
   }
