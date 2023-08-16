@@ -22,7 +22,7 @@ protected:
 public:
   explicit Device(QIODevice *interface, QObject *parent = nullptr);
 
-  virtual QByteArray deviceId() const = 0;
+  virtual QByteArray model() const = 0;
   virtual QByteArray hwVersion() const = 0;
 
   virtual QByteArray read(uint32_t addr, uint8_t len);

@@ -1,12 +1,18 @@
-IF (WINDOWS)
-ELSE (WINDOWS)
-ENDIF(WINDOWS)
+if (UNIX)
+  SET(PTY_SOURCE pseudoterminalposix.cc)
+  SET(PTY_HEADER pseudoterminalposix.hh)
+elseif(WIN32)
+  SET(PTY_SOURCE pseudoterminaldummy.cc)
+  SET(PTY_HEADER pseudoterminaldummy.hh)
+endif(UNIX)
 
 SET(libanytone-emu_SOURCES
     request.cc response.cc
-    device.cc)
+    device.cc ${PTY_SOURCE} logger.cc
+    d868uv.cc d868uve.cc dmr6x2uv2.cc)
 SET(libanytone-emu_MOC_HEADERS
-    device.hh)
+    device.hh ${PTY_HEADER} logger.hh
+    d868uv.hh d868uve.hh dmr6x2uv2.hh)
 SET(libanytone-emu_HEADERS
     request.hh response.hh)
 

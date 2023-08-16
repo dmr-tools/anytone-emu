@@ -58,6 +58,9 @@ class ReadRequest: public Request
 public:
   ReadRequest(uint32_t addr, uint8_t len);
 
+  inline uint32_t address() const { return _addr; }
+  inline uint8_t length() const { return _len; }
+
 protected:
   uint32_t _addr;
   uint8_t  _len;
@@ -67,7 +70,10 @@ protected:
 class WriteRequest: public Request
 {
 public:
-  WriteRequest(uint32_t addr, const QByteArray &payload, uint16_t crc);
+  WriteRequest(uint32_t addr, const QByteArray &payload);
+
+  inline uint32_t address() const { return _addr; }
+  inline const QByteArray &payload() const { return _payload; }
 
 protected:
   uint32_t   _addr;

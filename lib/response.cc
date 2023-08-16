@@ -51,6 +51,7 @@ bool
 DeviceInfoResponse::serialize(QByteArray &buffer) {
   buffer.append("ID");
   buffer.append(_model.left(6));
+  buffer.append('\x00');
   buffer.append(_hwVersion.left(6));
   buffer.append("\x06");
   return true;
@@ -68,11 +69,12 @@ ReadResponse::ReadResponse(uint32_t addr, const QByteArray payload)
 
 bool
 ReadResponse::serialize(QByteArray &buffer) {
+  uint32_t addr = qToBigEndian(_address);
   buffer.append("W");
-  buffer.append(QByteArray::number(qToBigEndian(_address)));
-  buffer.append((char)buffer.length());
+  buffer.append(QByteArray::fromRawData((char*) &addr, 4));
+  buffer.append((char)_payload.length());
   buffer.append(_payload);
-  buffer.append(crc8(buffer.left(5+_payload.length())));
+  buffer.append(crc8(buffer.right(5+_payload.length())));
   buffer.append("\x06");
   return true;
 }
