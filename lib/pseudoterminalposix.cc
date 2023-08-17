@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <QString>
 #include <QFileInfo>
+#include <QDir>
 #include "logger.hh"
 
 
@@ -60,6 +61,12 @@ PseudoTerminal::PseudoTerminal(const QString &symLink, QObject *parent)
     logWarn() << "Remove exisiting symling at '" << _symLink << "'.";
     QFile::remove(_symLink);
   }
+  QDir directory = symLinkInfo.absoluteDir();
+  if (! directory.exists()) {
+    logDebug() << "Create directory '" << directory.path() << "'.";
+    directory.mkpath(".");
+  }
+
   // (re-) create symlink to PTY
   logInfo() << "Create symlink at '" << _symLink << "' to '" << _path << "'.";
   if (! QFile::link(_path, _symLink)) {

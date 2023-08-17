@@ -1,9 +1,11 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
+#include <QDir>
 
-#include "pseudoterminalposix.hh"
+#include "pseudoterminal.hh"
 #include "dmr6x2uv2.hh"
 #include "logger.hh"
+#include "model.hh"
 
 int
 main(int argc, char *argv[])
@@ -23,8 +25,9 @@ main(int argc, char *argv[])
 
   parser.process(app);
 
-  PseudoTerminal pty("/home/hannes/.local/share/anytone-emu/anytoneport");
-  DMR6X2UV2 device(&pty);
+  ImageCollector *model = new ImageCollector();
+  QString portFile = QDir::home().absoluteFilePath(".local/share/anytone-emu/anytoneport");
+  DMR6X2UV2 device(new PseudoTerminal(portFile), model);
 
   app.exec();
 

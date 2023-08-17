@@ -1,7 +1,7 @@
 #include "d868uv.hh"
 
-D868UV::D868UV(QIODevice *interface, QObject *parent)
-  : Device{interface, parent}
+D868UV::D868UV(QIODevice *interface, Model* model, QObject *parent)
+  : Device{interface, model, parent}
 {
   // pass...
 }

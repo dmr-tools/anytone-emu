@@ -1,5 +1,5 @@
-#ifndef PSEUDOTERMINAL_HH
-#define PSEUDOTERMINAL_HH
+#ifndef PSEUDOTERMINALPOSIX_HH
+#define PSEUDOTERMINALPOSIX_HH
 
 #include <QIODevice>
 #include <QSocketNotifier>
@@ -31,4 +31,4 @@ protected:
   QSocketNotifier *_readNotifier;
 };
 
-#endif // PSEUDOTERMINAL_HH
+#endif // PSEUDOTERMINALPOSIX_HH

@@ -8,7 +8,7 @@ class DMR6X2UV2 : public Device
   Q_OBJECT
 
 public:
-  explicit DMR6X2UV2(QIODevice *interface, QObject *parent = nullptr);
+  explicit DMR6X2UV2(QIODevice *interface, Model *model = nullptr, QObject *parent = nullptr);
 
   QByteArray model() const;
   QByteArray hwVersion() const;

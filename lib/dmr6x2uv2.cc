@@ -1,7 +1,7 @@
 #include "dmr6x2uv2.hh"
 
-DMR6X2UV2::DMR6X2UV2(QIODevice *interface, QObject *parent)
-  : Device{interface, parent}
+DMR6X2UV2::DMR6X2UV2(QIODevice *interface, Model *model, QObject *parent)
+  : Device{interface, model, parent}
 {
   // pass...
 }

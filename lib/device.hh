@@ -6,7 +6,7 @@
 class QIODevice;
 class Request;
 class Response;
-
+class Model;
 
 
 /** Abstract base class for all emulated devices. */
@@ -20,13 +20,17 @@ protected:
   };
 
 public:
-  explicit Device(QIODevice *interface, QObject *parent = nullptr);
+  explicit Device(QIODevice *interface, Model *model =nullptr, QObject *parent = nullptr);
 
   virtual QByteArray model() const = 0;
   virtual QByteArray hwVersion() const = 0;
 
-  virtual QByteArray read(uint32_t addr, uint8_t len);
+  virtual bool read(uint32_t addr, uint8_t len, QByteArray &payload);
   virtual bool write(uint32_t addr, const QByteArray &data);
+
+signals:
+  void startProgram();
+  void endProgram();
 
 protected:
   virtual Response *handle(Request *request);
@@ -38,6 +42,7 @@ protected slots:
 protected:
   State _state;
   QIODevice *_interface;
+  Model *_model;
 
   /** Internal receive buffer. */
   QByteArray _in_buffer;

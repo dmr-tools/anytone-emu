@@ -8,7 +8,7 @@ class D868UV : public Device
   Q_OBJECT
 
 public:
-  explicit D868UV(QIODevice *interface, QObject *parent = nullptr);
+  explicit D868UV(QIODevice *interface, Model *model = nullptr, QObject *parent = nullptr);
 
   QByteArray model() const;
   QByteArray hwVersion() const;
