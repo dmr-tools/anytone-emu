@@ -55,6 +55,27 @@ ImageCollector::image(unsigned int idx) const {
   return _images.at(idx);
 }
 
+const Image *
+ImageCollector::first() const {
+  if (0 == count())
+    return nullptr;
+  return _images.first();
+}
+
+const Image *
+ImageCollector::last() const {
+  if (0 == count())
+    return nullptr;
+  return _images.last();
+}
+
+const Image *
+ImageCollector::previous() const {
+  if (1 >= count())
+    return nullptr;
+  return _images.at(count()-2);
+}
+
 bool
 ImageCollector::write(uint32_t address, const QByteArray &payload) {
   if (0 == count()) {

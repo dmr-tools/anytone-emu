@@ -7,14 +7,14 @@ elseif(WIN32)
 endif(UNIX)
 
 SET(libanytone-emu_SOURCES
-    request.cc response.cc
+    request.cc response.cc hexdump.cc
     device.cc ${PTY_SOURCE} logger.cc model.cc image.cc imagedifference.cc
     d868uv.cc d868uve.cc dmr6x2uv2.cc)
 SET(libanytone-emu_MOC_HEADERS
     device.hh ${PTY_HEADER} logger.hh model.hh image.hh imagedifference.hh
     d868uv.hh d868uve.hh dmr6x2uv2.hh)
 SET(libanytone-emu_HEADERS pseudoterminal.hh
-    request.hh response.hh)
+    request.hh response.hh hexdump.hh)
 
 
 configure_file(config.hh.in ${PROJECT_BINARY_DIR}/lib/config.hh)

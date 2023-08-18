@@ -115,6 +115,16 @@ ImageDifference::ImageDifference(const Image* a, const Image* b, QObject *parent
   }
 }
 
+unsigned int
+ImageDifference::count() const {
+  return _differences.count();
+}
+
+const ElementDifference *
+ImageDifference::diff(unsigned int n) const {
+  return _differences.at(n);
+}
+
 void
 ImageDifference::onImageDeleted(QObject *obj) {
   if (_a == obj) {

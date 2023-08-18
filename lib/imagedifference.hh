@@ -11,6 +11,7 @@ class ElementDifference: public QObject
 protected:
   explicit ElementDifference(const Element *left=nullptr, const Element *right=nullptr, QObject *parent=nullptr);
 
+public:
   template <class T>
   bool is() const {
     return nullptr != dynamic_cast<const T*>(this);
@@ -90,13 +91,15 @@ class ImageDifference:  public QObject
 public:
   explicit ImageDifference(const Image *a, const Image *b, QObject *parent = nullptr);
 
+  unsigned int count() const;
+  const ElementDifference *diff(unsigned int n) const;
+
 protected slots:
   void onImageDeleted(QObject *img);
 
 protected:
   const Image *_a, *_b;
   QVector<ElementDifference*> _differences;
-
 };
 
 #endif // IMAGEDIFFERENCE_HH

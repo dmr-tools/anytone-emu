@@ -34,6 +34,10 @@ public:
   unsigned int count() const;
   const Image *image(unsigned int n) const;
 
+  const Image *first() const;
+  const Image *last() const;
+  const Image *previous() const;
+
 public slots:
   void startProgram();
   void endProgram();

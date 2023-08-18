@@ -116,9 +116,12 @@ PseudoTerminal::writeData(const char *data, qint64 maxLen) {
 
 void
 PseudoTerminal::onReady(QSocketDescriptor socket, QSocketNotifier::Type type) {
+  Q_UNUSED(socket)
+
   if (QSocketNotifier::Read == type) {
     emit readyRead();
   } else if (QSocketNotifier::Write == type) {
 
   }
 }
+
