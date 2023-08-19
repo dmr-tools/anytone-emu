@@ -21,12 +21,12 @@ protected:
   qint64 readData(char *data, qint64 maxSize);
   qint64 writeData(const char *data, qint64 maxSize);
 
-protected slots:
-  void onReady(QSocketDescriptor socket, QSocketNotifier::Type type);
+  bool reopen();
 
 protected:
+  int _flags;
   int _dom;
-  QString _path;
+  QString _subPath;
   QString _symLink;
   QSocketNotifier *_readNotifier;
 };

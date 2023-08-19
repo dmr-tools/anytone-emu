@@ -84,7 +84,7 @@ Image::Image(QObject *parent)
 
 unsigned int
 Image::count() const {
-  return _elements.count();
+  return _elements.size();
 }
 
 const Element *

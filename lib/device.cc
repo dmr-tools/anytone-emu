@@ -16,7 +16,7 @@ Device::Device(QIODevice *interface, Model* model, QObject *parent)
   connect(_interface, SIGNAL(bytesWritten(qint64)), this, SLOT(onBytesWritten()));
 
   if (! _interface->open(QIODevice::ReadWrite)) {
-    logError() << "Cannot open interface.";
+    logError() << "Cannot open interface: " << _interface->errorString();
     disconnect(_interface, &QIODevice::readyRead, this, &Device::onBytesAvailable);
     disconnect(_interface, &QIODevice::bytesWritten, this, &Device::onBytesWritten);
   }

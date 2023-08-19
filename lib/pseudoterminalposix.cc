@@ -10,36 +10,66 @@
 
 
 PseudoTerminal::PseudoTerminal(const QString &symLink, QObject *parent)
-  : QIODevice{parent}, _dom(-1), _path(), _symLink(symLink), _readNotifier(nullptr)
+  : QIODevice{parent}, _flags(O_NOCTTY|O_NONBLOCK), _dom(-1), _subPath(), _symLink(symLink),
+    _readNotifier(nullptr)
 {
-  if (0 > (_dom = ::posix_openpt(O_RDWR|O_NOCTTY))) {
-    logError() << "Cannot open dom PTY: " << strerror(errno);
-    return;
+  // pass...
+}
+
+bool
+PseudoTerminal::open(OpenMode mode)
+{
+  _flags = O_NOCTTY|O_NONBLOCK;
+  if ((mode & QIODevice::ReadOnly) && !(mode & QIODevice::WriteOnly))
+    _flags |= O_RDONLY;
+  else if ((mode & QIODevice::WriteOnly) && !(mode & QIODevice::ReadOnly))
+    _flags |= O_WRONLY;
+  else if ((mode & QIODevice::WriteOnly) && (mode & QIODevice::ReadOnly))
+    _flags |= O_RDWR;
+
+  if (reopen()) {
+    QIODevice::open(mode);
+    return true;
   }
 
-  if (0 > ::fcntl(_dom, F_SETFL, O_NONBLOCK)) {
-    logError() << "Cannot set file properties: " << strerror(errno);
-    ::close(_dom); _dom = -1;
-    return;
+  return false;
+}
+
+bool
+PseudoTerminal::reopen()
+{
+  logDebug() << "(Re-)open pty.";
+  if (_dom > 0) {
+    logDebug() << "Close pty.";
+    _readNotifier->setEnabled(false);
+    delete _readNotifier;
+    _readNotifier = nullptr;
+    ::close(_dom);
+    _dom = -1;
+  }
+
+  if (0 > (_dom = ::posix_openpt(_flags))) {
+    setErrorString(QString("Cannot open dom PTY: %1.").arg(strerror(errno)));
+    return false;
   }
 
   if (0 > ::grantpt(_dom)) {
-    logError() << "Cannot pepare sub PTY: " << strerror(errno);
+    setErrorString(QString("Cannot pepare sub PTY: %1.").arg(strerror(errno)));
     ::close(_dom); _dom = -1;
-    return;
+    return false;
   }
 
   if (0 > ::unlockpt(_dom)) {
-    logError() << "Cannot unlock sub PTY: " << strerror(errno);
+    setErrorString(QString("Cannot unlock sub PTY: %1.").arg(strerror(errno)));
     ::close(_dom); _dom = -1;
-    return;
+    return false;
   }
 
   char name[256];
   if (0 > ::ptsname_r(_dom, name, sizeof(name))) {
-    logError() << "Cannot obtain sub PTY path: " << strerror(errno);
+    setErrorString(QString("Cannot obtain sub PTY path: %1.").arg(strerror(errno)));
     ::close(_dom); _dom = -1;
-    return;
+    return false;
   }
 
   logInfo() << "Got pty at '" << name << "', binding to '" << ::ttyname(_dom) << "'.";
@@ -47,20 +77,26 @@ PseudoTerminal::PseudoTerminal(const QString &symLink, QObject *parent)
   _readNotifier = new QSocketNotifier(_dom, QSocketNotifier::Read, this);
   _readNotifier->setEnabled(false);
 
-  connect(_readNotifier, &QSocketNotifier::activated, this, &PseudoTerminal::onReady);
-
-  _path = QFileInfo(name).absoluteFilePath();
+  connect(_readNotifier, &QSocketNotifier::activated, this, &PseudoTerminal::readyRead);
+  _readNotifier->setEnabled(true);
 
   // Check if symlink is given:
   if (_symLink.isEmpty())
-    return;
+    return true;
+
+  QFileInfo symLinkInfo(_symLink);
+  _subPath = QFileInfo(name).absoluteFilePath();
+  if (symLinkInfo.isSymLink() && (symLinkInfo.symLinkTarget() == _subPath)) {
+    logInfo() << "Reuse existing symlink " << _symLink << " -> " << _subPath << ".";
+    return true;
+  }
 
   // Remove existing symlink
-  QFileInfo symLinkInfo(_symLink);
   if (symLinkInfo.exists() || symLinkInfo.isSymLink()) {
-    logWarn() << "Remove exisiting symling at '" << _symLink << "'.";
+    logDebug() << "Remove exisiting symling at '" << _symLink << "'.";
     QFile::remove(_symLink);
   }
+
   QDir directory = symLinkInfo.absoluteDir();
   if (! directory.exists()) {
     logDebug() << "Create directory '" << directory.path() << "'.";
@@ -68,15 +104,20 @@ PseudoTerminal::PseudoTerminal(const QString &symLink, QObject *parent)
   }
 
   // (re-) create symlink to PTY
-  logInfo() << "Create symlink at '" << _symLink << "' to '" << _path << "'.";
-  if (! QFile::link(_path, _symLink)) {
-    logError() << "Cannot create symlink from '" << _path << "' to '" << _symLink << "'.";
+  logInfo() << "Create symlink '" << _symLink << "' -> '" << _subPath << "'.";
+  if (! QFile::link(_subPath, _symLink)) {
+    logWarn() << "Cannot create symlink '" << _symLink << "' to '" << _subPath
+              << "'. You may need to use the sub pty " << _subPath << ".";
   }
+
+  return true;
 }
 
 PseudoTerminal::~PseudoTerminal() {
-  if (isOpen())
+  if (isOpen()) {
     ::close(_dom);
+    _dom = -1;
+  }
 }
 
 bool
@@ -84,44 +125,50 @@ PseudoTerminal::isSequential() const {
   return true;
 }
 
-bool
-PseudoTerminal::open(OpenMode mode) {
-  if (0 > _dom)
-    return false;
-
-  if (! QIODevice::open(mode))
-    return false;
-
-  _readNotifier->setEnabled(true);
-
-  return true;
-}
-
 void
 PseudoTerminal::close() {
+  logDebug() << "Close pty.";
   _readNotifier->setEnabled(false);
-  ::close(_dom); _dom = -1;
+  delete _readNotifier;
+  _readNotifier = nullptr;
+
+  ::close(_dom);
+  _dom = -1;
+
+  QIODevice::close();
 }
 
 qint64
 PseudoTerminal::readData(char *data, qint64 maxLen) {
-  return ::read(_dom, data, maxLen);
+  int n = ::read(_dom, data, maxLen);
+
+  if (n > 0)
+    logDebug() << "Read " << n << " of " << maxLen << "b from pty: "
+               << QByteArray(data, n).toHex();
+
+  if ((n < 0) && (EIO == errno)) {
+    logDebug() << "Client side may closed the pty. Reopen.";
+    setErrorString(QString("Cannot read from pty (%1): %2").arg(errno).arg(::strerror(errno)));
+    _readNotifier->setEnabled(false);
+    this->reopen();
+  } else if ((n<0) && (EAGAIN == errno)) {
+    // pass...
+  } else if (n < 0) {
+    setErrorString(QString("Cannot read from pty (%1): %2").arg(errno).arg(::strerror(errno)));
+    logError() << errorString() << " Reopen.";
+    _readNotifier->setEnabled(false);
+    this->reopen();
+  }
+
+  return n;
 }
 
 qint64
 PseudoTerminal::writeData(const char *data, qint64 maxLen) {
-  qint64 nWritten = ::write(_dom, data, maxLen);
-  return nWritten;
+  int n = ::write(_dom, data, maxLen);
+
+  if (n < 0)
+    setErrorString(QString("Cannot write to pyt: %1.").arg(strerror(errno)));
+
+  return n;
 }
-
-void
-PseudoTerminal::onReady(QSocketDescriptor socket, QSocketNotifier::Type type) {
-  Q_UNUSED(socket)
-
-  if (QSocketNotifier::Read == type) {
-    emit readyRead();
-  } else if (QSocketNotifier::Write == type) {
-
-  }
-}
-
