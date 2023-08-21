@@ -1,7 +1,7 @@
 Source: anytone-emu
 Priority: optional
 Maintainer: Hannes Matuschek <dm3mat@darc.de>
-Build-Depends: debhelper (>= 11), cmake, xsltproc, docbook-xsl, qtbase6-dev, qttools6-dev, qttools6-dev-tools, libqt6serialport6-dev, libyaml-cpp-dev
+Build-Depends: debhelper (>= 11), cmake, xsltproc, docbook-xsl, qt6-base-dev, qt6-serialport-dev, libyaml-cpp-dev
 Standards-Version: 4.6.2
 Section: hamradio
 Vcs-Browser: https://github.com/hmatuschek/anytone-emu
