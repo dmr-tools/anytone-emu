@@ -1,0 +1,33 @@
+Source: anytone-emu
+Priority: optional
+Maintainer: Hannes Matuschek <dm3mat@darc.de>
+Build-Depends: debhelper (>= 11), cmake, xsltproc, docbook-xsl, qtbase6-dev, qttools6-dev, qttools6-dev-tools, libqt6serialport6-dev, libyaml-cpp-dev
+Standards-Version: 4.6.2
+Section: hamradio
+Vcs-Browser: https://github.com/hmatuschek/anytone-emu
+Vcs-Git: https://github.com/hmatuschek/anytone-emu.git
+Homepage: https://dm3mat.darc.de/qdmr
+
+Package: libanytone-emu-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: libanytone-emu0 (= ${binary:Version}), ${misc:Depends}
+Description: Header files for libanytone-emu.
+
+Package: libanytone-emu0
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Library to emulate AnyTone devices.
+
+Package: anytone-emu-gui
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: GUI to emulate AnyTone devices.
+
+Package: anytone-emu
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Command-line tool to emulate AnyTone devices.
+
