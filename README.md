@@ -2,22 +2,12 @@
 
 This little program emulates several AnyTone devices, such that codeplugs written by the 
 manufacturer CPS, can be captured and analyzed. For the maximum convenience, this tool generates
-a pair of pseudo-terminals, that can be exposed as COM ports to wine. This then, allows for running
+a pair of pseudo-terminals, that can be exposed as COM ports to wine. This allows for running
 the manufacturer CPS in wine, eliminating the need for a windows VM. 
 
 
 ## Build & install
-Being a pure Rust application, the build and install process is straight forward. First, install 
-`cargo`, the Rust library manager. E.g.
-```
-> sudo apt-get install cargo 
-```
-
-Then checkout the sources and enter the directory. Then simply call
-```
-anytone-emu> cargo run -- --radio=dmr6x2uv2 
-```
-
+This 
 
 ## Usage under wine
 
@@ -66,23 +56,15 @@ CPSs appear to work with wine.
 ## Command line options
   - `--help` -- Obvious help message.
   - `--version` -- Show version number
-  - `--debug` -- Enables debug messages.
   - `--interface=IF` -- Specifies the interface to the CPS. This is either `wine` or `comX`. The 
     former will create a PTY pair and link `$HOME/.local/share/anytone-emu/anytoneport` to it. This
     then allows to set this PTY as a COM port in the wine `regedit`. If `anytone-emu` is run under 
     windows, a null-modem emulator (e.g., [com2com](https://com0com.sourceforge.net/)) can be used
     to connect the CPS to the emulator. In this case, the null-modem emulator will create two 
     virtual COM ports. One is passed to `anytone-emu` as `comX` the other is set in the CPS.
-  - `--radio=DEVICE_ID` -- Specifies which radio to emulate. Must be one of `d868uve`, `d878uv`, 
+  - `--device=DEVICE_ID` -- Specifies which radio to emulate. Must be one of `d868uve`, `d878uv`, 
     `d878uv2`, `d578uv`, `d578uv2`, `dmr6x2uv` or `dmr6x2uv2`.
-  - `--output=FORMAT` -- Specifies the output format. For now, only `hex` is implemented. It will 
-    dump the received codeplug as a series of hex-files. (see `--single`)
-  - `--prefix=PREFIX` -- Specifies the output file name prefix. 
-  - `--single` -- Enables single codeplug reception. Only receives a single codeplug and exits the 
-    programm.
-  - `--source=DFU_FILE` -- (not implemented yet) Specifies the DFU file, to read the codeplug from. 
-    In future, this will allow to test the decoding of generated codeplugs with the manufacturer 
-    CPS. 
+  - `--output=PATTERN` 
 
     
 ## License
