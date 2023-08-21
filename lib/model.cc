@@ -90,7 +90,7 @@ void
 ImageCollector::startProgram() {
   if ((0 == _images.count()) || (0 != _images.last()->count())) {
     logInfo() << "Create new image.";
-    _images.append(new Image(this));
+    _images.append(new Image(QString("Codeplug %1").arg(_images.count()), this));
   } else if (0 == _images.last()->count()) {
     logInfo() << "Reuse last image.";
   }

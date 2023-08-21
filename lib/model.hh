@@ -2,7 +2,9 @@
 #define MODEL_HH
 
 #include <QObject>
+
 class Image;
+
 
 class Model : public QObject
 {

@@ -35,8 +35,12 @@ public:
 
   unsigned int consumed() const;
   uint32_t address() const;
+
+  const QVector<Byte> &left() const;
   const Byte &left(unsigned int i) const;
   Byte &left(unsigned int i);
+
+  const QVector<Byte> &right() const;
   const Byte &right(unsigned int i) const;
   Byte &right(unsigned int i);
 
@@ -61,6 +65,8 @@ public:
 
   HexElement &operator= (const HexElement &other);
 
+  uint32_t address() const;
+
   unsigned int size() const;
   const HexLine &line(unsigned int n) const;
 
@@ -69,6 +75,7 @@ public:
 
 protected:
   QVector<HexLine> _lines;
+  uint32_t _address;
   bool _isDiff;
   bool _hasDiff;
 };

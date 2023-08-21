@@ -40,13 +40,16 @@ class Image : public QObject
   Q_OBJECT
 
 public:
-  explicit Image(QObject *parent = nullptr);
+  explicit Image(const QString &label="", QObject *parent = nullptr);
 
   unsigned int count() const;
   const Element *element(unsigned int idx) const;
 
   const uint8_t *data(uint32_t address) const;
   void append(uint32_t address, const QByteArray &data);
+
+  const QString &label() const;
+  void setLabel(const QString &label);
 
 signals:
   void modified(unsigned int image, uint32_t address);
@@ -57,7 +60,33 @@ protected:
   unsigned int findInsertionIndex(uint32_t address, unsigned int a, unsigned int b) const;
 
 protected:
+  QString _label;
   QVector<Element *> _elements;
+};
+
+
+class Collection: public QObject
+{
+  Q_OBJECT
+
+public:
+  explicit Collection(QObject *parent = nullptr);
+
+  unsigned int count() const;
+  const Image *image(unsigned int idx) const;
+  int indexOf(const Image *img) const;
+
+  void append(Image *image);
+
+signals:
+  void imageAdded(unsigned int idx);
+  void imageRemoved(unsigned int idx);
+
+protected slots:
+  void onImageDeleted(QObject *obj);
+
+protected:
+  QVector<Image *> _images;
 };
 
 

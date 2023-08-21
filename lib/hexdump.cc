@@ -90,6 +90,11 @@ HexLine::consumed() const {
   return _consumed;
 }
 
+const QVector<HexLine::Byte> &
+HexLine::left() const {
+  return _left;
+}
+
 const HexLine::Byte &
 HexLine::left(unsigned int i) const {
   return _left[i];
@@ -98,6 +103,11 @@ HexLine::left(unsigned int i) const {
 HexLine::Byte &
 HexLine::left(unsigned int i) {
   return _left[i];
+}
+
+const QVector<HexLine::Byte> &
+HexLine::right() const {
+  return _right;
 }
 
 const HexLine::Byte &
@@ -125,9 +135,9 @@ HexLine::hasDiff() const {
  * Implementation of HexElement
  * ********************************************************************************************* */
 HexElement::HexElement(const Element *element)
-  : _lines(), _isDiff(false), _hasDiff(false)
+  : _lines(), _address(element->address()), _isDiff(false), _hasDiff(false)
 {
-  uint32_t address = element->address();
+  uint32_t address = _address;
   QByteArray data = element->data();
 
   for (int offset=0; offset<data.size();) {
@@ -139,17 +149,17 @@ HexElement::HexElement(const Element *element)
 }
 
 HexElement::HexElement(const Element *left, const Element *right)
-  : _lines(), _isDiff(true), _hasDiff(false)
+  : _lines(), _address(0), _isDiff(true), _hasDiff(false)
 {
   uint32_t address;
   QByteArray left_data, right_data;
 
   if (left) {
-    address = left->address();
+    address = _address = left->address();
     left_data = left->data();
   }
   if (right) {
-    address = right->address();
+    address = _address = right->address();
     right_data = right->data();
   }
 
@@ -168,7 +178,7 @@ HexElement::HexElement(const Element *left, const Element *right)
 }
 
 HexElement::HexElement(const HexElement &other)
-  : _lines(other._lines), _isDiff(other._isDiff), _hasDiff(other._hasDiff)
+  : _lines(other._lines), _address(other._address), _isDiff(other._isDiff), _hasDiff(other._hasDiff)
 {
   // pass...
 }
@@ -176,9 +186,15 @@ HexElement::HexElement(const HexElement &other)
 HexElement &
 HexElement::operator =(const HexElement &other) {
   _lines = other._lines;
+  _address = other._address;
   _isDiff = other._isDiff;
   _hasDiff = other._hasDiff;
   return *this;
+}
+
+uint32_t
+HexElement::address() const {
+  return _address;
 }
 
 unsigned int

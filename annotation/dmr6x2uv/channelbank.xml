@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<element id="dmr6x2uv:channelbank">
+  <meta>
+  </meta>
+
+  <repeat min="0" max="128">
+
+  </repeat>
+</element>

@@ -76,8 +76,8 @@ Element::append(const QByteArray &data) {
 /* ********************************************************************************************* *
  * Implementation of Image
  * ********************************************************************************************* */
-Image::Image(QObject *parent)
-  : QObject{parent}, _elements()
+Image::Image(const QString &label, QObject *parent)
+  : QObject{parent}, _label(label), _elements()
 {
   // pass...
 }
@@ -112,6 +112,15 @@ Image::append(uint32_t address, const QByteArray &data) {
   pred->append(data);
 }
 
+const QString &
+Image::label() const {
+  return _label;
+}
+void
+Image::setLabel(const QString &label) {
+  _label = label;
+}
+
 void
 Image::add(Element *el) {
   unsigned int idx = findInsertionIndex(el->address(), 0, _elements.size());
@@ -143,4 +152,46 @@ Image::findInsertionIndex(uint32_t address, unsigned int a, unsigned int b) cons
   if (address < _elements.at(m)->address())
     return findInsertionIndex(address, a, m);
   return findInsertionIndex(address, m, b);
+}
+
+
+/* ********************************************************************************************* *
+ * Implementation of Collection
+ * ********************************************************************************************* */
+Collection::Collection(QObject *parent)
+  : QObject{parent}, _images()
+{
+  // pass...
+}
+
+unsigned int
+Collection::count() const {
+  return _images.size();
+}
+
+const Image *
+Collection::image(unsigned int idx) const {
+  return _images[idx];
+}
+
+int
+Collection::indexOf(const Image *img) const {
+  return _images.indexOf(img);
+}
+
+void
+Collection::append(Image *image) {
+  _images.append(image);
+  image->setParent(this);
+  connect(image, &QObject::destroyed, this, &Collection::onImageDeleted);
+  emit imageAdded(_images.size()-1);
+}
+
+void
+Collection::onImageDeleted(QObject *obj) {
+  int idx = _images.indexOf(qobject_cast<Image*>(obj));
+  if (idx < 0)
+    return;
+  _images.remove(idx);
+  emit imageRemoved(idx);
 }

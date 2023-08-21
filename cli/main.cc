@@ -18,6 +18,7 @@
 #include "logger.hh"
 #include "model.hh"
 #include "hexdump.hh"
+#include "config.hh"
 
 
 int
@@ -27,7 +28,7 @@ main(int argc, char *argv[])
 
   QCoreApplication app(argc, argv);
   QCoreApplication::setApplicationName("anytone-emu");
-  QCoreApplication::setApplicationVersion("0.1.0");
+  QCoreApplication::setApplicationVersion(PROJECT_VERSION);
   QCoreApplication::setOrganizationName("Hannes Matuschek");
   QCoreApplication::setOrganizationDomain("dm3mat.darc.de");
 
