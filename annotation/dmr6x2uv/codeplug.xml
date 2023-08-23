@@ -1,18 +1,83 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <codeplug sparse="true">
   <meta>
     <name>BTECH DMR-6X2</name>
-    <description></description>
-    <use src="channel.xml"/>
+    <description>Documents the codeplug format for the BTECH DMR-6X2 UV device.</description>
+    <version>1.14</version>
+    <incomplete>Some note, that this codeplug documentation is oviously not complete.</incomplete>
   </meta>
 
-  <repeat start="80000h" step="4000h" sparse="true" min="0" max="32">
+  <repeat at="80000h" step="4000h" sparse="true" min="1" max="32">
     <meta>
+      <name>Channel banks</name>
       <description>A series of channel banks.</description>
     </meta>
 
-    <repeat>
+    <repeat min="1" max="128">
+      <meta>
+        <name>Channel bank</name>
+        <description>A series of channels.</description>
+x      </meta>
+
+      <element>
+        <meta>
+          <name>Channel</name>
+          <description>Encodes a FM or DMR channel.</description>
+        </meta>
+
+        <bcd8 endian="big">
+          <meta>
+            <name>RX frequency</name>
+            <description>Encodes the RX frequency in 10Hz.</description>
+          </meta>
+        </bcd>
+
+        <bcd8 endian="big">
+          <meta>
+            <name>TX frequency offset</name>
+            <description>Encodes the RX frequency in 10Hz.</description>
+          </meta>
+        </bcd>
+
+        <enum width=":2">
+          <meta>
+            <name>Repeater mode</name>
+          </meta>
+          <item value="0">
+            <name>simplex</name>
+            <description>Transmit frequency offset is ignored. Transmit and receive frequencies are
+            the same.</description>
+          </item>
+          <item value="1">
+            <name>positive</name>
+            <description>Transmit frequency offset is positive. Transmit frequency lays above the
+            receive frequency.</description>
+          </item>
+          <item value="2">
+            <name>positive</name>
+            <description>Transmit frequency offset is negative. Transmit frequency lays below the
+            receive frequency.</description>
+          </item>
+        </enum>
+
+        <unused width=":1" value="0"/>
+
+        <enum width=":1">
+          <meta>
+            <name>Bandwidth</name>
+            <description>Specifies the FM bandwidth to use.</description>
+          </meta>
+          <item value="0">
+            <name>narrow</name>
+            <description>The FM bandwidth is set to 12.5kHz.</description>
+          </item>
+          <item value="1">
+            <name>wide</name>
+            <description>The FM bandwidth is set to 25kHz.</description>
+          </item>
+        </enum>
+      </element>
     </repeat>
   </repeat>
 
