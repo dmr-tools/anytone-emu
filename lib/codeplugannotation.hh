@@ -8,6 +8,7 @@
 
 class Image;
 class Element;
+class AbstractPattern;
 class CodeplugPattern;
 class RepeatPattern;
 class BlockPattern;
@@ -17,19 +18,19 @@ class ElementPattern;
 class FieldPattern;
 
 
-class FieldAnnotation: public QObject
+class AbstractAnnotation: public QObject
 {
   Q_OBJECT
 
+protected:
+  explicit AbstractAnnotation(const BlockPattern *pattern, const Address &addr, const Size &size, QObject *parent = nullptr);
+
 public:
-  explicit FieldAnnotation(const FieldPattern *pattern, const Address &addr, const QVariant &value, QObject *parent = nullptr);
-
-  const Address &offset() const;
-  const Size &size() const;
+  virtual const Address &offset() const;
+  virtual const Size &size() const;
   bool contains(const Address &addr) const;
-  const QVariant &value() const;
 
-  const FieldPattern *pattern() const;
+  const BlockPattern *pattern() const;
 
   QStringList path() const;
 
@@ -54,35 +55,71 @@ private slots:
 
 protected:
   Address _address;
-  const FieldPattern *_pattern;
+  Size _size;
+  const BlockPattern *_pattern;
+};
+
+
+class AnnotationCollection
+{
+protected:
+  AnnotationCollection();
+
+public:
+  bool isEmpty() const;
+  unsigned int numChildren() const;
+  const AbstractAnnotation *child(unsigned int) const;
+  AbstractAnnotation *at(const Address& addr) const;
+
+  virtual void addChild(AbstractAnnotation *annotation);
+
+protected:
+  QVector<AbstractAnnotation *> _annotations;
+};
+
+
+class StructuredAnnotation: public AbstractAnnotation, public AnnotationCollection
+{
+  Q_OBJECT
+
+public:
+  explicit StructuredAnnotation(const BlockPattern *pattern, const Address &addr, QObject *parent = nullptr);
+};
+
+
+class FieldAnnotation: public AbstractAnnotation
+{
+  Q_OBJECT
+
+public:
+  explicit FieldAnnotation(const FieldPattern *pattern, const Address &addr, const QVariant &value, QObject *parent = nullptr);
+
+  const QVariant &value() const;
+
+protected:
   QVariant _value;
 };
 
 
-class ImageAnnotation: public QObject
+class ImageAnnotation: public QObject, public AnnotationCollection
 {
   Q_OBJECT
 
 public:
   explicit ImageAnnotation(const Image *image, const CodeplugPattern *pattern, QObject *parent=nullptr);
 
-  bool isEmpty() const;
-
-  FieldAnnotation *at(const Address& addr) const;
-
 protected:
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Image *image, const CodeplugPattern *pattern);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Image *image, const RepeatPattern *pattern, const Address &address);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const BlockPattern *pattern, const Address& addr);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const BlockRepeatPattern *pattern, const Address &address);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const FixedRepeatPattern *pattern, const Address &address);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const ElementPattern *pattern, const Address &addr);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const FieldPattern *pattern, const Address &address);
+  static bool annotate(AnnotationCollection &parent, const Image *image, const CodeplugPattern *pattern);
+  static bool annotate(AnnotationCollection &parent, const Image *image, const RepeatPattern *pattern, const Address &address);
+  static bool annotate(AnnotationCollection &parent, const Element *element, const BlockPattern *pattern, const Address& addr);
+  static bool annotate(AnnotationCollection &parent, const Element *element, const BlockRepeatPattern *pattern, const Address &address);
+  static bool annotate(AnnotationCollection &parent, const Element *element, const FixedRepeatPattern *pattern, const Address &address);
+  static bool annotate(AnnotationCollection &parent, const Element *element, const ElementPattern *pattern, const Address &addr);
+  static bool annotate(AnnotationCollection &parent, const Element *element, const FieldPattern *pattern, const Address &address);
 
 protected:
   const Image *_image;
   const CodeplugPattern *_pattern;
-  QVector<FieldAnnotation *> _annotations;
 };
 
 

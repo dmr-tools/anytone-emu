@@ -36,7 +36,7 @@ AnnotationTest::annotateUnusedTest() {
 
   QVERIFY(image.annotate(codeplug));
 
-  FieldAnnotation *unk = image.annotations()->at(Address::zero());
+  FieldAnnotation *unk = image.annotations()->at(Address::zero())->;
   QVERIFY(unk->pattern()->is<UnusedFieldPattern>());
   QVERIFY(! unk->value().toByteArray().isEmpty());
   QCOMPARE(unk->value().toByteArray().at(0), 0x01);
