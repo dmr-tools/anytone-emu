@@ -2,49 +2,10 @@
 #define CODEPLUGPATTERN_HH
 
 #include <QObject>
+#include "offset.hh"
 
 class Image;
-
-
-struct Offset
-{
-protected:
-  Offset(unsigned long bits);
-
-public:
-  Offset();
-
-  inline Offset(const Offset &other): _bitOffset(other._bitOffset) {}
-
-  bool isValid() const;
-
-  static Offset zero();
-  static Offset fromByte(unsigned int n, unsigned bit=0);
-  static Offset fromBits(unsigned long n);
-  static Offset fromString(const QString &str);
-
-  unsigned int byte() const;
-  unsigned int bit() const;
-  unsigned int bits() const;
-
-  inline Offset &operator= (const Offset &other) { _bitOffset = other._bitOffset; return *this; }
-  inline bool operator==(const Offset &other) const { return _bitOffset == other._bitOffset; }
-  inline bool operator!=(const Offset &other) const { return _bitOffset != other._bitOffset; }
-  inline bool operator<=(const Offset &other) const { return _bitOffset <= other._bitOffset; }
-  inline bool operator<(const Offset &other) const  { return _bitOffset <  other._bitOffset; }
-  inline bool operator>(const Offset &other) const  { return _bitOffset >  other._bitOffset; }
-  inline bool operator>=(const Offset &other) const { return _bitOffset >= other._bitOffset; }
-
-  inline Offset &operator+=(const Offset &rhs) { _bitOffset += rhs._bitOffset; return *this; }
-  inline Offset operator+(const Offset &rhs) const { return Offset(_bitOffset + rhs._bitOffset); }
-
-  inline Offset &operator*=(unsigned int n) { _bitOffset *= n; return *this; }
-  inline Offset operator*(unsigned int n) const { return Offset(_bitOffset * n); }
-
-protected:
-  unsigned long _bitOffset;
-};
-
+class Element;
 
 class PatternMeta: public QObject
 {
@@ -86,7 +47,6 @@ protected:
 
 public:
   virtual bool verify() const = 0;
-  virtual bool match(const Image *image, const Offset &offset) const = 0;
 
   bool hasOffset() const;
   const Offset &offset() const;
@@ -138,7 +98,7 @@ public:
  *
  * Each sub-pattern must have an explicit or implicit position, as groups are considered to be
  * sparse. */
-class GroupPattern: public AbstractPattern
+class GroupPattern: public AbstractPattern, public StructuredPattern
 {
   Q_OBJECT
 
@@ -148,7 +108,7 @@ protected:
 };
 
 
-class CodeplugPattern: public GroupPattern, public StructuredPattern
+class CodeplugPattern: public GroupPattern
 {
   Q_OBJECT
 
@@ -156,7 +116,6 @@ public:
   explicit CodeplugPattern(QObject *parent = nullptr);
 
   bool verify() const;
-  bool match(const Image *image, const Offset &offset) const;
 
   bool addChildPattern(AbstractPattern *pattern);
   unsigned int numChildPattern() const;
@@ -168,7 +127,7 @@ protected:
 };
 
 
-class RepeatPattern: public GroupPattern, public StructuredPattern
+class RepeatPattern: public GroupPattern
 {
   Q_OBJECT
 
@@ -176,7 +135,6 @@ public:
   explicit RepeatPattern(QObject *parent = nullptr);
 
   bool verify() const;
-  bool match(const Image *image, const Offset &offset) const;
 
   unsigned int minRepetition() const;
   void setMinRepetition(unsigned int rep);
@@ -231,7 +189,6 @@ public:
   explicit BlockRepeatPattern(QObject *parent=nullptr);
 
   bool verify() const;
-  bool match(const Image *image, const Offset &offset) const;
 
   unsigned int minRepetition() const;
   void setMinRepetition(unsigned int rep);
@@ -258,7 +215,6 @@ public:
   explicit ElementPattern(QObject *parent = nullptr);
 
   bool verify() const;
-  bool match(const Image *image, const Offset &offset) const;
 
   bool addChildPattern(AbstractPattern *pattern);
   unsigned int numChildPattern() const;
@@ -277,7 +233,6 @@ public:
   explicit FixedRepeatPattern(QObject *parent = nullptr);
 
   bool verify() const;
-  bool match(const Image *image, const Offset &offset) const;
 
   unsigned int repetition() const;
   void setRepetition(unsigned int n);
@@ -299,6 +254,9 @@ class FieldPattern: public FixedPattern
 
 protected:
   explicit FieldPattern(QObject *parent=nullptr);
+
+public:
+  virtual QVariant value(const Element *element, const Offset &offset) const = 0;
 };
 
 
@@ -310,9 +268,10 @@ public:
   explicit UnknownFieldPattern(QObject *parent=nullptr);
 
   bool verify() const;
-  bool match(const Image *image, const Offset &offset) const;
 
   void setSize(const Offset &size);
+
+  QVariant value(const Element *element, const Offset &offset) const;
 };
 
 
@@ -324,10 +283,11 @@ public:
   explicit UnusedFieldPattern(QObject *parent=nullptr);
 
   bool verify() const;
-  bool match(const Image *image, const Offset &offset) const;
 
   const QByteArray &content() const;
   bool setContent(const QByteArray &content);
+
+  QVariant value(const Element *element, const Offset &offset) const;
 
 protected:
   QByteArray _content;
@@ -353,7 +313,6 @@ public:
   explicit IntegerFieldPattern(QObject *parent=nullptr);
 
   bool verify() const;
-  bool match(const Image *image, const Offset &offset) const;
 
   void setWidth(const Offset &width);
 
@@ -375,6 +334,14 @@ public:
   long long defaultValue() const;
   void setDefaultValue(long long value);
 
+  QVariant value(const Element *element, const Offset &offset) const;
+
+protected:
+  static uint16_t fromBCD4le(uint16_t bcd);
+  static uint16_t fromBCD4be(uint16_t bcd);
+  static uint32_t fromBCD8le(uint32_t bcd);
+  static uint32_t fromBCD8be(uint32_t bcd);
+
 protected:
   Format _format;
   Endian _endian;
@@ -395,6 +362,8 @@ public:
   unsigned int value() const;
   bool setValue(unsigned int value);
 
+  QVariant value(const Element *element, const Offset &offset) const;
+
 protected:
   unsigned int _value;
 };
@@ -408,11 +377,12 @@ public:
   explicit EnumFieldPattern(QObject *parent=nullptr);
 
   bool verify() const;
-  bool match(const Image *image, const Offset &offset) const;
 
   bool addItem(EnumFieldPatternItem *item);
   unsigned int numItems() const;
   EnumFieldPatternItem *item(unsigned int n) const;
+
+  QVariant value(const Element *element, const Offset &offset) const;
 
 protected:
   QList<EnumFieldPatternItem *> _items;

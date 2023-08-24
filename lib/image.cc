@@ -1,4 +1,7 @@
 #include "image.hh"
+#include "codeplugannotation.hh"
+#include "codeplugpattern.hh"
+
 
 /* ********************************************************************************************* *
  * Implementation of Element
@@ -77,7 +80,7 @@ Element::append(const QByteArray &data) {
  * Implementation of Image
  * ********************************************************************************************* */
 Image::Image(const QString &label, QObject *parent)
-  : QObject{parent}, _label(label), _elements()
+  : QObject{parent}, _label(label), _elements(), _annotations(nullptr)
 {
   // pass...
 }
@@ -121,6 +124,19 @@ Image::setLabel(const QString &label) {
   _label = label;
 }
 
+bool
+Image::annotate(const CodeplugPattern *pattern) {
+  if (_annotations)
+    delete _annotations;
+  _annotations = new ImageAnnotation(this, pattern, this);
+  return ! _annotations->isEmpty();
+}
+
+const ImageAnnotation *
+Image::annotations() const {
+  return _annotations;
+}
+
 void
 Image::add(Element *el) {
   unsigned int idx = findInsertionIndex(el->address(), 0, _elements.size());
@@ -131,7 +147,13 @@ Image::add(Element *el) {
 
 Element *
 Image::findPred(uint32_t address) const {
+  if (_elements.isEmpty())
+    return nullptr;
+
   unsigned int idx = findInsertionIndex(address, 0, _elements.size());
+  // Chcek if we hit element start
+  if ((_elements.size() > idx) && (_elements.at(idx)->address() == address))
+    return _elements.at(idx);
   if (0 == idx)
     return nullptr;
   return _elements.at(idx-1);
@@ -142,7 +164,7 @@ Image::findInsertionIndex(uint32_t address, unsigned int a, unsigned int b) cons
   if (a == b)
     return a;
 
-  if (address < _elements.at(a)->address())
+  if (address <= _elements.at(a)->address())
     return a;
 
   if (address > _elements.at(b-1)->address())

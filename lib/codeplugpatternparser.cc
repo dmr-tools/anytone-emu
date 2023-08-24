@@ -29,14 +29,22 @@ CodeplugPatternParser::endDocument() {
 
 bool
 CodeplugPatternParser::processText(const QStringView &content) {
-  if (! topIs<PatternMeta>())
+  if (topIs<PatternMeta>()) {
+    switch(_state) {
+    case State::None: break;
+    case State::MetaName: topAs<PatternMeta>()->setName(content.toString()); break;
+    case State::MetaDescription: topAs<PatternMeta>()->setDescription(content.toString()); break;
+    case State::MetaFWVersion: topAs<PatternMeta>()->setFirmwareVersion(content.toString()); break;
+    }
     return true;
+  }
 
-  switch(_state) {
-  case State::None: break;
-  case State::MetaName: topAs<PatternMeta>()->setName(content.toString()); break;
-  case State::MetaDescription: topAs<PatternMeta>()->setDescription(content.toString()); break;
-  case State::MetaFWVersion: topAs<PatternMeta>()->setFirmwareVersion(content.toString()); break;
+  if (topIs<UnusedFieldPattern>()) {
+    if (! topAs<UnusedFieldPattern>()->setContent(QByteArray::fromHex(content.toLatin1()))) {
+      raiseError("Cannot set content of <unused> tag.");
+      return false;
+    }
+    return true;
   }
 
   return true;
@@ -305,18 +313,7 @@ CodeplugPatternParser::endElementElement() {
 
 bool
 CodeplugPatternParser::beginUnusedElement(const QXmlStreamAttributes &attributes) {
-  Offset size;
-
-  if (attributes.hasAttribute("size")) {
-    size = Offset::fromString(attributes.value("size").toString());
-    if (! size.isValid()) {
-      raiseError("Cannot parse <unused>, invalid 'size' attribute.");
-      return false;
-    }
-  }
-
-  UnknownFieldPattern *pattern = new UnknownFieldPattern();
-  pattern->setSize(size);
+  UnusedFieldPattern *pattern = new UnusedFieldPattern();
 
   push(pattern);
 
@@ -389,14 +386,14 @@ CodeplugPatternParser::beginIntElement(const QXmlStreamAttributes &attributes)
     return false;
   }
 
-  if (! attributes.hasAttribute("endian")) {
-    raiseError("<int> tag requires 'endian' attribute.");
-    return false;
-  }
-
   Offset size = Offset::fromString(attributes.value("width").toString());
   if (! size.isValid()) {
     raiseError("'width' attribute of <int> tag is invalid.");
+    return false;
+  }
+
+  if ((1<size.byte()) && (! attributes.hasAttribute("endian"))) {
+    raiseError("<int> tag requires 'endian' attribute.");
     return false;
   }
 
@@ -414,14 +411,16 @@ CodeplugPatternParser::beginIntElement(const QXmlStreamAttributes &attributes)
     }
   }
 
-  IntegerFieldPattern::Endian endian;
-  if ("little" == attributes.value("endian").toString()) {
-    endian = IntegerFieldPattern::Endian::Little;
-  } else if ("big" == attributes.value("endian").toString()) {
-    endian = IntegerFieldPattern::Endian::Big;
-  } else {
-    raiseError(QString("Unknown endian '%1'.").arg(attributes.value("endian")));
-    return false;
+  IntegerFieldPattern::Endian endian = IntegerFieldPattern::Endian::Little;
+  if (attributes.hasAttribute("endian")) {
+    if ("little" == attributes.value("endian").toString()) {
+      endian = IntegerFieldPattern::Endian::Little;
+    } else if ("big" == attributes.value("endian").toString()) {
+      endian = IntegerFieldPattern::Endian::Big;
+    } else {
+      raiseError(QString("Unknown endian '%1'.").arg(attributes.value("endian")));
+      return false;
+    }
   }
 
   IntegerFieldPattern *pattern = new IntegerFieldPattern();
@@ -480,6 +479,20 @@ CodeplugPatternParser::endIntElement() {
 
 
 bool
+CodeplugPatternParser::beginBitElement(const QXmlStreamAttributes &attributes) {
+  QXmlStreamAttributes attrs(attributes);
+  attrs.append("format", "unsigned");
+  attrs.append("endian", "little");
+  attrs.append("width", ":1");
+  return beginIntElement(attrs);
+}
+
+bool
+CodeplugPatternParser::endBitElement() {
+  return endIntElement();
+}
+
+bool
 CodeplugPatternParser::beginBcdElement(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("format", "bcd");
@@ -516,6 +529,20 @@ CodeplugPatternParser::endUintElement() {
 }
 
 bool
+CodeplugPatternParser::beginInt8Element(const QXmlStreamAttributes &attributes) {
+  QXmlStreamAttributes attrs(attributes);
+  attrs.append("format", "signed");
+  attrs.append("width", ":10");
+  attrs.append("endian", "little");
+  return beginIntElement(attrs);
+}
+
+bool
+CodeplugPatternParser::endInt8Element() {
+  return endIntElement();
+}
+
+bool
 CodeplugPatternParser::beginUint8Element(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("width", ":10");
@@ -543,6 +570,20 @@ CodeplugPatternParser::endUint16leElement() {
 }
 
 bool
+CodeplugPatternParser::beginUint16beElement(const QXmlStreamAttributes &attributes) {
+  QXmlStreamAttributes attrs(attributes);
+  attrs.append("width", ":20");
+  attrs.append("endian", "big");
+  return beginUintElement(attrs);
+}
+
+bool
+CodeplugPatternParser::endUint16beElement() {
+  return endUintElement();
+}
+
+bool
+
 CodeplugPatternParser::beginUint32leElement(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("width", ":40");

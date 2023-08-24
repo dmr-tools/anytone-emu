@@ -1,62 +1,8 @@
 #include "codeplugpattern.hh"
 #include "logger.hh"
-#include <QRegularExpression>
-
-
-/* ********************************************************************************************* *
- * Implementation of Offset
- * ********************************************************************************************* */
-Offset::Offset(unsigned long bits)
-  : _bitOffset(bits)
-{
-  // pass...
-}
-
-Offset::Offset()
-  : _bitOffset(std::numeric_limits<unsigned long>::max())
-{
-  // pass...
-}
-
-bool
-Offset::isValid() const {
-  return std::numeric_limits<unsigned long>::max() != _bitOffset;
-}
-
-Offset
-Offset::zero() {
-  return { 0 };
-}
-
-Offset
-Offset::fromByte(unsigned int n, unsigned int bit) {
-  return Offset(8*((unsigned long)n) + bit);
-}
-
-Offset
-Offset::fromBits(unsigned long n) {
-  return Offset(n);
-}
-
-Offset
-Offset::fromString(const QString &str) {
-  QRegularExpression regex("([0-9A-Fa-f]*):([0-7]+)|([0-9A-Fa-f]+)");
-
-  QRegularExpressionMatch match = regex.match(str);
-  if (! match.isValid())
-    return Offset();
-
-  unsigned int byte = 0, bit = 0;
-  if (match.capturedLength(1))
-    byte = match.captured(1).toUInt(nullptr, 16);
-  else if (match.capturedLength(3))
-    byte = match.captured(3).toUInt(nullptr, 16);
-  if (match.capturedLength(2))
-    bit = match.captured(2).toUInt(nullptr, 8);
-
-  return Offset::fromByte(byte, bit);
-}
-
+#include "image.hh"
+#include <QVariant>
+#include <QtEndian>
 
 
 /* ********************************************************************************************* *
@@ -207,11 +153,6 @@ CodeplugPattern::verify() const {
 }
 
 bool
-CodeplugPattern::match(const Image *image, const Offset &offset) const {
-  return false;
-}
-
-bool
 CodeplugPattern::addChildPattern(AbstractPattern *pattern) {
   // If the pattern is the first element and has no offset within the codeplug, I do not know,
   // where to put it.
@@ -251,11 +192,6 @@ RepeatPattern::verify() const {
   if (nullptr == _subpattern)
     return false;
   return _subpattern->verify();
-}
-
-bool
-RepeatPattern::match(const Image *image, const Offset &offset) const {
-  return false;
 }
 
 unsigned int
@@ -344,11 +280,6 @@ BlockRepeatPattern::verify() const {
   return _subpattern->verify();
 }
 
-bool
-BlockRepeatPattern::match(const Image *image, const Offset &offset) const {
-  return false;
-}
-
 unsigned int
 BlockRepeatPattern::minRepetition() const {
   return _minRepetition;
@@ -367,7 +298,8 @@ BlockRepeatPattern::setMaxRepetition(unsigned int rep) {
   _maxRepetition = rep;
 }
 
-FixedPattern *BlockRepeatPattern::subpattern() const {
+FixedPattern *
+BlockRepeatPattern::subpattern() const {
   return _subpattern;
 }
 bool
@@ -435,11 +367,6 @@ ElementPattern::verify() const {
 }
 
 bool
-ElementPattern::match(const Image *image, const Offset &offset) const {
-  return false;
-}
-
-bool
 ElementPattern::addChildPattern(AbstractPattern *pattern) {
   if (! pattern->is<FixedPattern>())
     return false;
@@ -495,11 +422,6 @@ FixedRepeatPattern::verify() const {
     return false;
 
   return true;
-}
-
-bool
-FixedRepeatPattern::match(const Image *image, const Offset &offset) const {
-  return false;
 }
 
 unsigned int
@@ -569,14 +491,17 @@ UnknownFieldPattern::verify() const {
   return FixedPattern::verify();
 }
 
-bool
-UnknownFieldPattern::match(const Image *image, const Offset &offset) const {
-  return false;
-}
-
 void
 UnknownFieldPattern::setSize(const Offset &size) {
   _size = size;
+}
+
+QVariant
+UnknownFieldPattern::value(const Element *element, const Offset &offset) const {
+  if ((offset+size())>=Offset::fromByte(element->address()+element->size()))
+    return QVariant();
+  Offset within = offset - element->address();
+  return element->data().mid(within.byte(), size().byte());
 }
 
 
@@ -598,11 +523,6 @@ UnusedFieldPattern::verify() const {
   return true;
 }
 
-bool
-UnusedFieldPattern::match(const Image *image, const Offset &offset) const {
-  return false;
-}
-
 const QByteArray &
 UnusedFieldPattern::content() const {
   return _content;
@@ -621,6 +541,13 @@ UnusedFieldPattern::setContent(const QByteArray &content) {
   return true;
 }
 
+QVariant
+UnusedFieldPattern::value(const Element *element, const Offset &offset) const {
+  Offset within = offset - element->address();
+  return element->data().mid(within.byte(), size().byte());
+}
+
+
 
 /* ********************************************************************************************* *
  * Implementation of IntegerFieldPattern
@@ -637,11 +564,6 @@ IntegerFieldPattern::IntegerFieldPattern(QObject *parent)
 bool
 IntegerFieldPattern::verify() const {
   return FieldPattern::verify();
-}
-
-bool
-IntegerFieldPattern::match(const Image *image, const Offset &offset) const {
-  return false;
 }
 
 void
@@ -706,6 +628,119 @@ IntegerFieldPattern::setDefaultValue(long long value) {
   _defaultValue = value;
 }
 
+QVariant
+IntegerFieldPattern::value(const Element *element, const Offset &offset) const {
+  if ((offset+size())>=Offset::fromByte(element->address()+element->size())) {
+    logError() << "Cannot decode integer, extends the element bounds.";
+    return QVariant();
+  }
+
+  Offset within = offset - element->address();
+
+  // sub-byte integers should not span multiple bytes
+  // larger integers must align with bytes
+
+  if (size().bits() <= 8) {
+    if (8 < (offset.bit()+size().bits())) {
+      logWarn() << "Cannot decode integer, bitpattern extens across bytes.";
+      return QVariant();
+    }
+    unsigned int shift = 8 - (offset.bit()+size().bits());
+    unsigned int mask  = (1<<size().bits())-1;
+    uint8_t value = (uint8_t(element->data().at(within.byte())) >> shift) & mask;
+    return QVariant::fromValue(value) ;
+  }
+
+  if (size().bits() == 16) {
+    if (offset.bit()) {
+      logWarn() << "Cannot decode int16, values does not align with bytes.";
+      return QVariant();
+    }
+    const char *ptr = element->data().mid(within.byte(),2).constData();
+    if (Format::Signed == _format) {
+      if (Endian::Little == _endian)
+        return QVariant::fromValue(qFromLittleEndian(*((int16_t *)ptr)));
+      return QVariant::fromValue(qFromBigEndian(*((int16_t *)ptr)));
+    } else if (Format::Unsigned == _format) {
+      if (Endian::Little == _endian)
+        return QVariant::fromValue(qFromLittleEndian(*((uint16_t *)ptr)));
+      return QVariant::fromValue(qFromBigEndian(*((uint16_t *)ptr)));
+    } else if (Format::BCD == _format) {
+      if (Endian::Little == _endian)
+        return QVariant::fromValue(fromBCD4le(*((uint16_t *)ptr)));
+      return QVariant::fromValue(fromBCD4be(*((uint16_t *)ptr)));
+    }
+    return QVariant();
+  }
+
+  if (size().bits() <= 32) {
+    if (offset.bit()) {
+      logWarn() << "Cannot decode int16, values does not align with bytes.";
+      return QVariant();
+    }
+    const char *ptr = element->data().mid(within.byte(),4).constData();
+    if (Format::Signed == _format) {
+      if (Endian::Little == _endian)
+        return QVariant::fromValue(qFromLittleEndian(*((int32_t *)ptr)));
+      return QVariant::fromValue(qFromBigEndian(*((int32_t *)ptr)));
+    } else if (Format::Unsigned == _format) {
+      if (Endian::Little == _endian)
+        return QVariant::fromValue(qFromLittleEndian(*((uint32_t *)ptr)));
+      return QVariant::fromValue(qFromBigEndian(*((uint32_t *)ptr)));
+    } else if (Format::BCD == _format) {
+      if (Endian::Little == _endian)
+        return QVariant::fromValue(fromBCD8le(*((uint32_t *)ptr)));
+      return QVariant::fromValue(fromBCD8be(*((uint32_t *)ptr)));
+    }
+    return QVariant();
+  }
+
+  return QVariant();
+}
+
+uint16_t
+IntegerFieldPattern::fromBCD4le(uint16_t bcd) {
+  uint16_t res = 0;
+  for (int i=0; i<4; i++) {
+    res *= 10;
+    res += bcd & 0xf;
+    bcd >>= 4;
+  }
+  return res;
+}
+
+uint16_t
+IntegerFieldPattern::fromBCD4be(uint16_t bcd) {
+  uint16_t res = 0;
+  for (int i=0; i<4; i++) {
+    res *= 10;
+    res += (bcd & 0xf000)>>12;
+    bcd <<= 4;
+  }
+  return res;
+}
+
+uint32_t
+IntegerFieldPattern::fromBCD8le(uint32_t bcd) {
+  uint32_t res = 0;
+  for (int i=0; i<8; i++) {
+    res *= 10;
+    res += bcd & 0xf;
+    bcd >>= 4;
+  }
+  return res;
+}
+
+uint32_t
+IntegerFieldPattern::fromBCD8be(uint32_t bcd) {
+  uint32_t res = 0;
+  for (int i=0; i<8; i++) {
+    res *= 10;
+    res += (bcd & 0xf0000000)>>28;
+    bcd <<= 4;
+  }
+  return res;
+}
 
 
 /* ********************************************************************************************* *
@@ -753,11 +788,6 @@ EnumFieldPattern::verify() const {
 }
 
 bool
-EnumFieldPattern::match(const Image *image, const Offset &offset) const {
-  return false;
-}
-
-bool
 EnumFieldPattern::addItem(EnumFieldPatternItem *item) {
   item->setParent(this);
   _items.append(item);
@@ -776,3 +806,27 @@ EnumFieldPattern::item(unsigned int n) const {
   return _items[n];
 }
 
+QVariant
+EnumFieldPattern::value(const Element *element, const Offset &offset) const {
+  if ((offset+size())>=Offset::fromByte(element->address()+element->size())) {
+    logError() << "Cannot decode enum, extends the element bounds.";
+    return QVariant();
+  }
+
+  Offset within = offset - element->address();
+
+  // sub-byte integers should not span multiple bytes
+  // larger integers must align with bytes
+
+  if (size().bits() <= 8) {
+    if (8 < (offset.bit()+size().bits())) {
+      logWarn() << "Cannot decode enum, bitpattern extens across bytes.";
+      return QVariant();
+    }
+    unsigned int shift = 8 - (offset.bit()+size().bits());
+    unsigned int mask  = (1<<size().bits())-1;
+    return QVariant((unsigned int) (uint8_t(element->data().at(within.byte())) & mask) >> shift);
+  }
+
+  return QVariant();
+}

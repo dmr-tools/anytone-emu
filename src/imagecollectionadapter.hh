@@ -4,14 +4,14 @@
 #include "model.hh"
 
 class Collection;
-
+class CodeplugPattern;
 
 class ImageCollectionAdapter: public Model
 {
   Q_OBJECT
 
 public:
-  explicit ImageCollectionAdapter(Collection *collection, QObject *parent = nullptr);
+  explicit ImageCollectionAdapter(Collection *collection, CodeplugPattern *pattern=nullptr, QObject *parent = nullptr);
 
 public:
   virtual bool write(uint32_t address, const QByteArray &payload);

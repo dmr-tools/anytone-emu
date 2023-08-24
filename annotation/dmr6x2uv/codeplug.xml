@@ -8,7 +8,7 @@
     <incomplete>Some note, that this codeplug documentation is oviously not complete.</incomplete>
   </meta>
 
-  <repeat at="80000h" step="4000h" sparse="true" min="1" max="32">
+  <repeat at="80000h" step="4000h" min="1" max="32">
     <meta>
       <name>Channel banks</name>
       <description>A series of channel banks.</description>

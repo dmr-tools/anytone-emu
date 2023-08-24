@@ -4,22 +4,30 @@
 #include <QObject>
 
 class Image;
-
+class CodeplugPattern;
 
 class Model : public QObject
 {
   Q_OBJECT
 
+  Q_PROPERTY(CodeplugPattern* pattern READ pattern WRITE setPattern)
+
 protected:
-  explicit Model(QObject *parent = nullptr);
+  explicit Model(CodeplugPattern *pattern = nullptr, QObject *parent = nullptr);
 
 public:
   virtual bool read(uint32_t address, uint8_t length, QByteArray &payload);
   virtual bool write(uint32_t address, const QByteArray &payload);
 
+  CodeplugPattern *pattern() const;
+  void setPattern(CodeplugPattern *pattern);
+
 public slots:
   virtual void startProgram();
   virtual void endProgram();
+
+protected:
+  CodeplugPattern *_pattern;
 };
 
 
@@ -28,7 +36,7 @@ class ImageCollector: public Model
   Q_OBJECT
 
 public:
-  explicit ImageCollector(QObject *parent = nullptr);
+  explicit ImageCollector(CodeplugPattern *pattern = nullptr, QObject *parent = nullptr);
 
 public:
   virtual bool write(uint32_t address, const QByteArray &payload);

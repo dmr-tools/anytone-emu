@@ -82,6 +82,9 @@ protected slots:
   bool beginIntElement(const QXmlStreamAttributes &attributes);
   bool endIntElement();
 
+  bool beginBitElement(const QXmlStreamAttributes &attributes);
+  bool endBitElement();
+
   bool beginBcdElement(const QXmlStreamAttributes &attributes);
   bool endBcdElement();
 
@@ -91,11 +94,17 @@ protected slots:
   bool beginUintElement(const QXmlStreamAttributes &attributes);
   bool endUintElement();
 
+  bool beginInt8Element(const QXmlStreamAttributes &attributes);
+  bool endInt8Element();
+
   bool beginUint8Element(const QXmlStreamAttributes &attributes);
   bool endUint8Element();
 
   bool beginUint16leElement(const QXmlStreamAttributes &attributes);
   bool endUint16leElement();
+
+  bool beginUint16beElement(const QXmlStreamAttributes &attributes);
+  bool endUint16beElement();
 
   bool beginUint32leElement(const QXmlStreamAttributes &attributes);
   bool endUint32leElement();

@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QVector>
 
+class ImageAnnotation;
+class CodeplugPattern;
 
 class Element: public QObject
 {
@@ -44,6 +46,7 @@ public:
 
   unsigned int count() const;
   const Element *element(unsigned int idx) const;
+  Element *findPred(uint32_t address) const;
 
   const uint8_t *data(uint32_t address) const;
   void append(uint32_t address, const QByteArray &data);
@@ -51,17 +54,20 @@ public:
   const QString &label() const;
   void setLabel(const QString &label);
 
+  bool annotate(const CodeplugPattern *pattern);
+  const ImageAnnotation *annotations() const;
+
 signals:
   void modified(unsigned int image, uint32_t address);
 
 protected:
   void add(Element *el);
-  Element *findPred(uint32_t address) const;
   unsigned int findInsertionIndex(uint32_t address, unsigned int a, unsigned int b) const;
 
 protected:
   QString _label;
   QVector<Element *> _elements;
+  ImageAnnotation *_annotations;
 };
 
 
