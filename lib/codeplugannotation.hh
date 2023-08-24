@@ -22,11 +22,11 @@ class FieldAnnotation: public QObject
   Q_OBJECT
 
 public:
-  explicit FieldAnnotation(const FieldPattern *pattern, const Offset &offset, const QVariant &value, QObject *parent = nullptr);
+  explicit FieldAnnotation(const FieldPattern *pattern, const Address &addr, const QVariant &value, QObject *parent = nullptr);
 
-  const Offset &offset() const;
-  const Offset &size() const;
-  bool contains(const Offset &offset) const;
+  const Address &offset() const;
+  const Size &size() const;
+  bool contains(const Address &addr) const;
   const QVariant &value() const;
 
   const FieldPattern *pattern() const;
@@ -53,7 +53,7 @@ private slots:
   void onPatternDeleted();
 
 protected:
-  Offset _offset;
+  Address _address;
   const FieldPattern *_pattern;
   QVariant _value;
 };
@@ -68,16 +68,16 @@ public:
 
   bool isEmpty() const;
 
-  FieldAnnotation *at(const Offset &offset) const;
+  FieldAnnotation *at(const Address& addr) const;
 
 protected:
   static bool annotate(QVector<FieldAnnotation *> &annotations, const Image *image, const CodeplugPattern *pattern);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Image *image, const RepeatPattern *pattern, const Offset &offset);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const BlockPattern *pattern, const Offset &offset);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const BlockRepeatPattern *pattern, const Offset &offset);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const FixedRepeatPattern *pattern, const Offset &offset);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const ElementPattern *pattern, const Offset &offset);
-  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const FieldPattern *pattern, const Offset &offset);
+  static bool annotate(QVector<FieldAnnotation *> &annotations, const Image *image, const RepeatPattern *pattern, const Address &address);
+  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const BlockPattern *pattern, const Address& addr);
+  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const BlockRepeatPattern *pattern, const Address &address);
+  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const FixedRepeatPattern *pattern, const Address &address);
+  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const ElementPattern *pattern, const Address &addr);
+  static bool annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const FieldPattern *pattern, const Address &address);
 
 protected:
   const Image *_image;

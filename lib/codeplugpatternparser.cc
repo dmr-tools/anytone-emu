@@ -52,14 +52,14 @@ CodeplugPatternParser::processText(const QStringView &content) {
 
 bool
 CodeplugPatternParser::processDefaultArgs(const QXmlStreamAttributes &attributes) {
-  Offset offset;
+  Address addr;
   if (attributes.hasAttribute("at")) {
-    offset = Offset::fromString(attributes.value("at").toString());
-    if (! offset.isValid()) {
-      raiseError("Invalid offset value.");
+    addr = Address::fromString(attributes.value("at").toString());
+    if (! addr.isValid()) {
+      raiseError("Invalid address value.");
       return false;
     }
-    topAs<AbstractPattern>()->setOffset(offset);
+    topAs<AbstractPattern>()->setAddress(addr);
   }
 
   return true;

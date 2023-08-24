@@ -97,7 +97,7 @@ MainWindow::onShowHexDump() {
     } else if (const Element *el = qobject_cast<const Element *>(obj)) {
       QTextBrowser *view = new QTextBrowser();
       view->setDocument(new HexElementDumpDocument(HexElement(el)));
-      ui->tabs->addTab(view, QString("Element @ %1h").arg(el->address(), 0, 16));
+      ui->tabs->addTab(view, QString("Element @ %1h").arg(el->address().byte(), 0, 16));
     }
   }
 }

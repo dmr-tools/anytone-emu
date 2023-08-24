@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QVector>
+#include "offset.hh"
 
 class ImageAnnotation;
 class CodeplugPattern;
@@ -20,8 +21,8 @@ public:
   bool operator == (const Element &other) const;
   bool operator != (const Element &other) const;
 
-  uint32_t address() const;
-  uint32_t size() const;
+  const Address &address() const;
+  Size size() const;
   bool extends(uint32_t address) const;
 
   const QByteArray &data() const;
@@ -32,7 +33,7 @@ signals:
   void modified(uint32_t address);
 
 protected:
-  uint32_t _address;
+  Address _address;
   QByteArray _data;
 };
 

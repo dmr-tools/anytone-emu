@@ -135,7 +135,7 @@ HexLine::hasDiff() const {
  * Implementation of HexElement
  * ********************************************************************************************* */
 HexElement::HexElement(const Element *element)
-  : _lines(), _address(element->address()), _isDiff(false), _hasDiff(false)
+  : _lines(), _address(element->address().byte()), _isDiff(false), _hasDiff(false)
 {
   uint32_t address = _address;
   QByteArray data = element->data();
@@ -155,11 +155,11 @@ HexElement::HexElement(const Element *left, const Element *right)
   QByteArray left_data, right_data;
 
   if (left) {
-    address = _address = left->address();
+    address = _address = left->address().byte();
     left_data = left->data();
   }
   if (right) {
-    address = _address = right->address();
+    address = _address = right->address().byte();
     right_data = right->data();
   }
 

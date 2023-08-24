@@ -48,12 +48,12 @@ protected:
 public:
   virtual bool verify() const = 0;
 
-  bool hasOffset() const;
-  const Offset &offset() const;
-  void setOffset(const Offset &offset);
+  bool hasAddress() const;
+  const Address &address() const;
+  void setAddress(const Address &offset);
 
   bool hasSize() const;
-  const Offset &size() const;
+  const Size &size() const;
 
   const PatternMeta &meta() const;
   PatternMeta &meta();
@@ -75,8 +75,8 @@ public:
 
 protected:
   PatternMeta _meta;
-  Offset _offset;
-  Offset _size;
+  Address _address;
+  Size _size;
 };
 
 
@@ -256,7 +256,7 @@ protected:
   explicit FieldPattern(QObject *parent=nullptr);
 
 public:
-  virtual QVariant value(const Element *element, const Offset &offset) const = 0;
+  virtual QVariant value(const Element *element, const Address &address) const = 0;
 };
 
 
@@ -271,7 +271,7 @@ public:
 
   void setSize(const Offset &size);
 
-  QVariant value(const Element *element, const Offset &offset) const;
+  QVariant value(const Element *element, const Address &address) const;
 };
 
 
@@ -287,7 +287,7 @@ public:
   const QByteArray &content() const;
   bool setContent(const QByteArray &content);
 
-  QVariant value(const Element *element, const Offset &offset) const;
+  QVariant value(const Element *element, const Address &address) const;
 
 protected:
   QByteArray _content;
@@ -334,7 +334,7 @@ public:
   long long defaultValue() const;
   void setDefaultValue(long long value);
 
-  QVariant value(const Element *element, const Offset &offset) const;
+  QVariant value(const Element *element, const Address &address) const;
 
 protected:
   static uint16_t fromBCD4le(uint16_t bcd);
@@ -382,7 +382,7 @@ public:
   unsigned int numItems() const;
   EnumFieldPatternItem *item(unsigned int n) const;
 
-  QVariant value(const Element *element, const Offset &offset) const;
+  QVariant value(const Element *element, const Address &address) const;
 
 protected:
   QList<EnumFieldPatternItem *> _items;

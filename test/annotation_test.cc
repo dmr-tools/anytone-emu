@@ -36,7 +36,7 @@ AnnotationTest::annotateUnusedTest() {
 
   QVERIFY(image.annotate(codeplug));
 
-  FieldAnnotation *unk = image.annotations()->at(Offset::zero());
+  FieldAnnotation *unk = image.annotations()->at(Address::zero());
   QVERIFY(unk->pattern()->is<UnusedFieldPattern>());
   QVERIFY(! unk->value().toByteArray().isEmpty());
   QCOMPARE(unk->value().toByteArray().at(0), 0x01);
@@ -66,7 +66,7 @@ AnnotationTest::annotateUnknownTest() {
 
   QVERIFY(image.annotate(codeplug));
 
-  FieldAnnotation *unk = image.annotations()->at(Offset::zero());
+  FieldAnnotation *unk = image.annotations()->at(Address::zero());
   QVERIFY(unk->pattern()->is<UnknownFieldPattern>());
   QVERIFY(! unk->value().toByteArray().isEmpty());
   QCOMPARE(unk->value().toByteArray().at(0), 0x01);
@@ -77,9 +77,9 @@ AnnotationTest::annotateIntTest() {
   const char *content =
       R"(<?xml version="1.0"?>)"
       R"(<codeplug>)"
-      R"(  <bit at="0"/>)"
-      R"(  <bit at=":1"/>)"
-      R"(  <uint at=":5" width=":6"/>)"
+      R"(  <bit at="0:7"/>)"
+      R"(  <bit at="0:6"/>)"
+      R"(  <uint at="0:5" width="0:6"/>)"
       R"(  <int8 at="1"/>)"
       R"(  <uint16be at="2"/>)"
       R"(  <uint16le at="4"/>)"
@@ -100,9 +100,9 @@ AnnotationTest::annotateIntTest() {
 
   QVERIFY(image.annotate(codeplug));
 
-  FieldAnnotation *bit0  = image.annotations()->at(Offset::fromByte(0,7));
-  FieldAnnotation *bit1  = image.annotations()->at(Offset::fromByte(0,6));
-  FieldAnnotation *uint0 = image.annotations()->at(Offset::fromByte(0,5));
+  FieldAnnotation *bit0  = image.annotations()->at(Address::fromByte(0,7));
+  FieldAnnotation *bit1  = image.annotations()->at(Address::fromByte(0,6));
+  FieldAnnotation *uint0 = image.annotations()->at(Address::fromByte(0,5));
   QCOMPARE(bit0->value().value<uint8_t>(), false);
   QCOMPARE(bit1->value().value<uint8_t>(), true);
   QCOMPARE(uint0->value().value<uint8_t>(), 2);

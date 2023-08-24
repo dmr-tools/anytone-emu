@@ -6,27 +6,27 @@
 /* ********************************************************************************************* *
  * Implementation of FieldAnnotation
  * ********************************************************************************************* */
-FieldAnnotation::FieldAnnotation(const FieldPattern *pattern, const Offset &offset, const QVariant &value, QObject *parent)
-  : QObject{parent}, _offset(offset), _pattern(pattern), _value(value)
+FieldAnnotation::FieldAnnotation(const FieldPattern *pattern, const Address& addr, const QVariant &value, QObject *parent)
+  : QObject{parent}, _address(addr), _pattern(pattern), _value(value)
 {
   connect(_pattern, &QObject::destroyed, this, &FieldAnnotation::onPatternDeleted);
 }
 
-const Offset &
+const Address &
 FieldAnnotation::offset() const {
-  return _offset;
+  return _address;
 }
 
-const Offset &
+const Size &
 FieldAnnotation::size() const {
   return _pattern->size();
 }
 
 bool
-FieldAnnotation::contains(const Offset &offset) const {
-  if (offset < _offset)
+FieldAnnotation::contains(const Address& addr) const {
+  if (addr < _address)
     return false;
-  return offset < (_offset+size());
+  return addr < (_address+size());
 }
 
 const QVariant &
@@ -71,20 +71,20 @@ ImageAnnotation::isEmpty() const {
 }
 
 FieldAnnotation *
-ImageAnnotation::at(const Offset &offset) const {
+ImageAnnotation::at(const Address &addr) const {
   if (_annotations.isEmpty())
     return nullptr;
   unsigned int a=0, b=_annotations.size();
   while (a<b) {
     unsigned int mid = (a+b)/2;
-    if (_annotations[mid]->contains(offset))
+    if (_annotations[mid]->contains(addr))
       return _annotations[mid];
-    if (_annotations[mid]->offset() > offset)
+    if (_annotations[mid]->offset() > addr)
       b = mid;
     else
       a = mid;
   }
-  if ((a == b) && (_annotations[a]->contains(offset)))
+  if ((a == b) && (_annotations[a]->contains(addr)))
     return _annotations[a];
   return nullptr;
 }
@@ -94,13 +94,13 @@ ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Image *
   for (unsigned int i=0; i<pattern->numChildPattern(); i++) {
     AbstractPattern *child = pattern->childPattern(i);
     if (child->is<RepeatPattern>()) {
-      if (! annotate(annotations, image, child->as<RepeatPattern>(), child->offset()))
+      if (! annotate(annotations, image, child->as<RepeatPattern>(), child->address()))
         return false;
     } else if (child->is<BlockPattern>()) {
-      const Element *el = image->findPred(child->offset().byte());
+      const Element *el = image->findPred(child->address().byte());
       if (nullptr == el)
         return false;
-      annotate(annotations, el, child->as<BlockPattern>(), child->offset());
+      annotate(annotations, el, child->as<BlockPattern>(), child->address());
     }
   }
   return true;
@@ -108,8 +108,8 @@ ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Image *
 
 
 bool
-ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Image *image, const RepeatPattern *pattern, const Offset &offset) {
-  Offset addr = offset ;
+ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Image *image, const RepeatPattern *pattern, const Address& address) {
+  Address addr = address ;
   for (unsigned int i=0; i<pattern->maxRepetition(); i++) {
     AbstractPattern *child = pattern->subpattern();
     QVector<FieldAnnotation *> tmp;
@@ -122,7 +122,7 @@ ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Image *
         }
       }
     } else if (child->is<BlockPattern>()) {
-      const Element *el = image->findPred(child->offset().byte());
+      const Element *el = image->findPred(child->address().byte());
       if ((nullptr == el) && ((i+1) < pattern->minRepetition()))
         return false;
       if (! annotate(tmp, el, child->as<BlockPattern>(), addr))
@@ -136,23 +136,23 @@ ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Image *
 }
 
 bool
-ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const BlockPattern *pattern, const Offset &offset) {
+ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const BlockPattern *pattern, const Address &addr) {
   // Dispatch by type
   if (pattern->is<BlockRepeatPattern>())
-    return annotate(annotations, element, pattern->as<BlockRepeatPattern>(), offset);
+    return annotate(annotations, element, pattern->as<BlockRepeatPattern>(), addr);
   else if (pattern->is<FixedRepeatPattern>())
-    return annotate(annotations, element, pattern->as<FixedRepeatPattern>(), offset);
+    return annotate(annotations, element, pattern->as<FixedRepeatPattern>(), addr);
   else if (pattern->is<Element>())
-    return annotate(annotations, element, pattern->as<ElementPattern>(), offset);
+    return annotate(annotations, element, pattern->as<ElementPattern>(), addr);
   else if (pattern->is<FieldPattern>())
-    return annotate(annotations, element, pattern->as<FieldPattern>(), offset);
+    return annotate(annotations, element, pattern->as<FieldPattern>(), addr);
   return false;
 }
 
 bool
-ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const BlockRepeatPattern *pattern, const Offset &offset) {
-  Offset addr = offset;
-  Offset end = Offset::fromByte(element->address()+element->size());
+ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const BlockRepeatPattern *pattern, const Address& address) {
+  Address addr = address;
+  Address end = element->address() + element->size();
   FixedPattern *child = pattern->subpattern();
   for (unsigned int i=0; i<pattern->maxRepetition(); i++, addr+=child->size()) {
     if ((addr >= end) && ((i+1) < pattern->minRepetition()))
@@ -166,9 +166,9 @@ ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element
 
 
 bool
-ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const FixedRepeatPattern *pattern, const Offset &offset) {
-  Offset addr = offset;
-  Offset end = Offset::fromByte(element->address() + element->size());
+ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const FixedRepeatPattern *pattern, const Address& address) {
+  Address addr = address;
+  Address end = element->address() + element->size();
   FixedPattern *child = pattern->subpattern();
   for (unsigned int i=0; i<pattern->repetition(); i++, addr+=child->size()) {
     if (addr >= end)
@@ -181,9 +181,9 @@ ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element
 }
 
 bool
-ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const ElementPattern *pattern, const Offset &offset) {
-  Offset addr = offset;
-  Offset end = Offset::fromByte(element->address() + element->size());
+ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const ElementPattern *pattern, const Address& address) {
+  Address addr = address;
+  Address end = element->address() + element->size();
   for (unsigned int i=0; i<pattern->numChildPattern(); i++) {
     if (addr >= end)
       return false;
@@ -197,10 +197,10 @@ ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element
 }
 
 bool
-ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const FieldPattern *pattern, const Offset &offset) {
-  Offset end = Offset::fromByte(element->address() + element->size());
-  if ((offset + pattern->size()) > end)
+ImageAnnotation::annotate(QVector<FieldAnnotation *> &annotations, const Element *element, const FieldPattern *pattern, const Address& address) {
+  Address end = element->address() + element->size();
+  if ((address + pattern->size()) > end)
     return false;
-  annotations.append(new FieldAnnotation(pattern, offset, pattern->value(element, offset)));
+  annotations.append(new FieldAnnotation(pattern, address, pattern->value(element, address)));
   return true;
 }

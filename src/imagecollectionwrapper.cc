@@ -64,17 +64,17 @@ CollectionWrapper::data(const QModelIndex &index, int role) const {
   if (index.parent().isValid()) { // Element
     const Element *el = reinterpret_cast<const Element *>(index.constInternalPointer());
     if (Qt::DisplayRole == role) {
-      if (app->device()->elementKnown(el->address()))
+      if (app->device()->elementKnown(el->address().byte()))
         return QString("%1 @ %2h")
-            .arg(app->device()->elementName(el->address()))
-            .arg(el->address(), 8, 16, QChar('0'));
+            .arg(app->device()->elementName(el->address().byte()))
+            .arg(el->address().byte(), 8, 16, QChar('0'));
       else
         return QString("Unkown Element @ %1h")
-            .arg(el->address(), 8, 16, QChar('0'));
+            .arg(el->address().byte(), 8, 16, QChar('0'));
     }
     if (Qt::ToolTipRole == role) {
-      if (app->device()->elementKnown(el->address()))
-        return app->device()->elementDescription(el->address());
+      if (app->device()->elementKnown(el->address().byte()))
+        return app->device()->elementDescription(el->address().byte());
     }
   } else { // Image
     if (Qt::DisplayRole == role) {

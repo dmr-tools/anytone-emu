@@ -7,13 +7,13 @@
  * Implementation of Element
  * ********************************************************************************************* */
 Element::Element(uint32_t address, uint32_t size, QObject *parent)
-  : QObject{parent}, _address(address), _data(size,0)
+  : QObject{parent}, _address(Address::fromByte(address)), _data(size, 0)
 {
   // pass...
 }
 
 Element::Element(uint32_t address, const QByteArray &data, QObject *parent)
-  : QObject{parent}, _address(address), _data(data)
+  : QObject{parent}, _address(Address::fromByte(address)), _data(data)
 {
   // pass...
 }
@@ -40,19 +40,19 @@ Element::operator!=(const Element &other) const {
       (this->data() != other.data());
 }
 
-uint32_t
+const Address &
 Element::address() const {
   return _address;
 }
 
-uint32_t
+Size
 Element::size() const {
-  return _data.size();
+  return Size::fromByte(_data.size());
 }
 
 bool
 Element::extends(uint32_t address) const {
-  return address == (this->address()+this->size());
+  return Address::fromByte(address) == (this->address()+this->size());
 }
 
 const QByteArray &
@@ -62,16 +62,16 @@ Element::data() const {
 
 const uint8_t *
 Element::data(uint32_t address) const {
-  if ((address < this->address()) || (address >= (this->address()+this->size())))
+  if ((Address::fromByte(address) < this->address()) || (Address::fromByte(address) >= (this->address()+this->size())))
     return nullptr;
-  uint32_t offset = address-this->address();
+  uint32_t offset = address-this->address().byte();
   return (uint8_t *)data().constData() + offset;
 }
 
 void
 Element::append(const QByteArray &data) {
   this->_data.append(data);
-  emit modified(_address);
+  emit modified(_address.byte());
 }
 
 
@@ -139,10 +139,10 @@ Image::annotations() const {
 
 void
 Image::add(Element *el) {
-  unsigned int idx = findInsertionIndex(el->address(), 0, _elements.size());
+  unsigned int idx = findInsertionIndex(el->address().byte(), 0, _elements.size());
   el->setParent(this);
   _elements.insert(idx, el);
-  emit modified(idx, el->address());
+  emit modified(idx, el->address().byte());
 }
 
 Element *
@@ -152,7 +152,7 @@ Image::findPred(uint32_t address) const {
 
   unsigned int idx = findInsertionIndex(address, 0, _elements.size());
   // Chcek if we hit element start
-  if ((_elements.size() > idx) && (_elements.at(idx)->address() == address))
+  if ((_elements.size() > idx) && (_elements.at(idx)->address().byte() == address))
     return _elements.at(idx);
   if (0 == idx)
     return nullptr;
@@ -164,14 +164,14 @@ Image::findInsertionIndex(uint32_t address, unsigned int a, unsigned int b) cons
   if (a == b)
     return a;
 
-  if (address <= _elements.at(a)->address())
+  if (address <= _elements.at(a)->address().byte())
     return a;
 
-  if (address > _elements.at(b-1)->address())
+  if (address > _elements.at(b-1)->address().byte())
     return b;
 
   unsigned int m = (a+b)/2;
-  if (address < _elements.at(m)->address())
+  if (address < _elements.at(m)->address().byte())
     return findInsertionIndex(address, a, m);
   return findInsertionIndex(address, m, b);
 }

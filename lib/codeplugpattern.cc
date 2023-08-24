@@ -68,7 +68,7 @@ PatternMeta::setFirmwareVersion(const QString &version) {
  * Implementation of AbstractPattern
  * ********************************************************************************************* */
 AbstractPattern::AbstractPattern(QObject *parent)
-  : QObject{parent}, _meta(), _offset(), _size()
+  : QObject{parent}, _meta(), _address(), _size()
 {
   // pass...
 }
@@ -84,18 +84,18 @@ AbstractPattern::meta() {
 }
 
 bool
-AbstractPattern::hasOffset() const {
-  return _offset.isValid();
+AbstractPattern::hasAddress() const {
+  return _address.isValid();
 }
 
-const Offset &
-AbstractPattern::offset() const {
-  return _offset;
+const Address &
+AbstractPattern::address() const {
+  return _address;
 }
 
 void
-AbstractPattern::setOffset(const Offset &offset) {
-  _offset = offset;
+AbstractPattern::setAddress(const Address& offset) {
+  _address = offset;
 }
 
 bool
@@ -103,7 +103,7 @@ AbstractPattern::hasSize() const {
   return _size.isValid();
 }
 
-const Offset &
+const Size &
 AbstractPattern::size() const {
   return _size;
 }
@@ -156,7 +156,7 @@ bool
 CodeplugPattern::addChildPattern(AbstractPattern *pattern) {
   // If the pattern is the first element and has no offset within the codeplug, I do not know,
   // where to put it.
-  if (! pattern->hasOffset())
+  if (! pattern->hasAddress())
     return false;
 
   pattern->setParent(this);
@@ -372,16 +372,16 @@ ElementPattern::addChildPattern(AbstractPattern *pattern) {
     return false;
 
   // Compute offset, where to put pattern
-  Offset offset = Offset::fromByte(0);
+  Address addr = Address::zero();
   if (! _content.isEmpty())
-    offset = _content.back()->offset() + _content.back()->size();
+    addr = _content.back()->address() + _content.back()->size();
 
   // If a offset is set -> check it
-  if (pattern->hasOffset() && (pattern->offset() != offset))
+  if (pattern->hasAddress() && (pattern->address() != addr))
     return false;
 
   // Set/update offset
-  pattern->setOffset(offset);
+  pattern->setAddress(addr);
   // update own size
   _size += pattern->size();
   // add to content
@@ -497,10 +497,10 @@ UnknownFieldPattern::setSize(const Offset &size) {
 }
 
 QVariant
-UnknownFieldPattern::value(const Element *element, const Offset &offset) const {
-  if ((offset+size())>=Offset::fromByte(element->address()+element->size()))
+UnknownFieldPattern::value(const Element *element, const Address& address) const {
+  if ((address+size()) > (element->address()+element->size()))
     return QVariant();
-  Offset within = offset - element->address();
+  Offset within = address - element->address();
   return element->data().mid(within.byte(), size().byte());
 }
 
@@ -542,8 +542,8 @@ UnusedFieldPattern::setContent(const QByteArray &content) {
 }
 
 QVariant
-UnusedFieldPattern::value(const Element *element, const Offset &offset) const {
-  Offset within = offset - element->address();
+UnusedFieldPattern::value(const Element *element, const Address& address) const {
+  Offset within = address - element->address();
   return element->data().mid(within.byte(), size().byte());
 }
 
@@ -629,30 +629,30 @@ IntegerFieldPattern::setDefaultValue(long long value) {
 }
 
 QVariant
-IntegerFieldPattern::value(const Element *element, const Offset &offset) const {
-  if ((offset+size())>=Offset::fromByte(element->address()+element->size())) {
+IntegerFieldPattern::value(const Element *element, const Address& address) const {
+  if ((address+size())>= element->address() + element->size()) {
     logError() << "Cannot decode integer, extends the element bounds.";
     return QVariant();
   }
 
-  Offset within = offset - element->address();
+  Offset within = address - element->address();
 
   // sub-byte integers should not span multiple bytes
   // larger integers must align with bytes
 
   if (size().bits() <= 8) {
-    if (8 < (offset.bit()+size().bits())) {
+    if ((address.bit()+1)<size().bits()) {
       logWarn() << "Cannot decode integer, bitpattern extens across bytes.";
       return QVariant();
     }
-    unsigned int shift = 8 - (offset.bit()+size().bits());
+    unsigned int shift = (address.bit()+1)-size().bits();
     unsigned int mask  = (1<<size().bits())-1;
     uint8_t value = (uint8_t(element->data().at(within.byte())) >> shift) & mask;
     return QVariant::fromValue(value) ;
   }
 
   if (size().bits() == 16) {
-    if (offset.bit()) {
+    if (address.bit()) {
       logWarn() << "Cannot decode int16, values does not align with bytes.";
       return QVariant();
     }
@@ -674,7 +674,7 @@ IntegerFieldPattern::value(const Element *element, const Offset &offset) const {
   }
 
   if (size().bits() <= 32) {
-    if (offset.bit()) {
+    if (address.bit()) {
       logWarn() << "Cannot decode int16, values does not align with bytes.";
       return QVariant();
     }
@@ -807,23 +807,23 @@ EnumFieldPattern::item(unsigned int n) const {
 }
 
 QVariant
-EnumFieldPattern::value(const Element *element, const Offset &offset) const {
-  if ((offset+size())>=Offset::fromByte(element->address()+element->size())) {
+EnumFieldPattern::value(const Element *element, const Address& address) const {
+  if ((address+size()) >= element->address()+element->size()) {
     logError() << "Cannot decode enum, extends the element bounds.";
     return QVariant();
   }
 
-  Offset within = offset - element->address();
+  Offset within = address - element->address();
 
   // sub-byte integers should not span multiple bytes
   // larger integers must align with bytes
 
   if (size().bits() <= 8) {
-    if (8 < (offset.bit()+size().bits())) {
+    if (8 < (address.bit()+size().bits())) {
       logWarn() << "Cannot decode enum, bitpattern extens across bytes.";
       return QVariant();
     }
-    unsigned int shift = 8 - (offset.bit()+size().bits());
+    unsigned int shift = 8 - (address.bit()+size().bits());
     unsigned int mask  = (1<<size().bits())-1;
     return QVariant((unsigned int) (uint8_t(element->data().at(within.byte())) & mask) >> shift);
   }

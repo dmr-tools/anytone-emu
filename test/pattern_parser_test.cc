@@ -74,8 +74,8 @@ PatternParserTest::parseUnusedFieldTest() {
   QVERIFY(codeplug->verify());
   QCOMPARE(codeplug->numChildPattern(), 1);
   QVERIFY(codeplug->childPattern(0)->is<UnknownFieldPattern>());
-  QCOMPARE(codeplug->childPattern(0)->offset(), Offset::fromByte(0));
-  QCOMPARE(codeplug->childPattern(0)->size(), Offset::fromByte(1,7));
+  QCOMPARE(codeplug->childPattern(0)->address(), Address::zero());
+  QCOMPARE(codeplug->childPattern(0)->size(), Size::fromByte(1,7));
 }
 
 
@@ -108,24 +108,24 @@ PatternParserTest::parseIntFieldTest() {
 
   QCOMPARE(codeplug->numChildPattern(), 5);
   QVERIFY(codeplug->childPattern(0)->is<IntegerFieldPattern>());
-  QCOMPARE(codeplug->childPattern(0)->offset(), Offset::fromByte(0));
-  QCOMPARE(codeplug->childPattern(0)->size(), Offset::fromByte(4));
+  QCOMPARE(codeplug->childPattern(0)->address(), Address::zero());
+  QCOMPARE(codeplug->childPattern(0)->size(), Size::fromByte(4));
 
   QVERIFY(codeplug->childPattern(1)->is<IntegerFieldPattern>());
-  QCOMPARE(codeplug->childPattern(1)->offset(), Offset::fromByte(4));
-  QCOMPARE(codeplug->childPattern(1)->size(), Offset::fromByte(4));
+  QCOMPARE(codeplug->childPattern(1)->address(), Address::fromByte(4));
+  QCOMPARE(codeplug->childPattern(1)->size(), Size::fromByte(4));
 
   QVERIFY(codeplug->childPattern(2)->is<IntegerFieldPattern>());
-  QCOMPARE(codeplug->childPattern(2)->offset(), Offset::fromByte(8));
-  QCOMPARE(codeplug->childPattern(2)->size(), Offset::fromByte(1));
+  QCOMPARE(codeplug->childPattern(2)->address(), Address::fromByte(8));
+  QCOMPARE(codeplug->childPattern(2)->size(), Size::fromByte(1));
 
   QVERIFY(codeplug->childPattern(3)->is<IntegerFieldPattern>());
-  QCOMPARE(codeplug->childPattern(3)->offset(), Offset::fromByte(9));
-  QCOMPARE(codeplug->childPattern(3)->size(), Offset::fromByte(2));
+  QCOMPARE(codeplug->childPattern(3)->address(), Address::fromByte(9));
+  QCOMPARE(codeplug->childPattern(3)->size(), Size::fromByte(2));
 
   QVERIFY(codeplug->childPattern(4)->is<IntegerFieldPattern>());
-  QCOMPARE(codeplug->childPattern(4)->offset(), Offset::fromByte(11));
-  QCOMPARE(codeplug->childPattern(4)->size(), Offset::fromByte(4));
+  QCOMPARE(codeplug->childPattern(4)->address(), Address::fromByte(11));
+  QCOMPARE(codeplug->childPattern(4)->size(), Size::fromByte(4));
 }
 
 
