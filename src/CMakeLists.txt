@@ -30,10 +30,10 @@ SET(anytone-emu-gui_HEADERS
 qt_add_executable(anytone-emu-gui WIN32
   ${anytone-emu-gui_SOURCES})
 
-qt_add_resources(anytone-emu-gui "annotation"
-  PREFIX "/annotation"
-  BASE "${CMAKE_SOURCE_DIR}/annotation/"
-  FILES "${CMAKE_SOURCE_DIR}/annotation/dmr6x2uv/codeplug.xml")
+qt_add_resources(anytone-emu-gui "codeplugs"
+  PREFIX "/codeplugs"
+  BASE "${CMAKE_SOURCE_DIR}/codeplugs/"
+  FILES "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/codeplug.xml")
 
 generate_icons(ICONS
   "${CMAKE_SOURCE_DIR}/shared/icons/sparserepeat.svg"

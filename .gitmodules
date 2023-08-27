@@ -1,0 +1,3 @@
+[submodule "codeplugs"]
+	path = codeplugs
+	url = https://github.com/dmr-tools/codeplugs.git
