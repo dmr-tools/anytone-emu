@@ -16,40 +16,111 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QSplitter" name="horizontalSplitter">
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>16777215</height>
-       </size>
-      </property>
+     <widget class="QSplitter" name="verticalSplitter">
       <property name="orientation">
-       <enum>Qt::Vertical</enum>
+       <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QSplitter" name="verticalSplitter">
+      <property name="childrenCollapsible">
+       <bool>false</bool>
+      </property>
+      <widget class="QToolBox" name="toolBox">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+       <property name="currentIndex">
+        <number>1</number>
        </property>
-       <property name="childrenCollapsible">
-        <bool>false</bool>
-       </property>
-       <widget class="QTreeView" name="images">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+       <widget class="QWidget" name="imagesPage">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>389</width>
+          <height>476</height>
+         </rect>
         </property>
-        <property name="selectionMode">
-         <enum>QAbstractItemView::ExtendedSelection</enum>
-        </property>
+        <attribute name="label">
+         <string>Images</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QTreeView" name="images">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::ExtendedSelection</enum>
+           </property>
+           <property name="headerHidden">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
+       <widget class="QWidget" name="patternPage">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>389</width>
+          <height>476</height>
+         </rect>
+        </property>
+        <attribute name="label">
+         <string>Pattern</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="PatternView" name="patterns">
+           <property name="headerHidden">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+      <widget class="QSplitter" name="horizontalSplitter">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
        <widget class="QTabWidget" name="tabs">
         <property name="currentIndex">
          <number>-1</number>
@@ -58,14 +129,14 @@
          <bool>true</bool>
         </property>
        </widget>
-      </widget>
-      <widget class="QTextBrowser" name="log">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
+       <widget class="QTextBrowser" name="log">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -112,8 +183,61 @@
     <addaction name="separator"/>
     <addaction name="actionShow_Log"/>
    </widget>
+   <widget class="QMenu" name="menuAnnotations">
+    <property name="title">
+     <string>Annotations</string>
+    </property>
+    <addaction name="actionAnnotate"/>
+    <addaction name="actionClear_annotations"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+    <addaction name="actionManual"/>
+   </widget>
+   <widget class="QMenu" name="menuPattern">
+    <property name="title">
+     <string>Pattern</string>
+    </property>
+    <widget class="QMenu" name="menuAdd_repeat">
+     <property name="title">
+      <string>Add repeat</string>
+     </property>
+     <addaction name="actionAdd_sparse_repeat"/>
+     <addaction name="actionAdd_block_repeat"/>
+     <addaction name="actionAdd_fixed_repeat"/>
+    </widget>
+    <widget class="QMenu" name="menuAdd_integer">
+     <property name="title">
+      <string>Add integer</string>
+     </property>
+     <addaction name="actionAdd_bit"/>
+     <addaction name="actionAdd_uint8"/>
+     <addaction name="actionAdd_int8"/>
+     <addaction name="actionAdd_uint16"/>
+     <addaction name="actionAdd_int16"/>
+     <addaction name="actionAdd_uint32"/>
+     <addaction name="actionAdd_int32"/>
+     <addaction name="actionAdd_BCD8"/>
+    </widget>
+    <addaction name="actionEdit_pattern"/>
+    <addaction name="separator"/>
+    <addaction name="menuAdd_repeat"/>
+    <addaction name="actionAdd_element"/>
+    <addaction name="menuAdd_integer"/>
+    <addaction name="actionAdd_enum"/>
+    <addaction name="actionAdd_unknown"/>
+    <addaction name="actionAdd_unused"/>
+    <addaction name="separator"/>
+    <addaction name="actionDelete_pattern"/>
+   </widget>
    <addaction name="menuSession"/>
    <addaction name="menuView"/>
+   <addaction name="menuAnnotations"/>
+   <addaction name="menuPattern"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
@@ -218,7 +342,134 @@
     <string>Show Log</string>
    </property>
   </action>
+  <action name="actionAnnotate">
+   <property name="text">
+    <string>Annotate</string>
+   </property>
+  </action>
+  <action name="actionClear_annotations">
+   <property name="text">
+    <string>Clear annotations</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionManual">
+   <property name="text">
+    <string>Manual</string>
+   </property>
+  </action>
+  <action name="actionAdd_element">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Add element</string>
+   </property>
+  </action>
+  <action name="actionAdd_enum">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Add enum</string>
+   </property>
+  </action>
+  <action name="actionAdd_unknown">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Add unknown</string>
+   </property>
+  </action>
+  <action name="actionAdd_unused">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Add unused</string>
+   </property>
+  </action>
+  <action name="actionDelete_pattern">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Delete pattern</string>
+   </property>
+  </action>
+  <action name="actionAdd_sparse_repeat">
+   <property name="text">
+    <string>Add sparse repeat</string>
+   </property>
+  </action>
+  <action name="actionAdd_block_repeat">
+   <property name="text">
+    <string>Add block repeat</string>
+   </property>
+  </action>
+  <action name="actionAdd_fixed_repeat">
+   <property name="text">
+    <string>Add fixed repeat</string>
+   </property>
+  </action>
+  <action name="actionAdd_bit">
+   <property name="text">
+    <string>Add bit</string>
+   </property>
+  </action>
+  <action name="actionAdd_uint8">
+   <property name="text">
+    <string>Add uint8</string>
+   </property>
+  </action>
+  <action name="actionAdd_int8">
+   <property name="text">
+    <string>Add int8</string>
+   </property>
+  </action>
+  <action name="actionAdd_uint16">
+   <property name="text">
+    <string>Add uint16</string>
+   </property>
+  </action>
+  <action name="actionAdd_int16">
+   <property name="text">
+    <string>Add int16</string>
+   </property>
+  </action>
+  <action name="actionAdd_uint32">
+   <property name="text">
+    <string>Add uint32</string>
+   </property>
+  </action>
+  <action name="actionAdd_int32">
+   <property name="text">
+    <string>Add int32</string>
+   </property>
+  </action>
+  <action name="actionAdd_BCD8">
+   <property name="text">
+    <string>Add BCD8</string>
+   </property>
+  </action>
+  <action name="actionEdit_pattern">
+   <property name="text">
+    <string>Edit pattern</string>
+   </property>
+  </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PatternView</class>
+   <extends>QTreeView</extends>
+   <header>patternview.hh</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

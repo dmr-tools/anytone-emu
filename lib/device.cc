@@ -339,3 +339,8 @@ Device::elementDescription(uint32_t address) const {
     return _elementDescriptions[address].second;
   return "";
 }
+
+CodeplugPattern *
+Device::pattern() const {
+  return _model->pattern();
+}

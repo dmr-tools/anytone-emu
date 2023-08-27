@@ -19,6 +19,7 @@ public:
   inline Address &operator= (const Address &other) { _value = other._value; return *this; }
 
   bool isValid() const;
+  bool byteAligned() const;
 
   static Address zero();
   static Address fromByte(unsigned int n, unsigned bit=7);
@@ -26,6 +27,8 @@ public:
 
   unsigned int byte() const;
   unsigned int bit() const;
+
+  QString toString() const;
 
   inline bool operator==(const Address &other) const {
     return (isValid() && other.isValid()) ? (_value == other._value) : false;
@@ -75,6 +78,8 @@ public:
   static Offset fromByte(unsigned int n, unsigned bit=0);
   static Offset fromBits(unsigned long n);
   static Offset fromString(const QString &str);
+
+  QString toString() const;
 
   inline unsigned int byte() const { return _value/8; }
   inline unsigned int bit() const { return _value%8; }

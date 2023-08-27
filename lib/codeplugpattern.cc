@@ -1,8 +1,12 @@
 #include "codeplugpattern.hh"
 #include "logger.hh"
 #include "image.hh"
+#include "codeplugpatternparser.hh"
+
 #include <QVariant>
 #include <QtEndian>
+#include <QXmlStreamReader>
+
 
 
 /* ********************************************************************************************* *
@@ -30,6 +34,7 @@ PatternMeta::name() const {
 void
 PatternMeta::setName(const QString &name) {
   _name = name;
+  emit modified();
 }
 
 bool
@@ -45,6 +50,7 @@ PatternMeta::description() const {
 void
 PatternMeta::setDescription(const QString &description) {
   _description = description;
+  emit modified();
 }
 
 bool
@@ -60,6 +66,7 @@ PatternMeta::firmwareVersion() const {
 void
 PatternMeta::setFirmwareVersion(const QString &version) {
   _fwVersion = version;
+  emit modified();
 }
 
 
@@ -70,7 +77,7 @@ PatternMeta::setFirmwareVersion(const QString &version) {
 AbstractPattern::AbstractPattern(QObject *parent)
   : QObject{parent}, _meta(), _address(), _size()
 {
-  // pass...
+  connect(&_meta, &PatternMeta::modified, this, &AbstractPattern::onMetaModified);
 }
 
 const PatternMeta &
@@ -83,6 +90,10 @@ AbstractPattern::meta() {
   return _meta;
 }
 
+bool
+AbstractPattern::hasImplicitAddress() const {
+  return parent() && (nullptr==qobject_cast<CodeplugPattern *>(parent()));
+}
 bool
 AbstractPattern::hasAddress() const {
   return _address.isValid();
@@ -108,6 +119,10 @@ AbstractPattern::size() const {
   return _size;
 }
 
+void
+AbstractPattern::onMetaModified() {
+  emit modified(this);
+}
 
 
 /* ********************************************************************************************* *
@@ -161,6 +176,10 @@ CodeplugPattern::addChildPattern(AbstractPattern *pattern) {
 
   pattern->setParent(this);
   _content.append(pattern);
+  connect(pattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
+  connect(pattern, &AbstractPattern::added, this, &AbstractPattern::added);
+  connect(pattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
+  emit added(pattern);
 
   return true;
 }
@@ -177,12 +196,46 @@ CodeplugPattern::childPattern(unsigned int n) const {
   return _content[n];
 }
 
+int
+CodeplugPattern::indexOf(const AbstractPattern *pattern) const {
+  return _content.indexOf(pattern);
+}
+
+CodeplugPattern *
+CodeplugPattern::load(const QString &filename) {
+  QFile file(filename);
+
+  if (! file.open(QIODevice::ReadOnly)) {
+    logError() << "Cannot load annotation pattern from '" << filename
+               << "': " << file.errorString() << ".";
+    return nullptr;
+  }
+
+  CodeplugPatternParser parser;
+  QXmlStreamReader reader(&file);
+  if (! parser.parse(reader)) {
+    logError() << "Cannot load annotation pattern from '" << filename
+               << "', cannot parse pattern: " << parser.errorMessage() << ".";
+    return nullptr;
+  }
+
+  if (! parser.topIs<CodeplugPattern>()) {
+    logError() << "Cannot load annotation pattern from '" << filename
+               << "': Files does not contain a codeplug pattern.";
+    return nullptr;
+  }
+
+  return parser.popAs<CodeplugPattern>();
+}
+
+
 
 /* ********************************************************************************************* *
  * Implementation of RepeatPattern
  * ********************************************************************************************* */
 RepeatPattern::RepeatPattern(QObject *parent)
-  : GroupPattern{parent}, _minRepetition(0), _maxRepetition(0), _step(), _subpattern(nullptr)
+  : GroupPattern{parent}, _minRepetition(std::numeric_limits<unsigned int>::max()),
+    _maxRepetition(std::numeric_limits<unsigned int>::max()), _step(), _subpattern(nullptr)
 {
   // pass...
 }
@@ -194,6 +247,10 @@ RepeatPattern::verify() const {
   return _subpattern->verify();
 }
 
+bool
+RepeatPattern::hasMinRepetition() const {
+  return std::numeric_limits<unsigned int>::max() != _minRepetition;
+}
 unsigned int
 RepeatPattern::minRepetition() const {
   return _minRepetition;
@@ -203,6 +260,10 @@ RepeatPattern::setMinRepetition(unsigned int rep) {
   _minRepetition = rep;
 }
 
+bool
+RepeatPattern::hasMaxRepetition() const {
+  return std::numeric_limits<unsigned int>::max() != _maxRepetition;
+}
 unsigned int
 RepeatPattern::maxRepetition() const {
   return _maxRepetition;
@@ -227,6 +288,10 @@ RepeatPattern::addChildPattern(AbstractPattern *subpattern) {
   // Update stepsize, if not set
   if ((!_step.isValid()) && (_subpattern->size().isValid()))
     _step = _subpattern->size();
+  connect(_subpattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
+  connect(_subpattern, &AbstractPattern::added, this, &AbstractPattern::added);
+  connect(_subpattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
+  emit added(_subpattern);
 
   return true;
 }
@@ -241,6 +306,11 @@ RepeatPattern::childPattern(unsigned int n) const {
   if (0 != n)
     return nullptr;
   return _subpattern;
+}
+
+int
+RepeatPattern::indexOf(const AbstractPattern *pattern) const {
+  return (_subpattern == pattern) ? 0 : -1;
 }
 
 const Offset &
@@ -268,7 +338,8 @@ BlockPattern::BlockPattern(QObject *parent)
  * Implementation of BlockRepeatPattern
  * ********************************************************************************************* */
 BlockRepeatPattern::BlockRepeatPattern(QObject *parent)
-  : BlockPattern{parent}, _minRepetition(0), _maxRepetition(0), _subpattern(nullptr)
+  : BlockPattern{parent}, _minRepetition(std::numeric_limits<unsigned int>::max()),
+    _maxRepetition(std::numeric_limits<unsigned int>::max()), _subpattern(nullptr)
 {
   // pass...
 }
@@ -280,6 +351,10 @@ BlockRepeatPattern::verify() const {
   return _subpattern->verify();
 }
 
+bool
+BlockRepeatPattern::hasMinRepetition() const {
+  return std::numeric_limits<unsigned int>::max() != _minRepetition;
+}
 unsigned int
 BlockRepeatPattern::minRepetition() const {
   return _minRepetition;
@@ -289,6 +364,10 @@ BlockRepeatPattern::setMinRepetition(unsigned int rep) {
   _minRepetition = rep;
 }
 
+bool
+BlockRepeatPattern::hasMaxRepetition() const {
+  return std::numeric_limits<unsigned int>::max() != _maxRepetition;
+}
 unsigned int
 BlockRepeatPattern::maxRepetition() const {
   return _maxRepetition;
@@ -312,6 +391,10 @@ BlockRepeatPattern::addChildPattern(AbstractPattern *subpattern) {
 
   _subpattern = subpattern->as<FixedPattern>();
   _subpattern->setParent(this);
+  connect(_subpattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
+  connect(_subpattern, &AbstractPattern::added, this, &AbstractPattern::added);
+  connect(_subpattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
+  emit added(_subpattern);
 
   return true;
 }
@@ -326,6 +409,11 @@ BlockRepeatPattern::childPattern(unsigned int n) const {
   if (0 != n)
     return nullptr;
   return _subpattern;
+}
+
+int
+BlockRepeatPattern::indexOf(const AbstractPattern *pattern) const {
+  return (_subpattern == pattern) ? 0 : -1;
 }
 
 
@@ -375,7 +463,6 @@ ElementPattern::addChildPattern(AbstractPattern *pattern) {
   Address addr = Address::zero();
   if (! _content.isEmpty())
     addr = _content.back()->address() + _content.back()->size();
-
   // If a offset is set -> check it
   if (pattern->hasAddress() && (pattern->address() != addr))
     return false;
@@ -383,10 +470,17 @@ ElementPattern::addChildPattern(AbstractPattern *pattern) {
   // Set/update offset
   pattern->setAddress(addr);
   // update own size
-  _size += pattern->size();
+  if (_size.isValid())
+    _size += pattern->size();
+  else
+    _size = pattern->size();
   // add to content
   pattern->setParent(this);
   _content.append(pattern->as<FixedPattern>());
+  connect(pattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
+  connect(pattern, &AbstractPattern::added, this, &AbstractPattern::added);
+  connect(pattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
+  emit added(pattern);
 
   return true;
 }
@@ -401,6 +495,11 @@ ElementPattern::childPattern(unsigned int n) const {
   if (n >= _content.size())
     return nullptr;
   return _content[n];
+}
+
+int
+ElementPattern::indexOf(const AbstractPattern *pattern) const {
+  return _content.indexOf(pattern);
 }
 
 
@@ -451,6 +550,11 @@ FixedRepeatPattern::addChildPattern(AbstractPattern *pattern) {
   _subpattern->setParent(this);
 
   _size = _subpattern->size()*_repetition;
+  connect(_subpattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
+  connect(_subpattern, &AbstractPattern::added, this, &AbstractPattern::added);
+  connect(_subpattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
+  emit added(_subpattern);
+
   return true;
 }
 
@@ -464,6 +568,11 @@ FixedRepeatPattern::childPattern(unsigned int n) const {
   if (0 != n)
     return nullptr;
   return _subpattern;
+}
+
+int
+FixedRepeatPattern::indexOf(const AbstractPattern *pattern) const {
+  return (_subpattern == pattern) ? 0 : -1;
 }
 
 
@@ -483,7 +592,7 @@ FieldPattern::FieldPattern(QObject *parent)
 UnknownFieldPattern::UnknownFieldPattern(QObject *parent)
   : FieldPattern{parent}
 {
-  // pass...
+  meta().setName("Unknown data");
 }
 
 bool
@@ -511,7 +620,7 @@ UnknownFieldPattern::value(const Element *element, const Address& address) const
 UnusedFieldPattern::UnusedFieldPattern(QObject *parent)
   : FieldPattern(parent), _content()
 {
-  // pass...
+  meta().setName("Unused data");
 }
 
 bool
@@ -627,10 +736,14 @@ void
 IntegerFieldPattern::setDefaultValue(long long value) {
   _defaultValue = value;
 }
+void
+IntegerFieldPattern::clearDefaultValue() {
+  _defaultValue = std::numeric_limits<long long>().max();
+}
 
 QVariant
 IntegerFieldPattern::value(const Element *element, const Address& address) const {
-  if ((address+size())>= element->address() + element->size()) {
+  if ((address+size()) >  element->address() + element->size()) {
     logError() << "Cannot decode integer, extends the element bounds.";
     return QVariant();
   }
@@ -640,7 +753,7 @@ IntegerFieldPattern::value(const Element *element, const Address& address) const
   // sub-byte integers should not span multiple bytes
   // larger integers must align with bytes
 
-  if (size().bits() <= 8) {
+  if (size().bits() <= 8) {   // int8_t or smaller
     if ((address.bit()+1)<size().bits()) {
       logWarn() << "Cannot decode integer, bitpattern extens across bytes.";
       return QVariant();
@@ -652,7 +765,7 @@ IntegerFieldPattern::value(const Element *element, const Address& address) const
   }
 
   if (size().bits() == 16) {
-    if (address.bit()) {
+    if (!address.byteAligned()) {
       logWarn() << "Cannot decode int16, values does not align with bytes.";
       return QVariant();
     }
@@ -674,7 +787,7 @@ IntegerFieldPattern::value(const Element *element, const Address& address) const
   }
 
   if (size().bits() <= 32) {
-    if (address.bit()) {
+    if (!address.byteAligned()) {
       logWarn() << "Cannot decode int16, values does not align with bytes.";
       return QVariant();
     }
@@ -787,6 +900,12 @@ EnumFieldPattern::verify() const {
   return 0 != _items.size();
 }
 
+void
+EnumFieldPattern::setWidth(const Size &size) {
+  _size = size;
+  emit resized(this, _size);
+}
+
 bool
 EnumFieldPattern::addItem(EnumFieldPatternItem *item) {
   item->setParent(this);
@@ -808,7 +927,7 @@ EnumFieldPattern::item(unsigned int n) const {
 
 QVariant
 EnumFieldPattern::value(const Element *element, const Address& address) const {
-  if ((address+size()) >= element->address()+element->size()) {
+  if ((address+size()) > element->address()+element->size()) {
     logError() << "Cannot decode enum, extends the element bounds.";
     return QVariant();
   }

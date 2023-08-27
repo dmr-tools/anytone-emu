@@ -22,6 +22,11 @@ Address::isValid() const {
   return std::numeric_limits<uint64_t>().max() != _value;
 }
 
+bool
+Address::byteAligned() const {
+  return 0 == (_value%8);
+}
+
 Address
 Address::zero() {
   return Address(0);
@@ -60,6 +65,13 @@ Address::byte() const {
 unsigned int
 Address::bit() const {
   return 7 - _value%8;
+}
+
+QString
+Address::toString() const {
+  if (7 == bit())
+    return QString("%1h").arg(byte(), 0, 16);
+  return QString("%1h:%2").arg(byte(), 0, 16).arg(bit(),0,8);
 }
 
 Address &
@@ -156,6 +168,13 @@ Offset::fromString(const QString &str) {
     bit = match.captured(2).toUInt(nullptr, 8);
 
   return Offset::fromByte(byte, bit);
+}
+
+QString
+Offset::toString() const {
+  if (0 == bit())
+    return QString("%1h").arg(byte(), 0, 16);
+  return QString("%1h:%2").arg(byte(), 0, 16).arg(bit(),0,8);
 }
 
 

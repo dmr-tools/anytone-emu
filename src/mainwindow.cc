@@ -1,12 +1,16 @@
 #include "mainwindow.hh"
 #include "ui_mainwindow.h"
 #include "application.hh"
+#include "device.hh"
 #include "image.hh"
 #include "hexdump.hh"
 #include "heximagedumpdocument.hh"
 #include "hexelementdumpdocument.hh"
 #include "heximagediffdocument.hh"
 #include "imagecollectionwrapper.hh"
+#include "patternwrapper.hh"
+#include "logger.hh"
+
 #include <QActionGroup>
 #include <QSettings>
 
@@ -32,6 +36,44 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->images->addAction(ui->actionShowHexDump);
   ui->images->addAction(ui->actionShowHexDiff);
 
+  ui->patterns->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(ui->patterns, &PatternView::canEdit, ui->actionEdit_pattern, &QAction::setVisible);
+  connect(ui->actionEdit_pattern, &QAction::triggered, ui->patterns, &PatternView::editPattern);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->menuAdd_repeat, &QMenu::setEnabled);
+  connect(ui->actionAdd_sparse_repeat, &QAction::triggered, ui->patterns, &PatternView::addSparseRepeat);
+  connect(ui->patterns, &PatternView::canAddSparse, ui->actionAdd_sparse_repeat, &QAction::setVisible);
+  connect(ui->actionAdd_block_repeat, &QAction::triggered, ui->patterns, &PatternView::addBlockRepeat);
+  connect(ui->patterns, &PatternView::canAddBlock, ui->actionAdd_block_repeat, &QAction::setVisible);
+  connect(ui->actionAdd_fixed_repeat, &QAction::triggered, ui->patterns, &PatternView::addFixedRepeat);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_fixed_repeat, &QAction::setVisible);
+  connect(ui->actionAdd_element, &QAction::triggered, ui->patterns, &PatternView::addElement);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_element, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->menuAdd_integer, &QMenu::setEnabled);
+  connect(ui->actionAdd_bit, &QAction::triggered, ui->patterns, &PatternView::addBit);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_bit, &QAction::setVisible);
+  connect(ui->actionAdd_uint8, &QAction::triggered, ui->patterns, &PatternView::addUInt8);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_uint8, &QAction::setVisible);
+  connect(ui->actionAdd_int8, &QAction::triggered, ui->patterns, &PatternView::addInt8);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_int8, &QAction::setVisible);
+  connect(ui->actionAdd_uint16, &QAction::triggered, ui->patterns, &PatternView::addUInt16);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_uint16, &QAction::setVisible);
+  connect(ui->actionAdd_int16, &QAction::triggered, ui->patterns, &PatternView::addInt16);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_int16, &QAction::setVisible);
+  connect(ui->actionAdd_uint32, &QAction::triggered, ui->patterns, &PatternView::addUInt32);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_uint32, &QAction::setVisible);
+  connect(ui->actionAdd_int32, &QAction::triggered, ui->patterns, &PatternView::addInt32);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_int32, &QAction::setVisible);
+  connect(ui->actionAdd_BCD8, &QAction::triggered, ui->patterns, &PatternView::addBCD8);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_BCD8, &QAction::setVisible);
+  connect(ui->actionAdd_enum, &QAction::triggered, ui->patterns, &PatternView::addEnum);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_enum, &QAction::setVisible);
+  connect(ui->actionAdd_unused, &QAction::triggered, ui->patterns, &PatternView::addUnused);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_unused, &QAction::setVisible);
+  connect(ui->actionAdd_unknown, &QAction::triggered, ui->patterns, &PatternView::addUnknown);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_unknown, &QAction::setVisible);
+  connect(ui->actionDelete_pattern, &QAction::triggered, ui->patterns, &PatternView::removeSelected);
+  connect(ui->patterns, &PatternView::canRemove, ui->actionDelete_pattern, &QAction::setVisible);
+
   QActionGroup *viewGrp = new QActionGroup(this);
   viewGrp->addAction(ui->actionAutoViewNone);
   if ("none" == settings.value("action/autoShow", "none"))
@@ -51,6 +93,7 @@ MainWindow::MainWindow(QWidget *parent) :
   connect(ui->actionShowHexDump, &QAction::triggered, this, &MainWindow::onShowHexDump);
   connect(ui->actionShowHexDiff, &QAction::triggered, this, &MainWindow::onShowHexDiff);
   connect(ui->actionCloseTab, &QAction::triggered, this, &MainWindow::onCloseTab);
+  connect(ui->actionAnnotate, &QAction::triggered, this, &MainWindow::onAnnotate);
   connect(ui->tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::onCloseTab);
   connect(app->collection(), &Collection::imageAdded, this, &MainWindow::onImageReceived);
 }
@@ -161,5 +204,30 @@ MainWindow::onImageReceived(unsigned int idx) {
     QTextBrowser *view = new QTextBrowser();
     view->setDocument(new HexImageDiffDocument(HexImage(prev, last)));
     ui->tabs->addTab(view, QString("%1 vs. %2").arg(prev->label()).arg(last->label()));
+  }
+}
+
+
+void
+MainWindow::onAnnotate() {
+  Application *app = qobject_cast<Application *>(Application::instance());
+  if (! app->device()->pattern())
+    return;
+
+  QList<Image *> images;
+  foreach (const QItemSelectionRange &range, ui->images->selectionModel()->selection()) {
+    foreach (const QModelIndex &index, range.indexes()) {
+      if (! index.isValid())
+        continue;
+      QObject *obj = reinterpret_cast<QObject *>(index.internalPointer());
+      if (Image *img = qobject_cast<Image *>(obj))
+        images.append(img);
+    }
+  }
+
+  foreach (Image *img, images) {
+    if (! img->annotate(app->device()->pattern())) {
+      logError() << "Annotation failed.";
+    }
   }
 }

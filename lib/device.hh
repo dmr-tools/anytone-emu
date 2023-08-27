@@ -9,6 +9,7 @@ class QIODevice;
 class Request;
 class Response;
 class Model;
+class CodeplugPattern;
 
 
 /** Abstract base class for all emulated devices. */
@@ -33,6 +34,8 @@ public:
   virtual bool elementKnown(uint32_t address) const;
   virtual QString elementName(uint32_t address) const;
   virtual QString elementDescription(uint32_t address) const;
+
+  CodeplugPattern *pattern() const;
 
 signals:
   void startProgram();

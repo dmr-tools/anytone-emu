@@ -90,8 +90,12 @@ XmlParser::parse(QXmlStreamReader &reader) {
       continue;
     }
   }
-  if (reader.hasError())
-    raiseError(reader.errorString());
+  if (reader.hasError()) {
+    raiseError(QString("Near %1:%2: %3")
+               .arg(reader.lineNumber())
+               .arg(reader.columnNumber())
+               .arg(reader.errorString()));
+  }
 
   return !reader.hasError();
 }

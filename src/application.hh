@@ -2,6 +2,7 @@
 #define APPLICATION_HH
 
 #include <QApplication>
+#include <QWidget>
 
 class Device;
 class Collection;
@@ -17,6 +18,15 @@ public:
 
   void setDevice(Device *device);
   const Device *device() const;
+
+  template <class T>
+  T *findObject(const QString &name) const {
+    foreach (QWidget *window, topLevelWidgets()) {
+      if (T *obj = window->findChild<T *>(name))
+        return obj;
+    }
+    return nullptr;
+  }
 
 protected:
   Device *_device;

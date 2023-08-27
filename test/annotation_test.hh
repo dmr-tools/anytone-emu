@@ -14,6 +14,9 @@ private slots:
   void annotateUnusedTest();
   void annotateUnknownTest();
   void annotateIntTest();
+  void annotateFixedRepeatTest();
+  void annotateBlockRepeatTest();
+  void annotateSparseRepeatTest();
 };
 
 #endif // ANNOTATIONTEST_HH

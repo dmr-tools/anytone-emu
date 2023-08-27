@@ -16,6 +16,7 @@ class BlockRepeatPattern;
 class FixedRepeatPattern;
 class ElementPattern;
 class FieldPattern;
+class FieldAnnotation;
 
 
 class AbstractAnnotation: public QObject
@@ -26,9 +27,10 @@ protected:
   explicit AbstractAnnotation(const BlockPattern *pattern, const Address &addr, const Size &size, QObject *parent = nullptr);
 
 public:
-  virtual const Address &offset() const;
+  virtual const Address &address() const;
   virtual const Size &size() const;
-  bool contains(const Address &addr) const;
+  virtual bool contains(const Address &addr) const;
+  virtual const FieldAnnotation *resolve(const Address& addr) const = 0;
 
   const BlockPattern *pattern() const;
 
@@ -69,7 +71,7 @@ public:
   bool isEmpty() const;
   unsigned int numChildren() const;
   const AbstractAnnotation *child(unsigned int) const;
-  AbstractAnnotation *at(const Address& addr) const;
+  const AbstractAnnotation *at(const Address& addr) const;
 
   virtual void addChild(AbstractAnnotation *annotation);
 
@@ -84,6 +86,9 @@ class StructuredAnnotation: public AbstractAnnotation, public AnnotationCollecti
 
 public:
   explicit StructuredAnnotation(const BlockPattern *pattern, const Address &addr, QObject *parent = nullptr);
+
+  void addChild(AbstractAnnotation *child);
+  const FieldAnnotation *resolve(const Address &addr) const;
 };
 
 
@@ -93,6 +98,8 @@ class FieldAnnotation: public AbstractAnnotation
 
 public:
   explicit FieldAnnotation(const FieldPattern *pattern, const Address &addr, const QVariant &value, QObject *parent = nullptr);
+
+  const FieldAnnotation *resolve(const Address &addr) const;
 
   const QVariant &value() const;
 
@@ -107,6 +114,9 @@ class ImageAnnotation: public QObject, public AnnotationCollection
 
 public:
   explicit ImageAnnotation(const Image *image, const CodeplugPattern *pattern, QObject *parent=nullptr);
+
+  void addChild(AbstractAnnotation *child);
+  const FieldAnnotation *resolve(const Address &addr) const;
 
 protected:
   static bool annotate(AnnotationCollection &parent, const Image *image, const CodeplugPattern *pattern);

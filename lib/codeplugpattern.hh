@@ -31,6 +31,9 @@ public:
   const QString &firmwareVersion() const;
   void setFirmwareVersion(const QString &version);
 
+signals:
+  void modified();
+
 protected:
   QString _name;
   QString _description;
@@ -49,6 +52,7 @@ public:
   virtual bool verify() const = 0;
 
   bool hasAddress() const;
+  bool hasImplicitAddress() const;
   const Address &address() const;
   void setAddress(const Address &offset);
 
@@ -60,18 +64,26 @@ public:
 
   template <class T>
   bool is() const {
-    return nullptr != qobject_cast<const T *>(this);
+    return nullptr != dynamic_cast<const T *>(this);
   }
 
   template <class T>
   const T* as() const {
-    return qobject_cast<const T *>(this);
+    return dynamic_cast<const T *>(this);
   }
 
   template <class T>
   T* as() {
-    return qobject_cast<T *>(this);
+    return dynamic_cast<T *>(this);
   }
+
+signals:
+  void modified(const AbstractPattern *pattern);
+  void added(const AbstractPattern *pattern);
+  void removing(const AbstractPattern *pattern);
+
+private slots:
+  void onMetaModified();
 
 protected:
   PatternMeta _meta;
@@ -91,6 +103,7 @@ public:
   virtual bool addChildPattern(AbstractPattern *pattern) = 0;
   virtual unsigned int numChildPattern() const = 0;
   virtual AbstractPattern *childPattern(unsigned int n) const = 0;
+  virtual int indexOf(const AbstractPattern *pattern) const = 0;
 };
 
 
@@ -120,6 +133,9 @@ public:
   bool addChildPattern(AbstractPattern *pattern);
   unsigned int numChildPattern() const;
   AbstractPattern *childPattern(unsigned int n) const;
+  int indexOf(const AbstractPattern *pattern) const;
+
+  static CodeplugPattern *load(const QString &filename);
 
 protected:
   bool _sparse;
@@ -136,8 +152,10 @@ public:
 
   bool verify() const;
 
+  bool hasMinRepetition() const;
   unsigned int minRepetition() const;
   void setMinRepetition(unsigned int rep);
+  bool hasMaxRepetition() const;
   unsigned int maxRepetition() const;
   void setMaxRepetition(unsigned int rep);
 
@@ -148,6 +166,7 @@ public:
   bool addChildPattern(AbstractPattern *subpattern);
   unsigned int numChildPattern() const;
   AbstractPattern *childPattern(unsigned int n) const;
+  int indexOf(const AbstractPattern *pattern) const;
 
 protected:
   unsigned int _minRepetition;
@@ -178,6 +197,9 @@ protected:
 
 public:
   bool verify() const;
+
+signals:
+  void resized(const FixedPattern *pattern, const Size &newSize);
 };
 
 
@@ -190,8 +212,10 @@ public:
 
   bool verify() const;
 
+  bool hasMinRepetition() const;
   unsigned int minRepetition() const;
   void setMinRepetition(unsigned int rep);
+  bool hasMaxRepetition() const;
   unsigned int maxRepetition() const;
   void setMaxRepetition(unsigned int rep);
 
@@ -199,6 +223,7 @@ public:
   bool addChildPattern(AbstractPattern *subpattern);
   unsigned int numChildPattern() const;
   AbstractPattern *childPattern(unsigned int n) const;
+  int indexOf(const AbstractPattern *pattern) const;
 
 protected:
   unsigned int _minRepetition;
@@ -219,6 +244,7 @@ public:
   bool addChildPattern(AbstractPattern *pattern);
   unsigned int numChildPattern() const;
   AbstractPattern *childPattern(unsigned int n) const;
+  int indexOf(const AbstractPattern *pattern) const;
 
 protected:
   QList<FixedPattern *> _content;
@@ -241,6 +267,7 @@ public:
   bool addChildPattern(AbstractPattern *pattern);
   unsigned int numChildPattern() const;
   AbstractPattern *childPattern(unsigned int n) const;
+  int indexOf(const AbstractPattern *pattern) const;
 
 protected:
   unsigned int _repetition;
@@ -333,6 +360,7 @@ public:
   bool hasDefaultValue() const;
   long long defaultValue() const;
   void setDefaultValue(long long value);
+  void clearDefaultValue();
 
   QVariant value(const Element *element, const Address &address) const;
 
@@ -381,6 +409,8 @@ public:
   bool addItem(EnumFieldPatternItem *item);
   unsigned int numItems() const;
   EnumFieldPatternItem *item(unsigned int n) const;
+
+  void setWidth(const Size &size);
 
   QVariant value(const Element *element, const Address &address) const;
 

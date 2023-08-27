@@ -18,7 +18,7 @@
       <meta>
         <name>Channel bank</name>
         <description>A series of channels.</description>
-x      </meta>
+      </meta>
 
       <element>
         <meta>
@@ -31,14 +31,14 @@ x      </meta>
             <name>RX frequency</name>
             <description>Encodes the RX frequency in 10Hz.</description>
           </meta>
-        </bcd>
+        </bcd8>
 
         <bcd8 endian="big">
           <meta>
             <name>TX frequency offset</name>
             <description>Encodes the RX frequency in 10Hz.</description>
           </meta>
-        </bcd>
+        </bcd8>
 
         <enum width=":2">
           <meta>
@@ -77,8 +77,47 @@ x      </meta>
             <description>The FM bandwidth is set to 25kHz.</description>
           </item>
         </enum>
+
+        <enum width=":2">
+          <meta>
+            <name>Power</name>
+          </meta>
+          <item value="0"><name>low</name></item>
+          <item value="1"><name>mid</name></item>
+          <item value="2"><name>high</name></item>
+          <item value="3"><name>max</name></item>
+        </enum>
+
+        <enum width=":2">
+          <meta>
+            <name>Channel mode</name>
+          </meta>
+          <item value="0"><name>FM</name></item>
+          <item value="1"><name>DMR</name></item>
+          <item value="2"><name>FM + DMR RX</name></item>
+          <item value="3"><name>DMR + FM RX</name></item>
+        </enum>
+
+        <bit><meta><name>Enable talk around</name></meta></bit>
+        <bit><meta><name>Enable call confirm</name></meta></bit>
+        <bit><meta><name>Enable RX only</name></meta></bit>
+        <bit><meta><name>Enable CTCSS phase reversal</name></meta></bit>
+        <bit><meta><name>Enable TX DCS tone</name></meta></bit>
+        <bit><meta><name>Enable TX CTCSS tone</name></meta></bit>
+        <bit><meta><name>Enable RX DCS tone</name></meta></bit>
+        <bit><meta><name>Enable RX CTCSS tone</name></meta></bit>
       </element>
     </repeat>
   </repeat>
-
+  <repeat at="02680000" min="1" max="10000">
+   <meta>
+     <name>Contact bank</name>
+   </meta>
+   <element>
+     <meta><name>Contact</name></meta>
+     <uint8>
+      <meta><name>Type</name></meta>
+     </uint8>
+   </element>
+  </repeat>
 </codeplug>

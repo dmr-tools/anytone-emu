@@ -292,18 +292,9 @@ CodeplugPatternParser::beginElementElement(const QXmlStreamAttributes &attribute
 bool
 CodeplugPatternParser::endElementElement() {
   ElementPattern *el = popAs<ElementPattern>();
-  if (topIs<CodeplugPattern>() && (! topAs<CodeplugPattern>()->addChildPattern(el))) {
-    raiseError("Cannot add element to codeplug.");
-    delete el;
-    return false;
-  }
-  if (topIs<RepeatPattern>() && (! topAs<RepeatPattern>()->addChildPattern(el))) {
-    raiseError("Cannot add element to repeat pattern.");
-    delete el;
-    return false;
-  }
-  if (topIs<ElementPattern>() && (! topAs<ElementPattern>()->addChildPattern(el))) {
-    raiseError("Cannot add element to parent element pattern.");
+
+  if (! topAs<StructuredPattern>()->addChildPattern(el)) {
+    raiseError("Cannot add element to parent.");
     delete el;
     return false;
   }
@@ -482,7 +473,6 @@ bool
 CodeplugPatternParser::beginBitElement(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("format", "unsigned");
-  attrs.append("endian", "little");
   attrs.append("width", ":1");
   return beginIntElement(attrs);
 }
@@ -533,7 +523,6 @@ CodeplugPatternParser::beginInt8Element(const QXmlStreamAttributes &attributes) 
   QXmlStreamAttributes attrs(attributes);
   attrs.append("format", "signed");
   attrs.append("width", ":10");
-  attrs.append("endian", "little");
   return beginIntElement(attrs);
 }
 
@@ -546,7 +535,6 @@ bool
 CodeplugPatternParser::beginUint8Element(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("width", ":10");
-  attrs.append("endian", "little");
   return beginUintElement(attrs);
 }
 
@@ -604,7 +592,18 @@ CodeplugPatternParser::beginEnumElement(const QXmlStreamAttributes &attributes) 
     return false;
   }
 
-  push(new EnumFieldPattern());
+  Size width = Size::fromString(attributes.value("width").toString());
+  if (! width.isValid()) {
+    raiseError(QString("<enum> element has invalid 'width' attribute '%1'.")
+               .arg(attributes.value("width")));
+    return false;
+  }
+
+  EnumFieldPattern *pattern = new EnumFieldPattern();
+  pattern->setWidth(width);
+
+  push(pattern);
+
   return processDefaultArgs(attributes);
 }
 
