@@ -20,9 +20,6 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <property name="childrenCollapsible">
-       <bool>false</bool>
-      </property>
       <widget class="QToolBox" name="toolBox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -31,7 +28,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="imagesPage">
         <property name="geometry">
@@ -129,13 +126,46 @@
          <bool>true</bool>
         </property>
        </widget>
-       <widget class="QTextBrowser" name="log">
+       <widget class="QTableView" name="log">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="showDropIndicator" stdset="0">
+         <bool>false</bool>
+        </property>
+        <property name="dragDropOverwriteMode">
+         <bool>false</bool>
+        </property>
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SingleSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <property name="showGrid">
+         <bool>false</bool>
+        </property>
+        <attribute name="horizontalHeaderVisible">
+         <bool>true</bool>
+        </attribute>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="verticalHeaderMinimumSectionSize">
+         <number>16</number>
+        </attribute>
+        <attribute name="verticalHeaderDefaultSectionSize">
+         <number>24</number>
+        </attribute>
        </widget>
       </widget>
      </widget>
@@ -228,6 +258,7 @@
     <addaction name="actionAdd_element"/>
     <addaction name="menuAdd_integer"/>
     <addaction name="actionAdd_enum"/>
+    <addaction name="actionAdd_string"/>
     <addaction name="actionAdd_unknown"/>
     <addaction name="actionAdd_unused"/>
     <addaction name="separator"/>
@@ -460,6 +491,11 @@
   <action name="actionEdit_pattern">
    <property name="text">
     <string>Edit pattern</string>
+   </property>
+  </action>
+  <action name="actionAdd_string">
+   <property name="text">
+    <string>Add string</string>
    </property>
   </action>
  </widget>

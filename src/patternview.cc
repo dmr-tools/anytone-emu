@@ -3,6 +3,8 @@
 #include "device.hh"
 #include "application.hh"
 #include "patternwrapper.hh"
+#include "logger.hh"
+
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
@@ -12,6 +14,8 @@
 #include "elementdialog.hh"
 #include "integerfielddialog.hh"
 #include "enumfielddialog.hh"
+#include "stringfielddialog.hh"
+#include "unusedfielddialog.hh"
 
 
 PatternView::PatternView(QWidget *parent)
@@ -73,6 +77,18 @@ PatternView::editPattern() {
     if (QDialog::Accepted == dialog.exec()) {
 
     }
+  } else if (pattern->is<StringFieldPattern>()) {
+    StringFieldDialog dialog;
+    dialog.setPattern(pattern->as<StringFieldPattern>());
+    if (QDialog::Accepted == dialog.exec()) {
+
+    }
+  } else if (pattern->is<UnusedFieldPattern>()) {
+    UnusedFieldDialog dialog;
+    dialog.setPattern(pattern->as<UnusedFieldPattern>());
+    if (QDialog::Accepted == dialog.exec()) {
+
+    }
   }
 }
 
@@ -87,93 +103,306 @@ PatternView::addSparseRepeat() {
 
   StructuredPattern *structure = parent->as<StructuredPattern>();
   auto sr = new RepeatPattern();
-  sr->meta().setName("Unnamed sparse repeat");
+  sr->meta().setName("New sparse repeat");
+  sr->meta().setFlags(PatternMeta::Flags::Incomplete);
 
   if (! structure->addChildPattern(sr)) {
-    QMessageBox::information(nullptr, tr("Cannot add pattern."),
-                             tr("Parent rejected pattern."));
+    logWarn() << "Cannot add sparse repeat pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
     delete sr;
   }
 }
 
 void
 PatternView::addBlockRepeat() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new BlockRepeatPattern();
+  pattern->meta().setName("New block repeat");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add block-repeat pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addFixedRepeat() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new FixedRepeatPattern();
+  pattern->meta().setName("New fixed repeat");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add fixed repeat pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addElement() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new ElementPattern();
+  pattern->meta().setName("New element");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add element pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addInteger() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new IntegerFieldPattern();
+  pattern->meta().setName("New integer");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add integer pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addBit() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new IntegerFieldPattern();
+  pattern->meta().setName("New bit");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  pattern->setWidth(Size::fromBits(1));
+  pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
+  pattern->setEndian(IntegerFieldPattern::Endian::Little);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add bit pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addUInt8() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new IntegerFieldPattern();
+  pattern->meta().setName("New uint8");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  pattern->setWidth(Size::fromBits(8));
+  pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
+  pattern->setEndian(IntegerFieldPattern::Endian::Little);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add uint8 pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addInt8() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new IntegerFieldPattern();
+  pattern->meta().setName("New int8");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  pattern->setWidth(Size::fromBits(8));
+  pattern->setFormat(IntegerFieldPattern::Format::Signed);
+  pattern->setEndian(IntegerFieldPattern::Endian::Little);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add int8 pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addUInt16() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new IntegerFieldPattern();
+  pattern->meta().setName("New uint16");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  pattern->setWidth(Size::fromBits(16));
+  pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
+  pattern->setEndian(IntegerFieldPattern::Endian::Little);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add uint16 pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addInt16() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new IntegerFieldPattern();
+  pattern->meta().setName("New int16");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  pattern->setWidth(Size::fromBits(16));
+  pattern->setFormat(IntegerFieldPattern::Format::Signed);
+  pattern->setEndian(IntegerFieldPattern::Endian::Little);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add int16 pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addUInt32() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new IntegerFieldPattern();
+  pattern->meta().setName("New uint32");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  pattern->setWidth(Size::fromBits(32));
+  pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
+  pattern->setEndian(IntegerFieldPattern::Endian::Little);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add uint32 pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addInt32() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new IntegerFieldPattern();
+  pattern->meta().setName("New int32");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  pattern->setWidth(Size::fromBits(32));
+  pattern->setFormat(IntegerFieldPattern::Format::Signed);
+  pattern->setEndian(IntegerFieldPattern::Endian::Little);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add int32 pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addBCD8() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new IntegerFieldPattern();
+  pattern->meta().setName("New BCD8");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  pattern->setWidth(Size::fromBits(32));
+  pattern->setFormat(IntegerFieldPattern::Format::BCD);
+  pattern->setEndian(IntegerFieldPattern::Endian::Big);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add bcd8 pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addEnum() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new EnumFieldPattern();
+  pattern->meta().setName("New enum");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add enum pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
+}
+
+void
+PatternView::addString() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
+
+  auto *pattern = new StringFieldPattern();
+  pattern->meta().setName("New string");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add string pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addUnused() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new UnusedFieldPattern();
+  pattern->meta().setName("New unused data pattern");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add unused data pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::addUnknown() {
+  if (! selectedPattern()->is<StructuredPattern>())
+    return;
 
+  auto *pattern = new UnusedFieldPattern();
+  pattern->meta().setName("New unknown data pattern");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
+    logWarn() << "Cannot add unknonw data pattern to " << selectedPattern()->metaObject()->className()
+              << " '" << selectedPattern()->meta().name() << "'.";
+    delete pattern;
+    return;
+  }
 }
 
 void
 PatternView::removeSelected() {
+  if (nullptr == selectedPattern())
+    return;
 
+  StructuredPattern *parent = dynamic_cast<StructuredPattern *>(selectedPattern()->parent());
+  if (nullptr == parent)
+    return;
+
+  parent->deleteChild(parent->indexOf(selectedPattern()));
 }
 
 
@@ -254,6 +483,7 @@ PatternView::onShowContextMenu(const QPoint &point) {
   contextMenu.addMenu(intMenu);
 
   contextMenu.addAction(app->findObject<QAction>("actionAdd_enum"));
+  contextMenu.addAction(app->findObject<QAction>("actionAdd_string"));
   contextMenu.addAction(app->findObject<QAction>("actionAdd_unused"));
   contextMenu.addAction(app->findObject<QAction>("actionAdd_unknown"));
   contextMenu.addSeparator();

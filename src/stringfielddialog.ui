@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>EnumFieldDialog</class>
- <widget class="QDialog" name="EnumFieldDialog">
+ <class>StringFieldDialog</class>
+ <widget class="QDialog" name="StringFieldDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>562</height>
+    <height>409</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,7 +25,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string notr="true">&lt;img src=&quot;:/icons/64x64/enum.png&quot;&gt;</string>
+        <string notr="true">&lt;img src=&quot;:/icons/64x64/stringfield.png&quot;&gt;</string>
        </property>
       </widget>
      </item>
@@ -38,8 +38,11 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>&lt;h4&gt;Enum field&lt;/h4&gt;
-&lt;p&gt;An unsigned integer field with enumerated values.&lt;/p&gt;</string>
+        <string>&lt;h4&gt;String field&lt;/h4&gt;
+&lt;p&gt;Contains up to the specified amount of chars in the given format. The pad value specifies the string termination char.&lt;/p&gt;</string>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -55,7 +58,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Content</string>
+      <string>GroupBox</string>
      </property>
      <layout class="QFormLayout" name="formLayout">
       <item row="0" column="0">
@@ -68,57 +71,50 @@
       <item row="0" column="1">
        <widget class="QLineEdit" name="address"/>
       </item>
-      <item row="2" column="0">
+      <item row="1" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>Items</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <widget class="QTableView" name="items"/>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QPushButton" name="addItem">
-            <property name="text">
-             <string>Add</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="deleteItem">
-            <property name="text">
-             <string>Remove</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Width</string>
+         <string>max. Chars</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QSpinBox" name="width">
-        <property name="suffix">
-         <string>bits</string>
-        </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
+       <widget class="QSpinBox" name="numChars">
         <property name="maximum">
-         <number>128</number>
+         <number>1000000</number>
         </property>
        </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Format</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="format">
+        <item>
+         <property name="text">
+          <string>ASCII</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Unicode</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Pad value</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="padValue"/>
       </item>
      </layout>
     </widget>
@@ -126,7 +122,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Meta</string>
+      <string>GroupBox</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
@@ -175,7 +171,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>EnumFieldDialog</receiver>
+   <receiver>StringFieldDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -191,7 +187,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>EnumFieldDialog</receiver>
+   <receiver>StringFieldDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

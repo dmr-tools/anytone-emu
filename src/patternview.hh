@@ -36,6 +36,7 @@ public slots:
   void addInt32();
   void addBCD8();
   void addEnum();
+  void addString();
   void addUnused();
   void addUnknown();
   void removeSelected();

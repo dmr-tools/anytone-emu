@@ -140,6 +140,8 @@ public:
   static Size fromBits(unsigned long n);
   static Size fromString(const QString &str);
 
+  QString toString() const;
+
   inline unsigned int byte() const { return _value/8; }
   inline unsigned int bit() const { return _value%8; }
   inline uint64_t bits() const { return _value; }
@@ -154,8 +156,8 @@ public:
 
   inline Size &operator+=(const Size &rhs) { _value += rhs._value; return *this; }
   inline Size operator+(const Size &rhs) const { return Size(_value + rhs._value); }
-  inline Size &operator-=(const Size &rhs);
-  inline Size operator-(const Size &rhs) const;
+  Size &operator-=(const Size &rhs);
+  Size operator-(const Size &rhs) const;
 
   inline Size &operator*=(unsigned int n) { _value *= n; return *this; }
   inline Size operator*(unsigned int n) const { return Size(_value * n); }

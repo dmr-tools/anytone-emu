@@ -10,9 +10,11 @@
 #include "imagecollectionwrapper.hh"
 #include "patternwrapper.hh"
 #include "logger.hh"
-
+#include "logmessagelist.hh"
 #include <QActionGroup>
 #include <QSettings>
+#include <QTextBrowser>
+
 
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
@@ -29,6 +31,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->horizontalSplitter->restoreState(settings.value("layout/horizontalSplitterState").toByteArray());
   if (settings.contains("layout/verticalSplitterState"))
     ui->verticalSplitter->restoreState(settings.value("layout/verticalSplitterState").toByteArray());
+  if (settings.contains("layout/logHeaderState"))
+    ui->log->horizontalHeader()->restoreState(settings.value("layout/logHeaderState").toByteArray());
+
+  ui->log->setModel(new LogMessageList());
 
   Application *app = qobject_cast<Application*>(Application::instance());
   ui->images->setModel(new CollectionWrapper(app->collection()));
@@ -67,6 +73,8 @@ MainWindow::MainWindow(QWidget *parent) :
   connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_BCD8, &QAction::setVisible);
   connect(ui->actionAdd_enum, &QAction::triggered, ui->patterns, &PatternView::addEnum);
   connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_enum, &QAction::setVisible);
+  connect(ui->actionAdd_string, &QAction::triggered, ui->patterns, &PatternView::addString);
+  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_string, &QAction::setVisible);
   connect(ui->actionAdd_unused, &QAction::triggered, ui->patterns, &PatternView::addUnused);
   connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_unused, &QAction::setVisible);
   connect(ui->actionAdd_unknown, &QAction::triggered, ui->patterns, &PatternView::addUnknown);
@@ -110,6 +118,8 @@ MainWindow::closeEvent(QCloseEvent *event) {
   settings.setValue("layout/mainWindowState", saveState());
   settings.setValue("layout/verticalSplitterState", ui->verticalSplitter->saveState());
   settings.setValue("layout/horizontalSplitterState", ui->horizontalSplitter->saveState());
+  settings.setValue("layout/logHeaderState", ui->log->horizontalHeader()->saveState());
+
   if (ui->actionAutoViewNone->isChecked())
     settings.setValue("action/autoShow", "none");
   if (ui->actionAutoViewHexDump->isChecked())

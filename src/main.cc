@@ -48,48 +48,48 @@ main(int argc, char *argv[])
   switch (setup.device()) {
   case SetupDialog::Device::D868UV:
     adapter = new ImageCollectionAdapter(
-          app.collection(), CodeplugPattern::load(":/codeplugs/d868uv/codeplug.xml"));
+          app.collection(), CodeplugPattern::load(setup.patternDir()+"/d868uv/codeplug.xml"));
     break;
   case SetupDialog::Device::D868UVE:
     adapter = new ImageCollectionAdapter(
-          app.collection(), CodeplugPattern::load(":/codeplugs/d868uve/codeplug.xml"));
+          app.collection(), CodeplugPattern::load(setup.patternDir()+"/d868uve/codeplug.xml"));
     break;
   case SetupDialog::Device::D878UV:
     adapter = new ImageCollectionAdapter(
-          app.collection(), CodeplugPattern::load(":/codeplugs/d878uv/codeplug.xml"));
+          app.collection(), CodeplugPattern::load(setup.patternDir()+"/d878uv/codeplug.xml"));
     break;
   case SetupDialog::Device::D878UV2:
     adapter = new ImageCollectionAdapter(
-          app.collection(), CodeplugPattern::load(":/codeplugs/d878uv/codeplug.xml"));
+          app.collection(), CodeplugPattern::load(setup.patternDir()+"/d878uv/codeplug.xml"));
     break;
   case SetupDialog::Device::D578UV:
     adapter = new ImageCollectionAdapter(
-          app.collection(), CodeplugPattern::load(":/codeplugs/d578uv/codeplug.xml"));
+          app.collection(), CodeplugPattern::load(setup.patternDir()+"/d578uv/codeplug.xml"));
     break;
   case SetupDialog::Device::D578UV2:
     adapter = new ImageCollectionAdapter(
-          app.collection(), CodeplugPattern::load(":/codeplugs/d578uv2/codeplug.xml"));
+          app.collection(), CodeplugPattern::load(setup.patternDir()+"/d578uv2/codeplug.xml"));
     break;
   case SetupDialog::Device::DMR6X2UV:
     adapter = new ImageCollectionAdapter(
-          app.collection(), CodeplugPattern::load(":/codeplugs/dmr6x2uv/codeplug.xml"));
+          app.collection(), CodeplugPattern::load(setup.patternDir()+"/dmr6x2uv/codeplug.xml"));
     break;
   case SetupDialog::Device::DMR6X2UV2:
     adapter = new ImageCollectionAdapter(
-          app.collection(), CodeplugPattern::load(":/codeplugs/dmr6x2uv2/codeplug.xml"));
+          app.collection(), CodeplugPattern::load(setup.patternDir()+"/dmr6x2uv2/codeplug.xml"));
     break;
   case SetupDialog::Device::DJMD5:
     adapter = new ImageCollectionAdapter(
-          app.collection(), CodeplugPattern::load(":/codeplugs/djmd5/codeplug.xml"));
+          app.collection(), CodeplugPattern::load(setup.patternDir()+"/djmd5/codeplug.xml"));
     break;
   case SetupDialog::Device::DJMD5X:
     adapter = new ImageCollectionAdapter(
-          app.collection(), CodeplugPattern::load(":/codeplugs/djmd5x/codeplug.xml"));
+          app.collection(), CodeplugPattern::load(setup.patternDir()+"/djmd5x/codeplug.xml"));
     break;
   }
 
   switch (setup.device()) {
-  case SetupDialog::Device::D868UV: app.setDevice(new D868UV(interface, adapter)); break;
+  case SetupDialog::Device::D868UV:    app.setDevice(new D868UV(interface, adapter)); break;
   case SetupDialog::Device::D868UVE:   app.setDevice(new D868UVE(interface, adapter)); break;
   case SetupDialog::Device::D878UV:    app.setDevice(new D878UV(interface, adapter)); break;
   case SetupDialog::Device::D878UV2:   app.setDevice(new D878UV2(interface, adapter)); break;

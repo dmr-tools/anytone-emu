@@ -23,8 +23,9 @@ public:
 
 private slots:
   void onPatternModified(const AbstractPattern *pattern);
-  void onPatternAdded(const AbstractPattern *pattern);
-  void onRemovingPattern(const AbstractPattern *pattern);
+  void onPatternAdded(const AbstractPattern *parent, unsigned int idx);
+  void onRemovingPattern(const AbstractPattern *parent, unsigned int idx);
+  void onPatternRemoved(const AbstractPattern *parent, unsigned int idx);
 
 protected:
   CodeplugPattern *_pattern;

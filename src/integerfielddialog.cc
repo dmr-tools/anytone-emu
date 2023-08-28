@@ -72,6 +72,9 @@ IntegerFieldDialog::accept() {
   } else {
     _pattern->clearDefaultValue();
   }
+
+  ui->metaEdit->apply();
+
   QDialog::accept();
 }
 

@@ -1,6 +1,6 @@
 #include "xmlparser.hh"
 #include <QXmlStreamReader>
-
+#include <QRegularExpression>
 
 XmlParser::XmlParser(QObject *parent)
   : QObject(parent)
@@ -21,8 +21,10 @@ XmlParser::endDocument() {
 bool
 XmlParser::beginElement(const QStringView &name, const QXmlStreamAttributes &attributes) {
   // Search for matching slot by name
-  QString tagName = name.toString(); tagName[0] = tagName[0].toUpper();
-  QString slotName = QString("begin%1Element").arg(tagName);
+  QStringList tagName = name.toString().split(QRegularExpression(R"([\-_.])"), Qt::SkipEmptyParts);
+  for (int i=0; i<tagName.size(); i++)
+    tagName[i][0] = tagName[i][0].toUpper();
+  QString slotName = QString("begin%1Element").arg(tagName.join(""));
 
   bool ok;
   if (this->metaObject()->invokeMethod(

@@ -48,6 +48,7 @@ SparseRepeatDialog::accept() {
     _pattern->setMinRepetition(ui->minRepetition->value());
   if (! ui->maxRepetitionUnset->isChecked())
     _pattern->setMaxRepetition(ui->maxRepetition->value());
+
   ui->metaEdit->apply();
 
   QDialog::accept();

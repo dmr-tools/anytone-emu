@@ -64,6 +64,12 @@ protected slots:
   bool endDescriptionElement();
   bool beginVersionElement(const QXmlStreamAttributes &attributes);
   bool endVersionElement();
+  bool beginDoneElement(const QXmlStreamAttributes &attributes);
+  bool endDoneElement();
+  bool beginNeedsReviewElement(const QXmlStreamAttributes &attributes);
+  bool endNeedsReviewElement();
+  bool beginIncompleteElement(const QXmlStreamAttributes &attributes);
+  bool endIncompleteElement();
 
   bool beginCodeplugElement(const QXmlStreamAttributes &attributes);
   bool endCodeplugElement();
@@ -100,19 +106,27 @@ protected slots:
   bool beginUint8Element(const QXmlStreamAttributes &attributes);
   bool endUint8Element();
 
+  bool beginUint16Element(const QXmlStreamAttributes &attributes);
+  bool endUint16Element();
   bool beginUint16leElement(const QXmlStreamAttributes &attributes);
   bool endUint16leElement();
-
   bool beginUint16beElement(const QXmlStreamAttributes &attributes);
   bool endUint16beElement();
 
+  bool beginUint32Element(const QXmlStreamAttributes &attributes);
+  bool endUint32Element();
   bool beginUint32leElement(const QXmlStreamAttributes &attributes);
   bool endUint32leElement();
+  bool beginUint32beElement(const QXmlStreamAttributes &attributes);
+  bool endUint32beElement();
 
   bool beginEnumElement(const QXmlStreamAttributes &attributes);
   bool endEnumElement();
   bool beginItemElement(const QXmlStreamAttributes &attributes);
   bool endItemElement();
+
+  bool beginStringElement(const QXmlStreamAttributes &attributes);
+  bool endStringElement();
 
   bool processDefaultArgs(const QXmlStreamAttributes &attributes);
 

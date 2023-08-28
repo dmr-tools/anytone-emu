@@ -55,12 +55,17 @@
     <widget class="QComboBox" name="tag">
      <item>
       <property name="text">
-       <string>Needs review</string>
+       <string>None</string>
       </property>
      </item>
      <item>
       <property name="text">
        <string>Done</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Needs review</string>
       </property>
      </item>
      <item>

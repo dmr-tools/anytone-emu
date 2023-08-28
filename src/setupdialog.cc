@@ -2,6 +2,7 @@
 #include "ui_setupdialog.h"
 #include <QSettings>
 #include <QSerialPortInfo>
+#include <QFileDialog>
 
 
 SetupDialog::SetupDialog(QWidget *parent) :
@@ -54,6 +55,13 @@ SetupDialog::SetupDialog(QWidget *parent) :
     if (idx >= 0)
       ui->portSelection->setCurrentIndex(idx);
   }
+
+  connect(ui->useBuildin, &QCheckBox::toggled, this, &SetupDialog::onUseBuildinPatternToggled);
+  connect(ui->selectPatternDir, &QPushButton::clicked, this, &SetupDialog::onSelectPatternDir);
+  if (settings.contains("useBuildinPatterns"))
+    ui->useBuildin->setChecked(settings.value("useBuildinPattern").toBool());
+  if (settings.contains("patternDirectory"))
+    ui->patternDir->setText(settings.value("patternDirectory").toString());
 }
 
 
@@ -82,6 +90,13 @@ SetupDialog::serialPort() const {
   return ui->portSelection->currentData().toString();
 }
 
+QString
+SetupDialog::patternDir() const {
+  if (ui->useBuildin->isChecked())
+    return ":/codeplugs";
+  return ui->patternDir->text();
+}
+
 void
 SetupDialog::onDeviceSelected(int idx) {
   QSettings().setValue("device", ui->deviceSelection->currentData());
@@ -99,4 +114,18 @@ SetupDialog::onInterfaceSelected(int idx) {
   } else if (Interface::Serial == ui->interfaceSelection->currentData().value<Interface>()) {
     ui->interfaceSettings->setCurrentIndex(1);
   }
+}
+
+void
+SetupDialog::onUseBuildinPatternToggled(bool enabled) {
+  ui->patternDir->setEnabled(! enabled);
+  ui->selectPatternDir->setEnabled(! enabled);
+}
+
+void
+SetupDialog::onSelectPatternDir() {
+  QString path = QFileDialog::getExistingDirectory(
+        nullptr, tr("Select pattern directory"), ui->patternDir->text());
+  if (! path.isEmpty())
+    ui->patternDir->setText(path);
 }

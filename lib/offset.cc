@@ -238,4 +238,19 @@ Size::fromString(const QString &str) {
   return Size::fromByte(byte, bit);
 }
 
+QString
+Size::toString() const {
+  if (0 == bit())
+    return QString("%1h").arg(byte(), 0, 16);
+  return QString("%1h:%2").arg(byte(), 0, 16).arg(bit(),0,8);
+}
+
+Size &
+Size::operator -=(const Size &other) {
+  if (other._value > _value)
+    _value = std::numeric_limits<uint64_t>::max();
+  else
+    _value -= other._value;
+  return *this;
+}
 
