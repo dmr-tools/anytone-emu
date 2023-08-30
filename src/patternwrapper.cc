@@ -29,8 +29,10 @@ PatternWrapper::index(int row, int column, const QModelIndex &parent) const {
 
 QModelIndex
 PatternWrapper::parent(const QModelIndex &child) const {
+  if (! child.isValid())
+    return QModelIndex();
   AbstractPattern *pattern = reinterpret_cast<AbstractPattern *>(child.internalPointer());
-  if (pattern->is<CodeplugPattern>())
+  if ((nullptr == pattern) ||pattern->is<CodeplugPattern>())
     return QModelIndex();
   AbstractPattern *parent = dynamic_cast<AbstractPattern *>(pattern->parent());
   if (parent->is<CodeplugPattern>())
@@ -59,9 +61,17 @@ PatternWrapper::data(const QModelIndex &index, int role) const {
   AbstractPattern *pattern = reinterpret_cast<AbstractPattern *>(index.internalPointer());
 
   if (Qt::DisplayRole == role) {
-    if (!pattern->meta().name().isEmpty())
-      return pattern->meta().name();
-    return QString("Unnamed %1").arg(pattern->metaObject()->className());
+    QString name = QString("Unnamed %1").arg(pattern->metaObject()->className());
+    if (! pattern->meta().name().isEmpty())
+      name = pattern->meta().name();
+    if (pattern->is<CodeplugPattern>()) {
+      CodeplugPattern *codeplug = pattern->as<CodeplugPattern>();
+      if (! codeplug->source().isFile())
+        name.append(" [build-in]");
+      else if (codeplug->isModified())
+        name.append("*");
+    }
+    return name;
   } else if (Qt::ToolTipRole == role) {
     if (pattern->meta().hasDescription())
       return pattern->meta().description();

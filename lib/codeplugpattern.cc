@@ -114,7 +114,7 @@ PatternMeta::setFlags(Flags flags) {
  * Implementation of AbstractPattern
  * ********************************************************************************************* */
 AbstractPattern::AbstractPattern(QObject *parent)
-  : QObject{parent}, _meta(), _address(), _size()
+  : QObject{parent}, _meta(), _address()
 {
   connect(&_meta, &PatternMeta::modified, this, &AbstractPattern::onMetaModified);
 }
@@ -146,16 +146,6 @@ AbstractPattern::address() const {
 void
 AbstractPattern::setAddress(const Address& offset) {
   _address = offset;
-}
-
-bool
-AbstractPattern::hasSize() const {
-  return _size.isValid();
-}
-
-const Size &
-AbstractPattern::size() const {
-  return _size;
 }
 
 void
@@ -192,9 +182,9 @@ GroupPattern::GroupPattern(QObject *parent)
  * Implementation of CodeplugPattern
  * ********************************************************************************************* */
 CodeplugPattern::CodeplugPattern(QObject *parent)
-  : GroupPattern(parent), _content()
+  : GroupPattern(parent), _modified(false), _source(), _content()
 {
-  // pass...
+  //connect(this, &AbstractPattern::modified, this, &CodeplugPattern::onModified);
 }
 
 bool
@@ -210,7 +200,7 @@ bool
 CodeplugPattern::serialize(QXmlStreamWriter &writer) const {
   writer.writeStartElement("codeplug");
 
-  if (! _meta.serialize(writer))
+  if (! meta().serialize(writer))
     return false;
 
   foreach(AbstractPattern *pattern, _content)
@@ -275,6 +265,10 @@ CodeplugPattern::deleteChild(unsigned int n) {
   return true;
 }
 
+bool
+CodeplugPattern::isModified() const {
+  return _modified;
+}
 
 CodeplugPattern *
 CodeplugPattern::load(const QString &filename) {
@@ -300,7 +294,16 @@ CodeplugPattern::load(const QString &filename) {
     return nullptr;
   }
 
-  return parser.popAs<CodeplugPattern>();
+  CodeplugPattern *pattern = parser.popAs<CodeplugPattern>();
+  pattern->setSource(filename);
+  return pattern;
+}
+
+bool
+CodeplugPattern::save() {
+  if ((! _source.exists()) || (! _source.isWritable()))
+    return false;
+  return save(_source.absoluteFilePath());
 }
 
 bool
@@ -326,13 +329,30 @@ CodeplugPattern::save(QIODevice *device) {
   writer.setAutoFormattingIndent(2);
 
   writer.writeStartDocument();
+  writer.writeComment("vi: set ts=2 sw=2:");
   if (! this->serialize(writer)) {
     logError() << "Cannot serialize codeplug.";
     return false;
   }
   writer.writeEndDocument();
 
+  _modified = false;
   return true;
+}
+
+const QFileInfo &
+CodeplugPattern::source() const {
+  return _source;
+}
+
+void
+CodeplugPattern::setSource(const QString &filename) {
+  _source = QFileInfo(filename);
+}
+
+void
+CodeplugPattern::onModified() {
+  _modified = true;
 }
 
 
@@ -365,7 +385,7 @@ RepeatPattern::serialize(QXmlStreamWriter &writer) const {
   if (hasMaxRepetition())
     writer.writeAttribute("max", QString::number(maxRepetition()));
 
-  if (! _meta.serialize(writer))
+  if (! meta().serialize(writer))
     return false;
 
   if ((nullptr != subpattern()) && (!subpattern()->serialize(writer)))
@@ -426,9 +446,6 @@ RepeatPattern::addChildPattern(AbstractPattern *subpattern) {
   _subpattern = subpattern;
   _subpattern->setParent(this);
 
-  // Update stepsize, if not set
-  if ((!_step.isValid()) && (_subpattern->size().isValid()))
-    _step = _subpattern->size();
   connect(_subpattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
   connect(_subpattern, &AbstractPattern::added, this, &AbstractPattern::added);
   connect(_subpattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
@@ -509,7 +526,7 @@ BlockRepeatPattern::serialize(QXmlStreamWriter &writer) const {
   if (hasMaxRepetition())
     writer.writeAttribute("max", QString::number(maxRepetition()));
 
-  if (! _meta.serialize(writer))
+  if (! meta().serialize(writer))
     return false;
 
   if ((nullptr != subpattern()) && (!subpattern()->serialize(writer)))
@@ -604,7 +621,7 @@ BlockRepeatPattern::deleteChild(unsigned int n) {
  * Implementation of FixedPattern
  * ********************************************************************************************* */
 FixedPattern::FixedPattern(QObject *parent)
-  : BlockPattern(parent)
+  : BlockPattern(parent), _size()
 {
   // pass...
 }
@@ -614,6 +631,21 @@ FixedPattern::verify() const {
   return hasSize();
 }
 
+bool
+FixedPattern::hasSize() const {
+  return _size.isValid();
+}
+
+const Size &
+FixedPattern::size() const {
+  return _size;
+}
+
+void
+FixedPattern::setSize(const Size &size) {
+  _size = size;
+  emit resized(this, _size);
+}
 
 
 /* ********************************************************************************************* *
@@ -644,7 +676,7 @@ ElementPattern::serialize(QXmlStreamWriter &writer) const {
   if (! hasImplicitAddress())
     writer.writeAttribute("at", address().toString());
 
-  if (! _meta.serialize(writer))
+  if (! meta().serialize(writer))
     return false;
 
   foreach(FixedPattern *pattern, _content)
@@ -670,11 +702,6 @@ ElementPattern::addChildPattern(AbstractPattern *pattern) {
 
   // Set/update offset
   pattern->setAddress(addr);
-  // update own size
-  if (_size.isValid())
-    _size += pattern->size();
-  else
-    _size = pattern->size();
 
   // add to content
   unsigned int idx = _content.size();
@@ -684,9 +711,16 @@ ElementPattern::addChildPattern(AbstractPattern *pattern) {
   connect(pattern, &AbstractPattern::added, this, &AbstractPattern::added);
   connect(pattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
   connect(pattern, &AbstractPattern::removed, this, &AbstractPattern::removed);
+  connect(pattern->as<FixedPattern>(), &FixedPattern::resized,
+          this, &ElementPattern::onChildResized);
+
+  // update own size
+  if (size().isValid())
+    setSize(size() + pattern->as<FixedPattern>()->size());
+  else
+    setSize(pattern->as<FixedPattern>()->size());
 
   emit added(this, idx);
-  emit resized(this, _size);
 
   return true;
 }
@@ -718,8 +752,9 @@ ElementPattern::deleteChild(unsigned int n) {
   _content.remove(n);
   emit removed(this, n);
 
+  Size mySize = size();
   if (pattern->hasSize())
-      _size -= pattern->size();
+      mySize -= pattern->size();
 
   // Adjust own size and addresses of childen
   Address addr = (0 != n) ? (_content[n-1]->address()+_content[n-1]->size()) : Address::zero();
@@ -728,8 +763,22 @@ ElementPattern::deleteChild(unsigned int n) {
     addr += _content[i]->size();
   }
 
-  emit resized(this, _size);
+  setSize(mySize);
   return true;
+}
+
+void
+ElementPattern::onChildResized(const FixedPattern *child, const Size &size) {
+  int idx = indexOf(child);
+  if (0 > idx)
+    return;
+
+  Address addr = child->address() + child->size();
+  for (unsigned int i = (idx+1); i<numChildPattern(); i++) {
+    _content[i]->setAddress(addr); addr += _content[i]->size();
+  }
+
+  setSize(addr-Address::zero());
 }
 
 
@@ -762,7 +811,7 @@ FixedRepeatPattern::serialize(QXmlStreamWriter &writer) const {
     writer.writeAttribute("at", address().toString());
   writer.writeAttribute("n", QString::number(repetition()));
 
-  if (! _meta.serialize(writer))
+  if (! meta().serialize(writer))
     return false;
 
   if ((nullptr != subpattern()) && (!subpattern()->serialize(writer)))
@@ -780,7 +829,7 @@ void
 FixedRepeatPattern::setRepetition(unsigned int n) {
   _repetition = n;
   if (_subpattern)
-    _size = _subpattern->size()*_repetition;
+    setSize(_subpattern->size()*_repetition);
 }
 
 FixedPattern *
@@ -798,11 +847,12 @@ FixedRepeatPattern::addChildPattern(AbstractPattern *pattern) {
   _subpattern = pattern->as<FixedPattern>();
   _subpattern->setParent(this);
 
-  _size = _subpattern->size()*_repetition;
+  setSize(_subpattern->size()*_repetition);
   connect(_subpattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
   connect(_subpattern, &AbstractPattern::added, this, &AbstractPattern::added);
   connect(_subpattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
   connect(_subpattern, &AbstractPattern::removed, this, &AbstractPattern::removed);
+  connect(_subpattern, &FixedPattern::resized, this, &FixedRepeatPattern::onChildResized);
 
   emit added(this, 0);
 
@@ -837,10 +887,16 @@ FixedRepeatPattern::deleteChild(unsigned int n) {
   emit removed(this, 0);
   pattern->deleteLater();
 
-  _size = Size();
-  emit resized(this, _size);
+  setSize(Size::zero());
 
   return true;
+}
+
+void
+FixedRepeatPattern::onChildResized(const FixedPattern *pattern, const Size &size) {
+  if (_subpattern != pattern)
+    return;
+  setSize(_subpattern->size()*_repetition);
 }
 
 
@@ -876,7 +932,7 @@ UnknownFieldPattern::serialize(QXmlStreamWriter &writer) const {
     writer.writeAttribute("at", address().toString());
   writer.writeAttribute("width", size().toString());
 
-  if (! _meta.serialize(writer))
+  if (! meta().serialize(writer))
     return false;
 
   writer.writeEndElement();
@@ -884,8 +940,8 @@ UnknownFieldPattern::serialize(QXmlStreamWriter &writer) const {
 }
 
 void
-UnknownFieldPattern::setSize(const Offset &size) {
-  _size = size;
+UnknownFieldPattern::setWidth(const Size &size) {
+  setSize(size);
 }
 
 QVariant
@@ -924,7 +980,7 @@ UnusedFieldPattern::serialize(QXmlStreamWriter &writer) const {
 
   writer.writeAttribute("width", size().toString());
 
-  if (! _meta.serialize(writer))
+  if (! meta().serialize(writer))
     return false;
 
   if (! content().isEmpty())
@@ -947,14 +1003,14 @@ UnusedFieldPattern::setContent(const QByteArray &content) {
   _content = content;
 
   if (! hasSize())
-    _size = Offset::fromByte(content.size());
+    setSize(Offset::fromByte(content.size()));
 
   return true;
 }
 
 void
-UnusedFieldPattern::setSize(const Size &size) {
-  _size = size;
+UnusedFieldPattern::setWidth(const Size &size) {
+  setSize(size);
 }
 
 QVariant
@@ -1015,7 +1071,7 @@ IntegerFieldPattern::serialize(QXmlStreamWriter &writer) const {
     writer.writeAttribute("max", QString::number(maxValue()));
   }
 
-  if (! _meta.serialize(writer))
+  if (! meta().serialize(writer))
     return false;
 
   writer.writeEndElement();
@@ -1024,8 +1080,7 @@ IntegerFieldPattern::serialize(QXmlStreamWriter &writer) const {
 
 void
 IntegerFieldPattern::setWidth(const Offset &width) {
-  _size = width;
-  emit resized(this, _size);
+  setSize(width);
 }
 
 IntegerFieldPattern::Format
@@ -1289,7 +1344,7 @@ EnumFieldPattern::serialize(QXmlStreamWriter &writer) const {
 
   writer.writeAttribute("width", size().toString());
 
-  if (! _meta.serialize(writer))
+  if (! meta().serialize(writer))
     return false;
 
   foreach(EnumFieldPatternItem *item, _items) {
@@ -1303,8 +1358,7 @@ EnumFieldPattern::serialize(QXmlStreamWriter &writer) const {
 
 void
 EnumFieldPattern::setWidth(const Size &size) {
-  _size = size;
-  emit resized(this, _size);
+  setSize(size);
 }
 
 bool
@@ -1372,7 +1426,7 @@ EnumFieldPattern::value(const Element *element, const Address& address) const {
 StringFieldPattern::StringFieldPattern(QObject *parent)
   : FieldPattern{parent}, _format(Format::ASCII), _numChars(0), _padValue(0)
 {
-  _size = Size::zero();
+  // pass...
 }
 
 bool
@@ -1388,14 +1442,14 @@ StringFieldPattern::serialize(QXmlStreamWriter &writer) const {
     writer.writeAttribute("at", address().toString());
 
   switch(format()) {
-  case Format::ASCII: writer.writeAttribute("format", "ascii");
-  case Format::Unicode: writer.writeAttribute("format", "unicode");
+  case Format::ASCII: writer.writeAttribute("format", "ascii"); break;
+  case Format::Unicode: writer.writeAttribute("format", "unicode"); break;
   }
 
-  writer.writeAttribute("chars", QString::number(_numChars));
+  writer.writeAttribute("width", QString::number(_numChars));
   writer.writeAttribute("pad", QString::number(_padValue));
 
-  if (! _meta.serialize(writer))
+  if (! meta().serialize(writer))
     return false;
 
   writer.writeEndElement();
@@ -1430,10 +1484,9 @@ void
 StringFieldPattern::setNumChars(unsigned int n) {
   _numChars = n;
   switch (format()) {
-  case Format::ASCII: _size = Size::fromByte(_numChars); break;
-  case Format::Unicode: _size = Size::fromByte(_numChars*2); break;
+  case Format::ASCII: setSize(Size::fromByte(_numChars)); break;
+  case Format::Unicode: setSize(Size::fromByte(_numChars*2)); break;
   }
-  emit resized(this, _size);
 }
 
 unsigned int

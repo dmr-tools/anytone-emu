@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<section xmlns="http://docbook.org/ns/docbook" version="5.1" xml:lang="en">
+<info>
+  <title>Pattern definition file format</title>
+</info>
+
+<para>
+ This section describes the file format, in which codeplug patterns are defined. This format is an 
+ XML dialect documented here.
+</para>
+
+<section>
+<info><title>Address, size and offset specification</title></info>
+<para>
+  There is a common format to specify sizes and addresses within the codeplug. This allows to 
+  specify those values to the single-bit resolution. Each address and size value may consist of two 
+  parts, a byte-part and a bit-part. Although both -- addresses and sizes -- share the same format,
+  the semantics is slightly different. 
+</para>
+
+<para>
+  The byte and bit part of an address or size is separate by a colon. So, the least significant bit
+  of the second byte is addressed as <token>01:0</token>. Please note, that the least significant bit 
+  is bit 0 not bit 7. Also, all addresses start at 0. So, the second byte has address 1. The byte 
+  part of the address is a hexadecimal value. So the 16th byte has the address <token>0f</token>, 
+  while the bit part is specified in octal numbers. In contrast to sizes and offsets, addresses, 
+  however, only allow for a single digit bit part. 
+</para>
+
+<para>
+  To address the 10th bit, you actually want to address the 6th bit of the second byte. Sounds 
+  weird, but this originates from the slightly different semantics of addressing bits and counting 
+  bits (e.g., as in offsets and sizes). 
+</para>
+<literallayout class="monospaced">   +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+00 | 7   6   5   4   3   2   1   0 | 7   6   5   4   3   2   1   0 |
+   +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+</literallayout>
+<para>
+  So to address the 10th bit, you have to address bit 6 from the second byte (second bit of the 
+  second byte). That is, <token>01:6</token>.  To specify a 10bit offset or size, you can use
+  the term <token>01:2</token> or <token>:12</token>. The former states an entire byte and two bits
+  while the second just specifies 10bits in octal. Using base 8 makes sense here as it is much 
+  easier to read that 32bit are just four bytes, as 32 is 40 in octal.
+</para>
+</section>
+
+<section>
+<info><title><tag class="element">codeplug</tag> - Element</title></info>
+<para>
+  The <tag class="element">codeplug</tag> element encloses the entire codeplug pattern and thus 
+  describes the structure of an entire codeplug. It may also contain some meta-information about 
+  the codeplug such as a descriptive name, some description of the codeplug and firmware version 
+  number. Additionally, the codeplug might be tagged as <quote>incomplete</quote> or as 
+  <quote>needs review</quote>.
+</para>
+
+<note>
+  All children of the <tag class="element">codeplug</tag> element need an 
+  <tag class="attribute">at</tag> attribute, specifying the memory address of the child. 
+</note>
+
+<para>
+  The following elements might be contained within a codeplug:
+</para>
+<itemizedlist>
+  <listitem>A single <tag class="element">meta</tag> element.</listitem> 
+</itemizedlist>
+</section>
+
+</section>

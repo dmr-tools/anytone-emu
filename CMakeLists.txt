@@ -5,9 +5,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
+
+include(GNUInstallDirs)
 include(GenerateIcons)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets SerialPort Test)
+
+find_package(DocBookXSL REQUIRED)
+include(DocBook)
 
 cmake_policy(SET CMP0100 NEW)
 set(CMAKE_AUTOMOC ON)
@@ -15,7 +20,6 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(USE_FOLDERS ON)
 
-include(GNUInstallDirs)
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/lib)
@@ -29,8 +33,8 @@ message(STATUS "Build version ${PROJECT_VERSION}")
 add_subdirectory(lib)
 add_subdirectory(cli)
 add_subdirectory(src)
-add_subdirectory(shared/icons)
 add_subdirectory(test)
+add_subdirectory(doc)
 
 # Source distribution packages:
 set(CPACK_SOURCE_GENERATOR "TGZ")

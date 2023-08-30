@@ -56,14 +56,16 @@ IntegerFieldDialog::setPattern(IntegerFieldPattern *pattern) {
 
 void
 IntegerFieldDialog::accept() {
-  Address addr = Address::fromString(ui->address->text());
-  if (! addr.isValid()) {
-    QMessageBox::critical(nullptr, tr("Invalid address format."),
-                          tr("Invalid address format '%1'.").arg(ui->address->text()));
-    return;
+  if (! _pattern->hasAddress()) {
+    Address addr = Address::fromString(ui->address->text());
+    if (! addr.isValid()) {
+      QMessageBox::critical(nullptr, tr("Invalid address format."),
+                            tr("Invalid address format '%1'.").arg(ui->address->text()));
+      return;
+    }
+  _pattern->setAddress(addr);
   }
 
-  _pattern->setAddress(addr);
   _pattern->setWidth(Offset::fromBits(ui->width->value()));
   _pattern->setFormat(ui->format->currentData().value<IntegerFieldPattern::Format>());
   _pattern->setEndian(ui->endian->currentData().value<IntegerFieldPattern::Endian>());

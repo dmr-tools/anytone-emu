@@ -81,6 +81,7 @@ MainWindow::MainWindow(QWidget *parent) :
   connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_unknown, &QAction::setVisible);
   connect(ui->actionDelete_pattern, &QAction::triggered, ui->patterns, &PatternView::removeSelected);
   connect(ui->patterns, &PatternView::canRemove, ui->actionDelete_pattern, &QAction::setVisible);
+  connect(ui->actionSave_pattern, &QAction::triggered, ui->patterns, &PatternView::save);
 
   QActionGroup *viewGrp = new QActionGroup(this);
   viewGrp->addAction(ui->actionAutoViewNone);

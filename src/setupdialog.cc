@@ -120,12 +120,18 @@ void
 SetupDialog::onUseBuildinPatternToggled(bool enabled) {
   ui->patternDir->setEnabled(! enabled);
   ui->selectPatternDir->setEnabled(! enabled);
+  QSettings().setValue(
+        "useBuildinPatterns", ui->useBuildin->isChecked());
+
 }
 
 void
 SetupDialog::onSelectPatternDir() {
   QString path = QFileDialog::getExistingDirectory(
         nullptr, tr("Select pattern directory"), ui->patternDir->text());
-  if (! path.isEmpty())
-    ui->patternDir->setText(path);
+  if (! path.isEmpty()) {
+    QDir dir(path);
+    ui->patternDir->setText(dir.absolutePath());
+    QSettings().setValue("patternDirectory", dir.absolutePath());
+  }
 }

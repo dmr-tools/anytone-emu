@@ -24,7 +24,8 @@ PatternView::PatternView(QWidget *parent)
   Application *app = qobject_cast<Application *>(Application::instance());
 
   _pattern = app->device()->pattern();
-  setModel(new PatternWrapper(_pattern));
+  if (_pattern)
+    setModel(new PatternWrapper(_pattern));
 
   connect(this, &QWidget::customContextMenuRequested, this, &PatternView::onShowContextMenu);
 }
@@ -490,4 +491,22 @@ PatternView::onShowContextMenu(const QPoint &point) {
   contextMenu.addAction(app->findObject<QAction>("actionDelete_pattern"));
 
   contextMenu.exec(mapToGlobal(point));
+}
+
+void
+PatternView::save() {
+  if (nullptr == _pattern)
+    return;
+
+  if (_pattern->source().isFile() && _pattern->source().isWritable()) {
+    if (! _pattern->save()) {
+      QMessageBox::critical(nullptr, tr("Cannot save pattern"),
+                            tr("Cannot save codeplug pattern to '%1'.")
+                            .arg(_pattern->source().filePath()));
+    }
+  } else {
+    QMessageBox::critical(nullptr, tr("Cannot save pattern"),
+                          tr("Cannot save codeplug pattern to '%1'. Pattern is likely build-in.")
+                          .arg(_pattern->source().filePath()));
+  }
 }

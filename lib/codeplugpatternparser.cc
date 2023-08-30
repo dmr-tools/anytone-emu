@@ -347,8 +347,17 @@ CodeplugPatternParser::endElementElement() {
 bool
 CodeplugPatternParser::beginUnusedElement(const QXmlStreamAttributes &attributes) {
   UnusedFieldPattern *pattern = new UnusedFieldPattern();
-  if (attributes.hasAttribute("width"))
-    pattern->setSize(Size::fromString(attributes.value("width").toString()));
+
+  if (attributes.hasAttribute("width")) {
+    Size size = Size::fromString(attributes.value("width").toString());
+    if (! size.isValid()) {
+      raiseError(QString("Invalid width value '%1' for <unsed> tag.")
+                 .arg(attributes.value("width")));
+      delete pattern;
+      return false;
+    }
+    pattern->setWidth(size);
+  }
 
   push(pattern);
 
@@ -387,7 +396,7 @@ CodeplugPatternParser::beginUnknownElement(const QXmlStreamAttributes &attribute
   }
 
   UnknownFieldPattern *pattern = new UnknownFieldPattern();
-  pattern->setSize(size);
+  pattern->setWidth(size);
 
   push(pattern);
 
@@ -739,7 +748,7 @@ CodeplugPatternParser::endItemElement() {
 
 bool
 CodeplugPatternParser::beginStringElement(const QXmlStreamAttributes &attributes) {
-  if (! attributes.hasAttribute("chars")) {
+  if (! attributes.hasAttribute("width")) {
     raiseError("<string> element requires a 'chars' attribute.");
     return false;
   }
@@ -747,7 +756,7 @@ CodeplugPatternParser::beginStringElement(const QXmlStreamAttributes &attributes
   bool ok;
   unsigned int numChars = attributes.value("width").toUInt(&ok);
   if (! ok) {
-    raiseError(QString("Invalid 'chars' value '%1' for <string>.")
+    raiseError(QString("Invalid 'width' value '%1' for <string>.")
                .arg(attributes.value("chars")));
     return false;
   }

@@ -51,7 +51,7 @@ AnnotationTest::annotateUnknownTest() {
   const char *content =
       R"(<?xml version="1.0"?>)"
       R"(<codeplug>)"
-      R"(  <unknown at="0" size="1"/>)"
+      R"(  <unknown at="0" width="1"/>)"
       R"(</codeplug>)";
 
   Image image;

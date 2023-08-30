@@ -54,7 +54,7 @@ UnusedFieldDialog::accept() {
     QMessageBox::critical(nullptr, tr("Invalid size format."),
                           tr("Invalid size format '%1'.").arg(ui->address->text()));
   }
-  _pattern->setSize(size);
+  _pattern->setWidth(size);
 
   _pattern->setContent(QByteArray::fromHex(ui->value->text().toLatin1()));
 

@@ -34,14 +34,18 @@ ElementDialog::setPattern(ElementPattern *pattern) {
 
 void
 ElementDialog::accept() {
-  Address addr = Address::fromString(ui->address->text());
-  if (! addr.isValid()) {
-    QMessageBox::critical(nullptr, tr("Invalid address format."),
-                          tr("Invalid address format '%1'.").arg(ui->address->text()));
-    return;
+  if (! _pattern->hasImplicitAddress()) {
+    Address addr = Address::fromString(ui->address->text());
+    if (! addr.isValid()) {
+      QMessageBox::critical(nullptr, tr("Invalid address format."),
+                            tr("Invalid address format '%1'.").arg(ui->address->text()));
+      return;
+    }
+
+    _pattern->setAddress(addr);
   }
 
-  _pattern->setAddress(addr);
+  ui->metaEdit->apply();
 
   QDialog::accept();
 }

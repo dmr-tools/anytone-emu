@@ -40,6 +40,7 @@ public slots:
   void addUnused();
   void addUnknown();
   void removeSelected();
+  void save();
 
 protected:
   AbstractPattern *selectedPattern() const;

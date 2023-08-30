@@ -28,6 +28,9 @@ public:
     return nullptr;
   }
 
+signals:
+  void patternModified();
+
 protected:
   Device *_device;
   Collection *_collection;

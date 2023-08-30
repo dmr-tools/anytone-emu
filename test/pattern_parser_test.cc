@@ -2,6 +2,7 @@
 #include "codeplugpatternparser.hh"
 #include <QXmlStreamReader>
 #include "codeplugpattern.hh"
+#include <QBuffer>
 
 
 PatternParserTest::PatternParserTest(QObject *parent)
@@ -60,7 +61,7 @@ PatternParserTest::parseUnusedFieldTest() {
   const char *content =
       R"(<?xml version="1.0"?>)"
       R"(<codeplug>)"
-      R"(  <unknown at="0" size="1:7"/>)"
+      R"(  <unknown at="0" width="1:7"/>)"
       R"(</codeplug>)";
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
@@ -75,7 +76,7 @@ PatternParserTest::parseUnusedFieldTest() {
   QCOMPARE(codeplug->numChildPattern(), 1);
   QVERIFY(codeplug->childPattern(0)->is<UnknownFieldPattern>());
   QCOMPARE(codeplug->childPattern(0)->address(), Address::zero());
-  QCOMPARE(codeplug->childPattern(0)->size(), Size::fromByte(1,7));
+  QCOMPARE(codeplug->childPattern(0)->as<FixedPattern>()->size(), Size::fromByte(1,7));
 }
 
 
@@ -109,23 +110,23 @@ PatternParserTest::parseIntFieldTest() {
   QCOMPARE(codeplug->numChildPattern(), 5);
   QVERIFY(codeplug->childPattern(0)->is<IntegerFieldPattern>());
   QCOMPARE(codeplug->childPattern(0)->address(), Address::zero());
-  QCOMPARE(codeplug->childPattern(0)->size(), Size::fromByte(4));
+  QCOMPARE(codeplug->childPattern(0)->as<FixedPattern>()->size(), Size::fromByte(4));
 
   QVERIFY(codeplug->childPattern(1)->is<IntegerFieldPattern>());
   QCOMPARE(codeplug->childPattern(1)->address(), Address::fromByte(4));
-  QCOMPARE(codeplug->childPattern(1)->size(), Size::fromByte(4));
+  QCOMPARE(codeplug->childPattern(1)->as<FixedPattern>()->size(), Size::fromByte(4));
 
   QVERIFY(codeplug->childPattern(2)->is<IntegerFieldPattern>());
   QCOMPARE(codeplug->childPattern(2)->address(), Address::fromByte(8));
-  QCOMPARE(codeplug->childPattern(2)->size(), Size::fromByte(1));
+  QCOMPARE(codeplug->childPattern(2)->as<FixedPattern>()->size(), Size::fromByte(1));
 
   QVERIFY(codeplug->childPattern(3)->is<IntegerFieldPattern>());
   QCOMPARE(codeplug->childPattern(3)->address(), Address::fromByte(9));
-  QCOMPARE(codeplug->childPattern(3)->size(), Size::fromByte(2));
+  QCOMPARE(codeplug->childPattern(3)->as<FixedPattern>()->size(), Size::fromByte(2));
 
   QVERIFY(codeplug->childPattern(4)->is<IntegerFieldPattern>());
   QCOMPARE(codeplug->childPattern(4)->address(), Address::fromByte(11));
-  QCOMPARE(codeplug->childPattern(4)->size(), Size::fromByte(4));
+  QCOMPARE(codeplug->childPattern(4)->as<FixedPattern>()->size(), Size::fromByte(4));
 }
 
 
@@ -159,6 +160,56 @@ PatternParserTest::parseEnumFieldTest() {
   EnumFieldPatternItem *item = enumPattern->item(0);
   QCOMPARE(item->name(), "default");
   QCOMPARE(item->description(), "Default selection");
+}
+
+void
+PatternParserTest::parseSerializedTest() {
+  const char *content =
+      R"(<?xml version="1.0"?>)"
+      R"(<codeplug>)"
+      R"(  <repeat at="0000" step="10h" min="1" max="5">)"
+      R"(    <element>)"
+      R"(      <string format="ascii" width="12"/>)"
+      R"(      <uint32le/>)"
+      R"(    </element>)"
+      R"(  </repeat>)"
+      R"(  <repeat at="0100" min="1" max="10">)"
+      R"(    <element>)"
+      R"(      <unused width=":7"/>)"
+      R"(      <bit/>)"
+      R"(      <int width=":40" format="unsigned" endian="little" min="0" max="100"/>)"
+      R"(    </element>)"
+      R"(  </repeat>)"
+      R"(  <repeat at="0200" n="10">)"
+      R"(    <enum width=":10">)"
+      R"(      <item value="0"><name>Zero</name></item>)"
+      R"(    </enum>)"
+      R"(  </repeat>)"
+      R"(</codeplug>)";
+
+  CodeplugPatternParser parser;
+
+  {
+    QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
+    if (! parser.parse(reader)) {
+      QFAIL(parser.errorMessage().toLatin1().constData());
+    }
+  }
+
+  QBuffer buffer;
+  QVERIFY(buffer.open(QIODevice::ReadWrite));
+  CodeplugPattern *codeplug = parser.popAs<CodeplugPattern>();
+  QVERIFY(codeplug->save(&buffer));
+
+  {
+    QXmlStreamReader reader(buffer.data());
+    if (! parser.parse(reader)) {
+      QFAIL(parser.errorMessage().toLatin1().constData());
+    }
+  }
+
+  CodeplugPattern *codeplug2 = parser.popAs<CodeplugPattern>();
+  QVERIFY(codeplug2->verify());
 }
 
 

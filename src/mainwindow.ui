@@ -36,7 +36,7 @@
           <x>0</x>
           <y>0</y>
           <width>389</width>
-          <height>476</height>
+          <height>498</height>
          </rect>
         </property>
         <attribute name="label">
@@ -82,7 +82,7 @@
           <x>0</x>
           <y>0</y>
           <width>389</width>
-          <height>476</height>
+          <height>498</height>
          </rect>
         </property>
         <attribute name="label">
@@ -185,8 +185,6 @@
     <property name="title">
      <string>Session</string>
     </property>
-    <addaction name="actionOpen"/>
-    <addaction name="actionSave"/>
     <addaction name="actionSave_as"/>
     <addaction name="separator"/>
     <addaction name="actionRestart"/>
@@ -263,6 +261,8 @@
     <addaction name="actionAdd_unused"/>
     <addaction name="separator"/>
     <addaction name="actionDelete_pattern"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave_pattern"/>
    </widget>
    <addaction name="menuSession"/>
    <addaction name="menuView"/>
@@ -270,32 +270,18 @@
    <addaction name="menuPattern"/>
    <addaction name="menuHelp"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionOpen">
-   <property name="text">
-    <string>Open ...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+O</string>
-   </property>
-  </action>
-  <action name="actionSave">
-   <property name="text">
-    <string>Save ...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
-   </property>
-  </action>
   <action name="actionSave_as">
+   <property name="icon">
+    <iconset theme="document-save-as"/>
+   </property>
    <property name="text">
     <string>Save as ...</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+S</string>
-   </property>
   </action>
   <action name="actionRestart">
+   <property name="icon">
+    <iconset theme="reload"/>
+   </property>
    <property name="text">
     <string>Restart</string>
    </property>
@@ -361,6 +347,9 @@
    </property>
   </action>
   <action name="actionCloseTab">
+   <property name="icon">
+    <iconset theme="window-close"/>
+   </property>
    <property name="text">
     <string>Close</string>
    </property>
@@ -384,11 +373,17 @@
    </property>
   </action>
   <action name="actionAbout">
+   <property name="icon">
+    <iconset theme="help-about"/>
+   </property>
    <property name="text">
     <string>About</string>
    </property>
   </action>
   <action name="actionManual">
+   <property name="icon">
+    <iconset theme="help-contents"/>
+   </property>
    <property name="text">
     <string>Manual</string>
    </property>
@@ -496,6 +491,17 @@
   <action name="actionAdd_string">
    <property name="text">
     <string>Add string</string>
+   </property>
+  </action>
+  <action name="actionSave_pattern">
+   <property name="icon">
+    <iconset theme="document-save"/>
+   </property>
+   <property name="text">
+    <string>Save pattern</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

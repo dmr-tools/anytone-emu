@@ -2,12 +2,13 @@
 #define CODEPLUGPATTERN_HH
 
 #include <QObject>
+#include <QFileInfo>
 #include "offset.hh"
 
 class Image;
 class Element;
 class QXmlStreamWriter;
-
+class QFileInfo;
 
 class PatternMeta: public QObject
 {
@@ -71,9 +72,6 @@ public:
   const Address &address() const;
   void setAddress(const Address &offset);
 
-  bool hasSize() const;
-  const Size &size() const;
-
   const PatternMeta &meta() const;
   PatternMeta &meta();
 
@@ -101,10 +99,9 @@ signals:
 private slots:
   void onMetaModified();
 
-protected:
+private:
   PatternMeta _meta;
   Address _address;
-  Size _size;
 };
 
 
@@ -154,12 +151,23 @@ public:
   AbstractPattern *childPattern(unsigned int n) const;
   bool deleteChild(unsigned int n);
 
+  bool isModified() const;
   static CodeplugPattern *load(const QString &filename);
+  bool save();
   bool save(const QString &filename);
   bool save(QIODevice *device);
 
+  const QFileInfo &source() const;
+
 protected:
-  bool _sparse;
+  void setSource(const QString &filename);
+
+private slots:
+  void onModified();
+
+protected:
+  bool _modified;
+  QFileInfo _source;
   QList<AbstractPattern *> _content;
 };
 
@@ -221,8 +229,17 @@ protected:
 public:
   bool verify() const;
 
+  bool hasSize() const;
+  const Size &size() const;
+
 signals:
   void resized(const FixedPattern *pattern, const Size &newSize);
+
+protected:
+  virtual void setSize(const Size &size);
+
+private:
+  Size _size;
 };
 
 
@@ -273,6 +290,9 @@ public:
   int indexOf(const AbstractPattern *pattern) const;
   bool deleteChild(unsigned int n);
 
+private slots:
+  void onChildResized(const FixedPattern *child, const Size &size);
+
 protected:
   QList<FixedPattern *> _content;
 };
@@ -297,6 +317,9 @@ public:
   AbstractPattern *childPattern(unsigned int n) const;
   bool addChildPattern(AbstractPattern *pattern);
   bool deleteChild(unsigned int n);
+
+private slots:
+  void onChildResized(const FixedPattern *pattern, const Size &size);
 
 protected:
   unsigned int _repetition;
@@ -326,7 +349,7 @@ public:
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
 
-  void setSize(const Offset &size);
+  void setWidth(const Size &size);
 
   QVariant value(const Element *element, const Address &address) const;
 };
@@ -344,7 +367,7 @@ public:
 
   const QByteArray &content() const;
   bool setContent(const QByteArray &content);
-  void setSize(const Size &size);
+  void setWidth(const Size &size);
 
   QVariant value(const Element *element, const Address &address) const;
 

@@ -28,11 +28,14 @@ SparseRepeatDialog::setPattern(RepeatPattern *pattern) {
 
 void
 SparseRepeatDialog::accept() {
-  Address addr = Address::fromString(ui->address->text());
-  if (! addr.isValid()) {
-    QMessageBox::critical(nullptr, tr("Invalid address format."),
-                          tr("Invalid address format '%1'.").arg(ui->address->text()));
-    return;
+  if (! _pattern->hasImplicitAddress()) {
+    Address addr = Address::fromString(ui->address->text());
+    if (! addr.isValid()) {
+      QMessageBox::critical(nullptr, tr("Invalid address format."),
+                            tr("Invalid address format '%1'.").arg(ui->address->text()));
+      return;
+    }
+    _pattern->setAddress(addr);
   }
 
   Offset step = Offset::fromString(ui->offset->text());
@@ -41,9 +44,8 @@ SparseRepeatDialog::accept() {
                           tr("Invalid offset format '%1'.").arg(ui->offset->text()));
     return;
   }
-
-  _pattern->setAddress(addr);
   _pattern->setStep(step);
+
   if (! ui->minRepetitionUnset->isChecked())
     _pattern->setMinRepetition(ui->minRepetition->value());
   if (! ui->maxRepetitionUnset->isChecked())

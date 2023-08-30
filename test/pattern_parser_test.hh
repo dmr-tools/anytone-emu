@@ -16,6 +16,7 @@ private slots:
   void parseUnusedFieldTest();
   void parseIntFieldTest();
   void parseEnumFieldTest();
+  void parseSerializedTest();
 };
 
 
