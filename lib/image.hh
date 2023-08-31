@@ -51,6 +51,7 @@ public:
 
   unsigned int count() const;
   const Element *element(unsigned int idx) const;
+  Element *find(const Address &address) const;
   Element *findPred(const Address &address) const;
 
   const uint8_t *data(uint32_t address) const;

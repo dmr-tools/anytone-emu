@@ -1,6 +1,7 @@
 #include "codeplugannotation.hh"
 #include "codeplugpattern.hh"
 #include "image.hh"
+#include "logger.hh"
 
 
 /* ********************************************************************************************* *
@@ -164,7 +165,8 @@ StructuredAnnotation::resolve(const Address &addr) const {
 ImageAnnotation::ImageAnnotation(const Image *image, const CodeplugPattern *pattern, QObject *parent)
   : QObject{parent}, _image(image), _pattern(pattern)
 {
-  annotate(*this, _image, _pattern);
+  if (! annotate(*this, _image, _pattern))
+    logWarn() << "Annotation failed for pattern " << _pattern->meta().name() << ".";
 }
 
 void
@@ -190,9 +192,12 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Image *image, cons
       if (! annotate(parent, image, child->as<RepeatPattern>(), child->address()))
         return false;
     } else if (child->is<BlockPattern>()) {
-      const Element *el = image->findPred(child->address());
-      if (nullptr == el)
+      const Element *el = image->find(child->address());
+      if (nullptr == el) {
+        logWarn() << "Cannot annotate block pattern '" << child->meta().name()
+                  << "': No element found for address " << child->address().toString() << ".";
         return false;
+      }
       annotate(parent, el, child->as<BlockPattern>(), child->address());
     }
   }
@@ -209,9 +214,13 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Image *image, cons
       if (! annotate(parent, image, child->as<RepeatPattern>(), addr))
         return ((i+1) > pattern->minRepetition());
     } else if (child->is<BlockPattern>()) {
-      const Element *el = image->findPred(addr);
-      if (nullptr == el)
+      const Element *el = image->find(addr);
+      if (nullptr == el) {
+        if ((i+1) <= pattern->minRepetition())
+          logWarn() << "Cannot annotate block pattern '" << child->meta().name()
+                    << "': No element found for address " << addr.toString() << ".";
         return ((i+1) > pattern->minRepetition());
+      }
       if (! annotate(parent, el, child->as<BlockPattern>(), addr))
         return false;
     }
@@ -241,8 +250,11 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Element *element, 
   Address end = element->address() + element->size();
   FixedPattern *child = pattern->subpattern();
   StructuredAnnotation *annotation = new StructuredAnnotation(pattern, address);
-  for (unsigned int i=0; (i<pattern->maxRepetition()) && (addr<end); i++, addr+=child->size()) {
-    if ((addr >= end) && ((i+1) < pattern->minRepetition())) {
+  for (unsigned int i=0; i<pattern->maxRepetition(); i++, addr+=child->size()) {
+    if ((addr >= end) && ((i+1) >= pattern->minRepetition()))
+      break;
+    if (addr >= end) {
+      logWarn() << "Min repetition of block repeat '" << pattern->meta().name() << "' not reached.";
       delete annotation;
       return false;
     }
@@ -265,6 +277,7 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Element *element, 
   StructuredAnnotation *annotation = new StructuredAnnotation(pattern, address);
   for (unsigned int i=0; i<pattern->repetition(); i++, addr += child->size()) {
     if (addr >= end) {
+      logWarn() << "Repetition of fixed repeat '" << pattern->meta().name() << "' not reached.";
       delete annotation;
       return false;
     }
@@ -285,6 +298,7 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Element *element, 
   StructuredAnnotation *annotation = new StructuredAnnotation(pattern, address);
   for (unsigned int i=0; i<pattern->numChildPattern(); i++) {
     if (addr >= end) {
+      logWarn() << "Cannot match element '" << pattern->meta().name() << "' end of data.";
       delete annotation;
       return false;
     }
@@ -304,8 +318,9 @@ bool
 ImageAnnotation::annotate(AnnotationCollection &parent, const Element *element, const FieldPattern *pattern, const Address& address) {
   Address end = element->address() + element->size();
 
-  if ((address + pattern->size()) > end)
+  if ((address + pattern->size()) > end) {
     return false;
+  }
 
   parent.addChild(new FieldAnnotation(pattern, address, pattern->value(element, address)));
   return true;

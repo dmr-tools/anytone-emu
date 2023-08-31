@@ -173,13 +173,25 @@ Image::add(Element *el) {
 }
 
 Element *
+Image::find(const Address &address) const {
+  if (_elements.isEmpty())
+    return nullptr;
+
+  unsigned int idx = findInsertionIndex(address, 0, _elements.size());
+  // Chcek if we hit element
+  if ((_elements.size() > idx) && _elements.at(idx)->contains(address))
+    return _elements.at(idx);
+  return nullptr;
+}
+
+Element *
 Image::findPred(const Address &address) const {
   if (_elements.isEmpty())
     return nullptr;
 
   unsigned int idx = findInsertionIndex(address, 0, _elements.size());
-  // Chcek if we hit element start
-  if ((_elements.size() > idx) && (_elements.at(idx)->address() == address))
+  // Chcek if we hit element
+  if ((_elements.size() > idx) && (_elements.at(idx)->contains(address)))
     return _elements.at(idx);
   if (0 == idx)
     return nullptr;
