@@ -190,7 +190,7 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Image *image, cons
       if (! annotate(parent, image, child->as<RepeatPattern>(), child->address()))
         return false;
     } else if (child->is<BlockPattern>()) {
-      const Element *el = image->findPred(child->address().byte());
+      const Element *el = image->findPred(child->address());
       if (nullptr == el)
         return false;
       annotate(parent, el, child->as<BlockPattern>(), child->address());
@@ -206,15 +206,12 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Image *image, cons
   for (unsigned int i=0; i<pattern->maxRepetition(); i++) {
     AbstractPattern *child = pattern->subpattern();
     if (child->is<RepeatPattern>()) {
-      if (! annotate(parent, image, child->as<RepeatPattern>(), addr)) {
-        if ((i+1) < pattern->minRepetition()) {
-          return false;
-        }
-      }
+      if (! annotate(parent, image, child->as<RepeatPattern>(), addr))
+        return ((i+1) > pattern->minRepetition());
     } else if (child->is<BlockPattern>()) {
-      const Element *el = image->findPred(child->address().byte());
-      if ((nullptr == el) && ((i+1) < pattern->minRepetition()))
-        return false;
+      const Element *el = image->findPred(addr);
+      if (nullptr == el)
+        return ((i+1) > pattern->minRepetition());
       if (! annotate(parent, el, child->as<BlockPattern>(), addr))
         return false;
     }

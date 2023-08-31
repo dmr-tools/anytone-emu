@@ -5,6 +5,7 @@ SET(anytone-emu-gui_SOURCES
   patternwrapper.cc patternview.cc patternmetaeditor.cc patternmetaeditor.ui
   sparserepeatdialog.cc sparserepeatdialog.ui
   blockrepeatdialog.cc blockrepeatdialog.ui
+  fixedrepeatdialog.cc fixedrepeatdialog.ui
   elementdialog.cc elementdialog.ui
   integerfielddialog.cc integerfielddialog.ui
   enumfielddialog.cc enumfielddialog.ui enumfieldpatternwrapper.cc
@@ -22,6 +23,7 @@ SET(anytone-emu-gui_HEADERS
   patternwrapper.hh patternview.hh patternmetaeditor.hh
   sparserepeatdialog.hh
   blockrepeatdialog.hh
+  fixedrepeatdialog.hh
   elementdialog.hh
   integerfielddialog.hh
   enumfielddialog.hh enumfieldpatternwrapper.hh

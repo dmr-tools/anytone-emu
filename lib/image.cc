@@ -6,14 +6,14 @@
 /* ********************************************************************************************* *
  * Implementation of Element
  * ********************************************************************************************* */
-Element::Element(uint32_t address, uint32_t size, QObject *parent)
-  : QObject{parent}, _address(Address::fromByte(address)), _data(size, 0)
+Element::Element(const Address &address, uint32_t size, QObject *parent)
+  : QObject{parent}, _address(address), _data(size, 0)
 {
   // pass...
 }
 
-Element::Element(uint32_t address, const QByteArray &data, QObject *parent)
-  : QObject{parent}, _address(Address::fromByte(address)), _data(data)
+Element::Element(const Address &address, const QByteArray &data, QObject *parent)
+  : QObject{parent}, _address(address), _data(data)
 {
   // pass...
 }
@@ -52,7 +52,24 @@ Element::size() const {
 
 bool
 Element::extends(uint32_t address) const {
-  return Address::fromByte(address) == (this->address()+this->size());
+  return extends(Address::fromByte(address));
+}
+
+bool
+Element::extends(const Address &address) const {
+  return address == (this->address()+this->size());
+}
+
+bool
+Element::contains(uint32_t address, uint32_t size) const {
+  return (Address::fromByte(address) >= this->address()) &&
+      ((Address::fromByte(address)+Size::fromByte(size)) <= (this->address()+this->size()));
+}
+
+bool
+Element::contains(const Address &address, const Size &size) const {
+  return (address >= this->address()) &&
+      ((address + size) <= (this->address()+this->size()));
 }
 
 const QByteArray &
@@ -61,11 +78,11 @@ Element::data() const {
 }
 
 const uint8_t *
-Element::data(uint32_t address) const {
-  if ((Address::fromByte(address) < this->address()) || (Address::fromByte(address) >= (this->address()+this->size())))
+Element::data(const Address &address) const {
+  if (! contains(address))
     return nullptr;
-  uint32_t offset = address-this->address().byte();
-  return (uint8_t *)data().constData() + offset;
+  Offset offset = address-this->address();
+  return (uint8_t *)data().constData() + offset.byte();
 }
 
 void
@@ -97,6 +114,11 @@ Image::element(unsigned int n) const {
 
 const uint8_t *
 Image::data(uint32_t address) const {
+  return data(Address::fromByte(address));
+}
+
+const uint8_t *
+Image::data(const Address &address) const {
   Element *pred = findPred(address);
   if (nullptr == pred)
     return nullptr;
@@ -106,6 +128,11 @@ Image::data(uint32_t address) const {
 
 void
 Image::append(uint32_t address, const QByteArray &data) {
+  append(Address::fromByte(address), data);
+}
+
+void
+Image::append(const Address &address, const QByteArray &data) {
   Element *pred = findPred(address);
   if ((nullptr == pred) || (! pred->extends(address))) {
     add(new Element(address, data, this));
@@ -146,13 +173,13 @@ Image::add(Element *el) {
 }
 
 Element *
-Image::findPred(uint32_t address) const {
+Image::findPred(const Address &address) const {
   if (_elements.isEmpty())
     return nullptr;
 
   unsigned int idx = findInsertionIndex(address, 0, _elements.size());
   // Chcek if we hit element start
-  if ((_elements.size() > idx) && (_elements.at(idx)->address().byte() == address))
+  if ((_elements.size() > idx) && (_elements.at(idx)->address() == address))
     return _elements.at(idx);
   if (0 == idx)
     return nullptr;
@@ -161,17 +188,22 @@ Image::findPred(uint32_t address) const {
 
 unsigned int
 Image::findInsertionIndex(uint32_t address, unsigned int a, unsigned int b) const {
+  return findInsertionIndex(Address::fromByte(address), a, b);
+}
+
+unsigned int
+Image::findInsertionIndex(const Address &address, unsigned int a, unsigned int b) const {
   if (a == b)
     return a;
 
-  if (address <= _elements.at(a)->address().byte())
+  if (address <= _elements.at(a)->address())
     return a;
 
-  if (address > _elements.at(b-1)->address().byte())
+  if (address > _elements.at(b-1)->address())
     return b;
 
   unsigned int m = (a+b)/2;
-  if (address < _elements.at(m)->address().byte())
+  if (address < _elements.at(m)->address())
     return findInsertionIndex(address, a, m);
   return findInsertionIndex(address, m, b);
 }

@@ -1395,8 +1395,11 @@ EnumFieldPattern::deleteItem(unsigned int n) {
 
 QVariant
 EnumFieldPattern::value(const Element *element, const Address& address) const {
-  if ((address+size()) > element->address()+element->size()) {
-    logError() << "Cannot decode enum, extends the element bounds.";
+  logDebug() << "Decode enum '" << meta().name() << "' @" << address.toString()
+             << " in element starting at " << element->address().toString()
+             << " of size " << element->size().toString() << ".";
+  if (! element->contains(address, this->size())) {
+    logError() << "Cannot decode enum '" << meta().name() << "': Outside of element bounds.";
     return QVariant();
   }
 
@@ -1406,11 +1409,11 @@ EnumFieldPattern::value(const Element *element, const Address& address) const {
   // larger integers must align with bytes
 
   if (size().bits() <= 8) {
-    if (8 < (address.bit()+size().bits())) {
+    if ((address.bit()+1)<size().bits()) {
       logWarn() << "Cannot decode enum, bitpattern extens across bytes.";
       return QVariant();
     }
-    unsigned int shift = 8 - (address.bit()+size().bits());
+    unsigned int shift = (address.bit()+1)-size().bits();
     unsigned int mask  = (1<<size().bits())-1;
     return QVariant((unsigned int) (uint8_t(element->data().at(within.byte())) & mask) >> shift);
   }
@@ -1436,7 +1439,7 @@ StringFieldPattern::verify() const {
 
 bool
 StringFieldPattern::serialize(QXmlStreamWriter &writer) const {
-  writer.writeStartElement("enum");
+  writer.writeStartElement("string");
 
   if (! hasImplicitAddress())
     writer.writeAttribute("at", address().toString());

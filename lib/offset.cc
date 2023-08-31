@@ -40,7 +40,7 @@ Address::fromByte(unsigned int byte, unsigned int bit)
 
 Address
 Address::fromString(const QString &str) {
-  QRegularExpression regex("([0-9A-Fa-f]*):([0-7]?)|([0-9A-Fa-f]+)");
+  QRegularExpression regex("([0-9A-Fa-f]*)h?:([0-7]?)|([0-9A-Fa-f]+)h?");
 
   QRegularExpressionMatch match = regex.match(str);
   if (! match.isValid())
@@ -153,7 +153,7 @@ Offset::fromBits(unsigned long n) {
 
 Offset
 Offset::fromString(const QString &str) {
-  QRegularExpression regex("([0-9A-Fa-f]*):([0-7]+)|([0-9A-Fa-f]+)");
+  QRegularExpression regex("([0-9A-Fa-f]*)h?:([0-7]?)|([0-9A-Fa-f]+)h?");
 
   QRegularExpressionMatch match = regex.match(str);
   if (! match.isValid())
@@ -221,7 +221,7 @@ Size::fromBits(unsigned long n) {
 
 Size
 Size::fromString(const QString &str) {
-  QRegularExpression regex("([0-9A-Fa-f]*):([0-7]+)|([0-9A-Fa-f]+)");
+  QRegularExpression regex("([0-9A-Fa-f]*)h?:([0-7]?)|([0-9A-Fa-f]+)h?");
 
   QRegularExpressionMatch match = regex.match(str);
   if (! match.isValid())

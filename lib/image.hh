@@ -13,8 +13,8 @@ class Element: public QObject
   Q_OBJECT
 
 public:
-  explicit Element(uint32_t address, uint32_t size = 0, QObject *parent=nullptr);
-  explicit Element(uint32_t address, const QByteArray &data, QObject *parent=nullptr);
+  explicit Element(const Address &address, uint32_t size = 0, QObject *parent=nullptr);
+  explicit Element(const Address &address, const QByteArray &data, QObject *parent=nullptr);
 
   bool operator <= (const Element &other) const;
   bool operator <  (const Element &other) const;
@@ -24,9 +24,13 @@ public:
   const Address &address() const;
   Size size() const;
   bool extends(uint32_t address) const;
+  bool extends(const Address &address) const;
+  bool contains(uint32_t address, uint32_t size=0) const;
+  bool contains(const Address &address, const Size &size=Size::zero()) const;
 
   const QByteArray &data() const;
   const uint8_t *data(uint32_t address) const;
+  const uint8_t *data(const Address &address) const;
   void append(const QByteArray &data);
 
 signals:
@@ -47,10 +51,12 @@ public:
 
   unsigned int count() const;
   const Element *element(unsigned int idx) const;
-  Element *findPred(uint32_t address) const;
+  Element *findPred(const Address &address) const;
 
   const uint8_t *data(uint32_t address) const;
+  const uint8_t *data(const Address &address) const;
   void append(uint32_t address, const QByteArray &data);
+  void append(const Address &address, const QByteArray &data);
 
   const QString &label() const;
   void setLabel(const QString &label);
@@ -64,7 +70,7 @@ signals:
 protected:
   void add(Element *el);
   unsigned int findInsertionIndex(uint32_t address, unsigned int a, unsigned int b) const;
-
+  unsigned int findInsertionIndex(const Address &address, unsigned int a, unsigned int b) const;
 protected:
   QString _label;
   QVector<Element *> _elements;

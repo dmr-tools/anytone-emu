@@ -28,7 +28,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="imagesPage">
         <property name="geometry">
@@ -106,9 +106,12 @@
          </property>
          <item>
           <widget class="PatternView" name="patterns">
-           <property name="headerHidden">
+           <property name="alternatingRowColors">
             <bool>true</bool>
            </property>
+           <attribute name="headerStretchLastSection">
+            <bool>false</bool>
+           </attribute>
           </widget>
          </item>
         </layout>
@@ -122,7 +125,13 @@
         <property name="currentIndex">
          <number>-1</number>
         </property>
+        <property name="documentMode">
+         <bool>true</bool>
+        </property>
         <property name="tabsClosable">
+         <bool>true</bool>
+        </property>
+        <property name="movable">
          <bool>true</bool>
         </property>
        </widget>
@@ -272,7 +281,8 @@
   </widget>
   <action name="actionSave_as">
    <property name="icon">
-    <iconset theme="document-save-as"/>
+    <iconset theme="document-save-as">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Save as ...</string>
@@ -280,7 +290,8 @@
   </action>
   <action name="actionRestart">
    <property name="icon">
-    <iconset theme="reload"/>
+    <iconset theme="application-exit">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Restart</string>
@@ -348,7 +359,8 @@
   </action>
   <action name="actionCloseTab">
    <property name="icon">
-    <iconset theme="window-close"/>
+    <iconset theme="window-close">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Close</string>
@@ -363,18 +375,27 @@
    </property>
   </action>
   <action name="actionAnnotate">
+   <property name="icon">
+    <iconset theme="edit-find">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
    <property name="text">
     <string>Annotate</string>
    </property>
   </action>
   <action name="actionClear_annotations">
+   <property name="icon">
+    <iconset theme="edit-clear">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
    <property name="text">
     <string>Clear annotations</string>
    </property>
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset theme="help-about"/>
+    <iconset theme="help-about">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>About</string>
@@ -382,7 +403,8 @@
   </action>
   <action name="actionManual">
    <property name="icon">
-    <iconset theme="help-contents"/>
+    <iconset theme="help-contents">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Manual</string>
@@ -391,6 +413,10 @@
   <action name="actionAdd_element">
    <property name="enabled">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="list-add">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Add element</string>
@@ -423,6 +449,10 @@
   <action name="actionDelete_pattern">
    <property name="enabled">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="list-remove">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Delete pattern</string>
@@ -495,7 +525,8 @@
   </action>
   <action name="actionSave_pattern">
    <property name="icon">
-    <iconset theme="document-save"/>
+    <iconset theme="document-save">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Save pattern</string>

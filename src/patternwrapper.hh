@@ -15,11 +15,22 @@ public:
   QModelIndex index(int row, int column, const QModelIndex &parent) const;
   QModelIndex parent(const QModelIndex &child) const;
 
+  Qt::ItemFlags flags(const QModelIndex &index) const;
+
   int rowCount(const QModelIndex &parent) const;
   int columnCount(const QModelIndex &parent) const;
 
   QVariant data(const QModelIndex &index, int role) const;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+
+private:
+  QVariant getIcon(const AbstractPattern *pattern) const;
+  QVariant getName(const AbstractPattern *pattern) const;
+  QVariant getTooltip(const AbstractPattern *pattern, int column) const;
+  QVariant getAddress(const AbstractPattern *pattern) const;
+  QVariant getAddressColor(const AbstractPattern *pattern) const;
+  QVariant getSize(const AbstractPattern *pattern) const;
+  QVariant getSizeColor(const AbstractPattern *pattern) const;
 
 private slots:
   void onPatternModified(const AbstractPattern *pattern);

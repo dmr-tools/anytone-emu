@@ -11,6 +11,7 @@
 
 #include "sparserepeatdialog.hh"
 #include "blockrepeatdialog.hh"
+#include "fixedrepeatdialog.hh"
 #include "elementdialog.hh"
 #include "integerfielddialog.hh"
 #include "enumfielddialog.hh"
@@ -57,6 +58,12 @@ PatternView::editPattern() {
   } else if (pattern->is<BlockRepeatPattern>()) {
     BlockRepeatDialog dialog;
     dialog.setPattern(pattern->as<BlockRepeatPattern>());
+    if (QDialog::Accepted == dialog.exec()) {
+
+    }
+  } else if (pattern->is<FixedRepeatPattern>()) {
+    FixedRepeatDialog dialog;
+    dialog.setPattern(pattern->as<FixedRepeatPattern>());
     if (QDialog::Accepted == dialog.exec()) {
 
     }

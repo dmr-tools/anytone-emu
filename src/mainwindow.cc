@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->verticalSplitter->restoreState(settings.value("layout/verticalSplitterState").toByteArray());
   if (settings.contains("layout/logHeaderState"))
     ui->log->horizontalHeader()->restoreState(settings.value("layout/logHeaderState").toByteArray());
+  if (settings.contains("layout/patternsHeaderState"))
+    ui->patterns->header()->restoreState(settings.value("layout/patternsHeaderState").toByteArray());
 
   ui->log->setModel(new LogMessageList());
 
@@ -120,6 +122,7 @@ MainWindow::closeEvent(QCloseEvent *event) {
   settings.setValue("layout/verticalSplitterState", ui->verticalSplitter->saveState());
   settings.setValue("layout/horizontalSplitterState", ui->horizontalSplitter->saveState());
   settings.setValue("layout/logHeaderState", ui->log->horizontalHeader()->saveState());
+  settings.setValue("layout/patternsHeaderState", ui->patterns->header()->saveState());
 
   if (ui->actionAutoViewNone->isChecked())
     settings.setValue("action/autoShow", "none");
@@ -235,8 +238,11 @@ MainWindow::onAnnotate() {
         images.append(img);
     }
   }
+  if (0 == images.size())
+    logInfo() << "Select an image to annotate.";
 
   foreach (Image *img, images) {
+    logDebug() << "Annotate image '" << img->label() << "'.";
     if (! img->annotate(app->device()->pattern())) {
       logError() << "Annotation failed.";
     }
