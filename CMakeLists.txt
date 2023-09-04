@@ -4,15 +4,19 @@ project(anytone-emu VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(BUILD_TESTS "Enables build of unit tests." OFF)
+option(BUILD_MANUAL "Enables build of manual." OFF)
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
 
 include(GNUInstallDirs)
 include(GenerateIcons)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets SerialPort Test)
-
+if(BUILD_MANUAL)
 find_package(DocBookXSL REQUIRED)
 include(DocBook)
+endif()
 
 cmake_policy(SET CMP0100 NEW)
 set(CMAKE_AUTOMOC ON)
@@ -33,8 +37,12 @@ message(STATUS "Build version ${PROJECT_VERSION}")
 add_subdirectory(lib)
 add_subdirectory(cli)
 add_subdirectory(src)
+if(BUILD_TESTS)
 add_subdirectory(test)
+endif()
+if(BUILD_MANUAL)
 add_subdirectory(doc)
+endif()
 
 # Source distribution packages:
 set(CPACK_SOURCE_GENERATOR "TGZ")
