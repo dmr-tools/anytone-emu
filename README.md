@@ -1,23 +1,27 @@
 # AnyTone emulator
 
 This little program emulates several AnyTone devices, such that codeplugs written by the 
-manufacturer CPS, can be captured and analyzed. For the maximum convenience, this tool generates
-a pair of pseudo-terminals, that can be exposed as COM ports to wine. This allows for running
-the manufacturer CPS in wine, eliminating the need for a windows VM. 
+manufacturer CPS, can be captured and analyzed. For the maximum convenience, this tool either 
+generates a pair of pseudo-terminals (under Linux), that can be exposed as COM ports to wine. This 
+allows for running the manufacturer CPS in wine, eliminating the need for a windows VM. 
+Alternatively, it opens a serial interface (one of a pair of so-called virtual null-modem cables) 
+under windows and emulates an AnyTone device there. 
 
 
 ## Build & install
-This 
+This tool is build with Qt 6 using QtSerialPort to talk to the serial port on windows and Linux. You 
+will need these development packages to build anytone-emu. The build tool is cmake, so that one is 
+needed too.
 
 ## Usage under wine
 
 For example, the call 
 ```
-anytone-emu> cargo run -- --radio=dmr6x2uv
+ > anytone-emu --device=dmr6x2uv --dump 
 ```
 or equivalently, the call showing all default-values
 ```
-anytone-emu> cargo run -- --interface=wine --radio=dmr6x2uv --output=hex --prefix=codeplug_ 
+ > anytone-emu --device=dmr6x2uv --dump --loglevel=info --interface=pty
 ```
 will create a pseudo-terminal and connect the emulation of a BTECH DMR-6X2UV to that. This PTY is 
 then linked to `~/.local/share/anytone-emu/anytoneport`. From there, your CPS can access it through
@@ -56,7 +60,12 @@ CPSs appear to work with wine.
 ## Command line options
   - `--help` -- Obvious help message.
   - `--version` -- Show version number
-  - `--interface=IF` -- Specifies the interface to the CPS. This is either `wine` or `comX`. The 
+  - `--dump` -- Just dumps the received codeplug as a hex-dump. Either to stdout or to a file, 
+    specified by `--output`.
+  - `--diff=MODE` -- Dumps only the difference between codeplugs. The `MODE` specifies the codeplugs 
+    to be compared. The `first` mode compares each received codeplug with the first one, while 
+    `previous` compares the last two received codeplugs.
+  - `--interface=IF` -- Specifies the interface to the CPS. This is either `pty` or `comX`. The 
     former will create a PTY pair and link `$HOME/.local/share/anytone-emu/anytoneport` to it. This
     then allows to set this PTY as a COM port in the wine `regedit`. If `anytone-emu` is run under 
     windows, a null-modem emulator (e.g., [com2com](https://com0com.sourceforge.net/)) can be used
@@ -64,7 +73,9 @@ CPSs appear to work with wine.
     virtual COM ports. One is passed to `anytone-emu` as `comX` the other is set in the CPS.
   - `--device=DEVICE_ID` -- Specifies which radio to emulate. Must be one of `d868uve`, `d878uv`, 
     `d878uv2`, `d578uv`, `d578uv2`, `dmr6x2uv` or `dmr6x2uv2`.
-  - `--output=PATTERN` 
+  - `--output=PATTERN` -- Specifies the output filename pattern using printf format. E.g., a pattern
+    like "codeplug_%02d.hex" will generate a series of files named "codeplug_00.hex", 
+    "codeplug_01.hex",... for each received codeplug.
 
     
 ## License

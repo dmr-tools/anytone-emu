@@ -3,34 +3,41 @@
 
 #include <QObject>
 #include <QVector>
+#include "offset.hh"
 
+class ImageAnnotation;
+class CodeplugPattern;
 
 class Element: public QObject
 {
   Q_OBJECT
 
 public:
-  explicit Element(uint32_t address, uint32_t size = 0, QObject *parent=nullptr);
-  explicit Element(uint32_t address, const QByteArray &data, QObject *parent=nullptr);
+  explicit Element(const Address &address, uint32_t size = 0, QObject *parent=nullptr);
+  explicit Element(const Address &address, const QByteArray &data, QObject *parent=nullptr);
 
   bool operator <= (const Element &other) const;
   bool operator <  (const Element &other) const;
   bool operator == (const Element &other) const;
   bool operator != (const Element &other) const;
 
-  uint32_t address() const;
-  uint32_t size() const;
+  const Address &address() const;
+  Size size() const;
   bool extends(uint32_t address) const;
+  bool extends(const Address &address) const;
+  bool contains(uint32_t address, uint32_t size=0) const;
+  bool contains(const Address &address, const Size &size=Size::zero()) const;
 
   const QByteArray &data() const;
   const uint8_t *data(uint32_t address) const;
+  const uint8_t *data(const Address &address) const;
   void append(const QByteArray &data);
 
 signals:
   void modified(uint32_t address);
 
 protected:
-  uint32_t _address;
+  Address _address;
   QByteArray _data;
 };
 
@@ -44,24 +51,31 @@ public:
 
   unsigned int count() const;
   const Element *element(unsigned int idx) const;
+  Element *find(const Address &address) const;
+  Element *findPred(const Address &address) const;
 
   const uint8_t *data(uint32_t address) const;
+  const uint8_t *data(const Address &address) const;
   void append(uint32_t address, const QByteArray &data);
+  void append(const Address &address, const QByteArray &data);
 
   const QString &label() const;
   void setLabel(const QString &label);
+
+  bool annotate(const CodeplugPattern *pattern);
+  const ImageAnnotation *annotations() const;
 
 signals:
   void modified(unsigned int image, uint32_t address);
 
 protected:
   void add(Element *el);
-  Element *findPred(uint32_t address) const;
   unsigned int findInsertionIndex(uint32_t address, unsigned int a, unsigned int b) const;
-
+  unsigned int findInsertionIndex(const Address &address, unsigned int a, unsigned int b) const;
 protected:
   QString _label;
   QVector<Element *> _elements;
+  ImageAnnotation *_annotations;
 };
 
 

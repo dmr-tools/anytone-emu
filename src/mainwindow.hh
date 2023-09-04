@@ -23,6 +23,7 @@ private slots:
   void onShowHexDiff();
   void onCloseTab(int index=-1);
   void onImageReceived(unsigned int idx);
+  void onAnnotate();
 
 private:
   Ui::MainWindow *ui;

@@ -1,12 +1,13 @@
 #include "hexdump.hh"
 #include "image.hh"
+#include "codeplugannotation.hh"
 #include <QTextStream>
 
 
 /* ********************************************************************************************* *
  * Implementation of HexLine
  * ********************************************************************************************* */
-HexLine::HexLine(uint32_t address, const QByteArray &left)
+HexLine::HexLine(uint32_t address, const QByteArray &left, const ImageAnnotation *annotation)
   : _address((address>>4)<<4), _consumed(0), _left(), _right(), _hasDiff(false)
 {
   // If address does not align with 16 bytes, prepend with unused bytes to ensure alignment
@@ -28,7 +29,7 @@ HexLine::HexLine(uint32_t address, const QByteArray &left)
   }
 }
 
-HexLine::HexLine(uint32_t address, const QByteArray &left, const QByteArray &right)
+HexLine::HexLine(uint32_t address, const QByteArray &left, const QByteArray &right, const ImageAnnotation *annotation)
   : _address((address>>4)<<4), _consumed(0), _left(), _right(), _hasDiff(false)
 {
   // If address does not align with 16 bytes, prepend with unused bytes to ensure alignment
@@ -134,32 +135,32 @@ HexLine::hasDiff() const {
 /* ********************************************************************************************* *
  * Implementation of HexElement
  * ********************************************************************************************* */
-HexElement::HexElement(const Element *element)
-  : _lines(), _address(element->address()), _isDiff(false), _hasDiff(false)
+HexElement::HexElement(const Element *element, const ImageAnnotation *annotation)
+  : _lines(), _address(element->address().byte()), _isDiff(false), _hasDiff(false)
 {
   uint32_t address = _address;
   QByteArray data = element->data();
 
   for (int offset=0; offset<data.size();) {
-    HexLine line(address, data.right(data.size()-offset));
+    HexLine line(address, data.right(data.size()-offset), annotation);
     address += line.consumed();
     offset  += line.consumed();
     _lines.append(line);
   }
 }
 
-HexElement::HexElement(const Element *left, const Element *right)
+HexElement::HexElement(const Element *left, const Element *right, const ImageAnnotation *annotation)
   : _lines(), _address(0), _isDiff(true), _hasDiff(false)
 {
   uint32_t address;
   QByteArray left_data, right_data;
 
   if (left) {
-    address = _address = left->address();
+    address = _address = left->address().byte();
     left_data = left->data();
   }
   if (right) {
-    address = _address = right->address();
+    address = _address = right->address().byte();
     right_data = right->data();
   }
 
@@ -169,7 +170,7 @@ HexElement::HexElement(const Element *left, const Element *right)
       left_line = left_data.mid(offset, 16);
     if (offset < right_data.size())
       right_line = right_data.mid(offset, 16);
-    HexLine line(address, left_line, right_line);
+    HexLine line(address, left_line, right_line, annotation);
     address += line.consumed();
     offset  += line.consumed();
     _lines.append(line);
@@ -224,34 +225,36 @@ HexImage::HexImage(const Image *image)
   : _elements(), _isDiff(false), _hasDiff(false)
 {
   for (unsigned int i=0; i<image->count(); i++) {
-    _elements.append(HexElement(image->element(i)));
+    const ImageAnnotation *annotation = image->annotations();
+    _elements.append(HexElement(image->element(i), annotation));
   }
 }
 
 HexImage::HexImage(const Image *left, const Image *right)
   : _elements(), _isDiff(false), _hasDiff(false)
 {
+  const ImageAnnotation *annotation = left->annotations();
   for (unsigned int i=0,j=0; (i<left->count()) || (j<right->count());) {
     if ((i<left->count()) && (j<right->count())) {
       if (left->element(i)->address() < right->element(j)->address()) {
-        _elements.append(HexElement(left->element(i), nullptr));
+        _elements.append(HexElement(left->element(i), nullptr, annotation));
         _hasDiff |= _elements.last().hasDiff();
         i++;
       } else if (left->element(i)->address() > right->element(j)->address()) {
-        _elements.append(HexElement(nullptr, right->element(j)));
+        _elements.append(HexElement(nullptr, right->element(j), annotation));
         _hasDiff |= _elements.last().hasDiff();
         j++;
       } else {
-        _elements.append(HexElement(left->element(i), right->element(j)));
+        _elements.append(HexElement(left->element(i), right->element(j), annotation));
         _hasDiff |= _elements.last().hasDiff();
         i++; j++;
       }
     } else if (i<left->count()) {
-      _elements.append(HexElement(left->element(i), nullptr));
+      _elements.append(HexElement(left->element(i), nullptr, annotation));
       _hasDiff |= _elements.last().hasDiff();
       i++;
     } else if (j<right->count()) {
-      _elements.append(HexElement(nullptr, right->element(j)));
+      _elements.append(HexElement(nullptr, right->element(j), annotation));
       _hasDiff |= _elements.last().hasDiff();
       j++;
     }

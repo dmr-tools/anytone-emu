@@ -66,12 +66,7 @@ HexDocument::putElementTitle(const HexElement &element, QTextCursor &cursor) {
   QTextCharFormat titleFormat = _elementTitleFormat.toCharFormat();
   titleFormat.setFontPointSize(titleFormat.fontPointSize()*1.6);
 
-  if (app->device()->elementKnown(element.address()))
-    cursor.insertText(QString("%1 at %2h")
-                      .arg(app->device()->elementName(element.address()))
-                      .arg(element.address(), 0, 16), titleFormat);
-  else
-    cursor.insertText(QString("Unknown Element at %1h").arg(element.address(), 0, 16), titleFormat);
+  cursor.insertText(QString("Unknown Element at %1h").arg(element.address(), 0, 16), titleFormat);
 
 }
 

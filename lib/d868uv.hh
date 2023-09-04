@@ -3,6 +3,9 @@
 
 #include "device.hh"
 
+class CodeplugPattern;
+
+
 class D868UV : public Device
 {
   Q_OBJECT

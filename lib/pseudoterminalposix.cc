@@ -10,10 +10,14 @@
 
 
 PseudoTerminal::PseudoTerminal(const QString &symLink, QObject *parent)
-  : QIODevice{parent}, _flags(O_NOCTTY|O_NONBLOCK), _dom(-1), _subPath(), _symLink(symLink),
+  : QIODevice{parent}, _flags(O_NOCTTY|O_NONBLOCK), _dom(-1), _subPath(),
+    _symLink(symLink),
     _readNotifier(nullptr)
 {
-  // pass...
+  if (_symLink.startsWith("~")) {
+    _symLink.replace("~", QDir::homePath());
+  }
+  _symLink = QFileInfo(_symLink).absoluteFilePath();
 }
 
 bool
@@ -81,13 +85,16 @@ PseudoTerminal::reopen()
   _readNotifier->setEnabled(true);
 
   // Check if symlink is given:
-  if (_symLink.isEmpty())
+  if (_symLink.isEmpty()) {
+    logInfo() << "No symlink specified, use " << _subPath << " in wine config for COM port.";
     return true;
+  }
 
   QFileInfo symLinkInfo(_symLink);
   _subPath = QFileInfo(name).absoluteFilePath();
   if (symLinkInfo.isSymLink() && (symLinkInfo.symLinkTarget() == _subPath)) {
-    logInfo() << "Reuse existing symlink " << _symLink << " -> " << _subPath << ".";
+    logInfo() << "Reuse existing symlink " << _symLink << " (" << symLinkInfo.symLinkTarget()
+              << ") -> " << _subPath << ".";
     return true;
   }
 
@@ -141,10 +148,6 @@ PseudoTerminal::close() {
 qint64
 PseudoTerminal::readData(char *data, qint64 maxLen) {
   int n = ::read(_dom, data, maxLen);
-
-  if (n > 0)
-    logDebug() << "Read " << n << " of " << maxLen << "b from pty: "
-               << QByteArray(data, n).toHex();
 
   if ((n < 0) && (EIO == errno)) {
     logDebug() << "Client side may closed the pty. Reopen.";

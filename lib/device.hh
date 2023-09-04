@@ -9,6 +9,7 @@ class QIODevice;
 class Request;
 class Response;
 class Model;
+class CodeplugPattern;
 
 
 /** Abstract base class for all emulated devices. */
@@ -30,9 +31,7 @@ public:
   virtual bool read(uint32_t addr, uint8_t len, QByteArray &payload);
   virtual bool write(uint32_t addr, const QByteArray &data);
 
-  virtual bool elementKnown(uint32_t address) const;
-  virtual QString elementName(uint32_t address) const;
-  virtual QString elementDescription(uint32_t address) const;
+  CodeplugPattern *pattern() const;
 
 signals:
   void startProgram();
@@ -54,9 +53,6 @@ protected:
   QByteArray _in_buffer;
   /** Internal transmit buffer. */
   QByteArray _out_buffer;
-
-  /** Lookuptable for element descriptions. */
-  QHash<uint32_t, QPair<QString, QString>> _elementDescriptions;
 };
 
 #endif // DEVICE_HH

@@ -30,10 +30,13 @@ public:
   Interface interface() const;
   QString ptySymlinkPath() const;
   QString serialPort() const;
+  QString patternDir() const;
 
 private slots:
   void onDeviceSelected(int idx);
   void onInterfaceSelected(int idx);
+  void onUseBuildinPatternToggled(bool enabled);
+  void onSelectPatternDir();
 
 private:
   Ui::SetupDialog *ui;

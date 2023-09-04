@@ -1,13 +1,13 @@
 #include "model.hh"
 #include "image.hh"
 #include "logger.hh"
-
+#include "codeplugpattern.hh"
 
 /* ********************************************************************************************* *
  * Implementation of Model
  * ********************************************************************************************* */
-Model::Model(QObject *parent)
-  : QObject{parent}
+Model::Model(CodeplugPattern *pattern, QObject *parent)
+  : QObject{parent}, _pattern(pattern)
 {
   // pass...
 }
@@ -25,6 +25,22 @@ Model::write(uint32_t address, const QByteArray &payload) {
   return false;
 }
 
+CodeplugPattern *
+Model::pattern() const {
+  return _pattern;
+}
+
+void
+Model::setPattern(CodeplugPattern *pattern) {
+  if (_pattern) {
+    delete _pattern;
+    _pattern = nullptr;
+  }
+  _pattern = pattern;
+  if (_pattern)
+    _pattern->setParent(this);
+}
+
 void
 Model::startProgram() {
   // pass...
@@ -39,8 +55,8 @@ Model::endProgram() {
 /* ********************************************************************************************* *
  * Implementation of ImageCollector
  * ********************************************************************************************* */
-ImageCollector::ImageCollector(QObject *parent)
-  : Model(parent), _images()
+ImageCollector::ImageCollector(CodeplugPattern *pattern, QObject *parent)
+  : Model(pattern, parent), _images()
 {
   // pass...
 }
