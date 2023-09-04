@@ -19,6 +19,52 @@ class FieldPattern;
 class FieldAnnotation;
 
 
+class AnnotationIssue: public QTextStream
+{
+public:
+  enum Severity {
+    Note, Warning, Error
+  };
+
+public:
+  AnnotationIssue(const Address &address, Severity serverity, const QString &message="");
+  AnnotationIssue(const AnnotationIssue &other);
+
+  AnnotationIssue &operator=(const AnnotationIssue &other);
+
+  const Address &address() const;
+  Severity severity() const;
+  const QString &message() const;
+
+private:
+  Address _address;
+  Severity _severity;
+  QString _message;
+};
+
+
+class AnnotationIssues
+{
+public:
+  typedef QList<AnnotationIssue>::const_iterator iterator;
+
+public:
+  AnnotationIssues();
+  AnnotationIssues(const AnnotationIssues &other) = delete;
+
+  void add(const AnnotationIssue &issue);
+  unsigned int numIssues() const;
+  const AnnotationIssue &issue(unsigned int n) const;
+  bool has(AnnotationIssue::Severity severity) const;
+
+  iterator begin() const;
+  iterator end() const;
+
+protected:
+  QList<AnnotationIssue> _issues;
+};
+
+
 class AbstractAnnotation: public QObject
 {
   Q_OBJECT
@@ -35,6 +81,9 @@ public:
   const BlockPattern *pattern() const;
 
   QStringList path() const;
+
+  const AnnotationIssues &issues() const;
+  AnnotationIssues &issues();
 
 public:
   template <class T>
@@ -59,6 +108,7 @@ protected:
   Address _address;
   Size _size;
   const BlockPattern *_pattern;
+  AnnotationIssues _issues;
 };
 
 
@@ -116,6 +166,7 @@ public:
   explicit ImageAnnotation(const Image *image, const CodeplugPattern *pattern, QObject *parent=nullptr);
 
   void addChild(AbstractAnnotation *child);
+
   const FieldAnnotation *resolve(const Address &addr) const;
 
 protected:

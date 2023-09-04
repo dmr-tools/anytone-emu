@@ -8,6 +8,7 @@ class Element;
 class Image;
 class ElementDifference;
 class ImageDifference;
+class ImageAnnotation;
 class QTextStream;
 
 
@@ -27,8 +28,8 @@ public:
   };
 
 public:
-  explicit HexLine(uint32_t address, const QByteArray &left);
-  explicit HexLine(uint32_t address, const QByteArray &left, const QByteArray &right);
+  explicit HexLine(uint32_t address, const QByteArray &left, const ImageAnnotation *annotation=nullptr);
+  explicit HexLine(uint32_t address, const QByteArray &left, const QByteArray &right, const ImageAnnotation *annotation=nullptr);
   HexLine(const HexLine &other);
 
   HexLine &operator= (const HexLine &other);
@@ -59,8 +60,8 @@ protected:
 class HexElement
 {
 public:
-  explicit HexElement(const Element *element);
-  explicit HexElement(const Element *left, const Element *right);
+  explicit HexElement(const Element *element, const ImageAnnotation *annotation=nullptr);
+  explicit HexElement(const Element *left, const Element *right, const ImageAnnotation *annotation=nullptr);
   HexElement(const HexElement &other);
 
   HexElement &operator= (const HexElement &other);

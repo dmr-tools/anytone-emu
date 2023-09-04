@@ -5,6 +5,88 @@
 
 
 /* ********************************************************************************************* *
+ * Implementation of AnnotationIssue
+ * ********************************************************************************************* */
+AnnotationIssue::AnnotationIssue(const Address &address, Severity severity, const QString &message)
+  : QTextStream(), _address(address), _severity(severity), _message(message)
+{
+  this->setString(&_message, QIODeviceBase::ReadWrite);
+}
+
+AnnotationIssue::AnnotationIssue(const AnnotationIssue &other)
+  : QTextStream(), _address(other._address), _severity(other._severity), _message(other._message)
+{
+  this->setString(&_message, QIODeviceBase::ReadWrite);
+}
+
+AnnotationIssue &
+AnnotationIssue::operator =(const AnnotationIssue &other) {
+  _address = other._address;
+  _severity = other._severity;
+  _message = other._message;
+  return *this;
+}
+
+const Address &
+AnnotationIssue::address() const {
+  return _address;
+}
+
+AnnotationIssue::Severity
+AnnotationIssue::severity() const {
+  return _severity;
+}
+
+const QString &
+AnnotationIssue::message() const {
+  return _message;
+}
+
+
+/* ********************************************************************************************* *
+ * Implementation of AnnotationIssues
+ * ********************************************************************************************* */
+AnnotationIssues::AnnotationIssues()
+  : _issues()
+{
+  // pass...
+}
+
+void
+AnnotationIssues::add(const AnnotationIssue &issue) {
+  _issues.append(issue);
+}
+
+unsigned int
+AnnotationIssues::numIssues() const {
+  return _issues.size();
+}
+
+const AnnotationIssue &
+AnnotationIssues::issue(unsigned int n) const {
+  return _issues[n];
+}
+
+bool
+AnnotationIssues::has(AnnotationIssue::Severity severity) const {
+  foreach (const AnnotationIssue &issue, _issues)
+    if (issue.severity() == severity)
+      return true;
+  return false;
+}
+
+AnnotationIssues::iterator
+AnnotationIssues::begin() const {
+  return _issues.begin();
+}
+
+AnnotationIssues::iterator
+AnnotationIssues::end() const {
+  return _issues.end();
+}
+
+
+/* ********************************************************************************************* *
  * Implementation of AnnotationCollection
  * ********************************************************************************************* */
 AnnotationCollection::AnnotationCollection()
@@ -55,6 +137,8 @@ AnnotationCollection::at(const Address &addr) const {
       b = mid;
     else
       a = mid;
+    if (1 == (b-a))
+      return nullptr;
   }
 
   if ((a == b) && (_annotations[a]->contains(addr)))
@@ -68,7 +152,7 @@ AnnotationCollection::at(const Address &addr) const {
  * Implementation of AbstractAnnotation
  * ********************************************************************************************* */
 AbstractAnnotation::AbstractAnnotation(const BlockPattern *pattern, const Address &addr, const Size& size, QObject *parent)
-  : QObject{parent}, _address(addr), _size(size), _pattern(pattern)
+  : QObject{parent}, _address(addr), _size(size), _pattern(pattern), _issues()
 {
   connect(_pattern, &QObject::destroyed, this, &AbstractAnnotation::onPatternDeleted);
 }
@@ -104,6 +188,16 @@ AbstractAnnotation::path() const {
     pattern = qobject_cast<AbstractPattern*>(pattern->parent());
   }
   return path;
+}
+
+const AnnotationIssues &
+AbstractAnnotation::issues() const {
+  return _issues;
+}
+
+AnnotationIssues &
+AbstractAnnotation::issues() {
+  return _issues;
 }
 
 void
@@ -194,8 +288,10 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Image *image, cons
     } else if (child->is<BlockPattern>()) {
       const Element *el = image->find(child->address());
       if (nullptr == el) {
-        logWarn() << "Cannot annotate block pattern '" << child->meta().name()
-                  << "': No element found for address " << child->address().toString() << ".";
+        AnnotationIssue issue(child->address(), AnnotationIssue::Error);
+        issue << "Cannot annotate block pattern '" << child->meta().name()
+              << "': No element found for address " << child->address().toString() << ".";
+
         return false;
       }
       annotate(parent, el, child->as<BlockPattern>(), child->address());

@@ -2,6 +2,8 @@
 #include "image.hh"
 #include "application.hh"
 #include "device.hh"
+#include "codeplugannotation.hh"
+#include "codeplugpattern.hh"
 
 CollectionWrapper::CollectionWrapper(Collection *collection, QObject *parent)
   : QAbstractItemModel{parent}, _collection(collection)
@@ -63,18 +65,15 @@ CollectionWrapper::data(const QModelIndex &index, int role) const {
 
   if (index.parent().isValid()) { // Element
     const Element *el = reinterpret_cast<const Element *>(index.constInternalPointer());
+    const Image *img = reinterpret_cast<const Image *>(el->parent());
     if (Qt::DisplayRole == role) {
-      if (app->device()->elementKnown(el->address().byte()))
+      if (const AbstractAnnotation *annotation = img->annotations()->at(el->address())) {
         return QString("%1 @ %2h")
-            .arg(app->device()->elementName(el->address().byte()))
+            .arg(annotation->pattern()->meta().name())
             .arg(el->address().byte(), 8, 16, QChar('0'));
-      else
-        return QString("Unkown Element @ %1h")
-            .arg(el->address().byte(), 8, 16, QChar('0'));
-    }
-    if (Qt::ToolTipRole == role) {
-      if (app->device()->elementKnown(el->address().byte()))
-        return app->device()->elementDescription(el->address().byte());
+      }
+      return QString("Unkown Element @ %1h")
+          .arg(el->address().byte(), 8, 16, QChar('0'));
     }
   } else { // Image
     if (Qt::DisplayRole == role) {

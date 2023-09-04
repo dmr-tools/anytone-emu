@@ -149,10 +149,6 @@ qint64
 PseudoTerminal::readData(char *data, qint64 maxLen) {
   int n = ::read(_dom, data, maxLen);
 
-  if (n > 0)
-    logDebug() << "Read " << n << " of " << maxLen << "b from pty: "
-               << QByteArray(data, n).toHex();
-
   if ((n < 0) && (EIO == errno)) {
     logDebug() << "Client side may closed the pty. Reopen.";
     setErrorString(QString("Cannot read from pty (%1): %2").arg(errno).arg(::strerror(errno)));
