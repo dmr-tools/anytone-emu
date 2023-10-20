@@ -67,12 +67,13 @@ CollectionWrapper::data(const QModelIndex &index, int role) const {
     const Element *el = reinterpret_cast<const Element *>(index.constInternalPointer());
     const Image *img = reinterpret_cast<const Image *>(el->parent());
     if (Qt::DisplayRole == role) {
-      if (const AbstractAnnotation *annotation = img->annotations()->at(el->address())) {
-        return QString("%1 @ %2h")
-            .arg(annotation->pattern()->meta().name())
+      if (! img->annotations() || !img->annotations()->at(el->address()))
+        return QString("Unkown Element @ %1h")
             .arg(el->address().byte(), 8, 16, QChar('0'));
-      }
-      return QString("Unkown Element @ %1h")
+
+      const AbstractAnnotation *annotation = img->annotations()->at(el->address());
+      return QString("%1 @ %2h")
+          .arg(annotation->pattern()->meta().name())
           .arg(el->address().byte(), 8, 16, QChar('0'));
     }
   } else { // Image
