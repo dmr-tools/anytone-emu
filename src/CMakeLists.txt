@@ -2,6 +2,7 @@ SET(anytone-emu-gui_SOURCES
   main.cc
   setupdialog.cc setupdialog.ui
   application.cc
+  hexview.cc
   patternwrapper.cc patternview.cc patternmetaeditor.cc patternmetaeditor.ui
   sparserepeatdialog.cc sparserepeatdialog.ui
   blockrepeatdialog.cc blockrepeatdialog.ui
@@ -12,7 +13,6 @@ SET(anytone-emu-gui_SOURCES
   stringfielddialog.cc stringfielddialog.ui
   unusedfielddialog.cc unusedfielddialog.ui
   imagecollectionadapter.cc imagecollectionwrapper.cc
-  heximagedocument.cc heximagedumpdocument.cc hexelementdumpdocument.cc heximagediffdocument.cc
   logmessagelist.cc
   mainwindow.cc mainwindow.ui
 )
@@ -20,6 +20,7 @@ SET(anytone-emu-gui_SOURCES
 SET(anytone-emu-gui_HEADERS
   setupdialog.hh
   application.hh
+  hexview.hh
   patternwrapper.hh patternview.hh patternmetaeditor.hh
   sparserepeatdialog.hh
   blockrepeatdialog.hh
@@ -30,7 +31,6 @@ SET(anytone-emu-gui_HEADERS
   stringfielddialog.hh
   unusedfielddialog.hh
   imagecollectionadapter.hh imagecollectionwrapper.hh
-  heximagedocument.hh heximagedumpdocument.hh hexelementdumpdocument.hh heximagediffdocument.hh
   mainwindow.hh
   logmessagelist.hh)
 
@@ -84,4 +84,9 @@ target_include_directories(anytone-emu-gui PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Install binary only if not a bundle under MacOS X
 install(TARGETS anytone-emu-gui DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+
+
+qt_add_executable(hexviewtest WIN32 hexviewtest.cc hexview.cc)
+target_link_libraries(hexviewtest PRIVATE Qt6::Widgets libanytone-emu)
+target_include_directories(hexviewtest PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 
