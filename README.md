@@ -39,7 +39,6 @@ Then, you may need to restart the wineserver with
 ```
 wineserver -k
 ```
-
 Then start the CPS application using wine and select the configured COM port as the interface to 
 the device within the CPS.
 
