@@ -10,7 +10,7 @@ class Size;
 struct Address
 {
 protected:
-  Address(unsigned long bits);
+  Address(uint64_t bits);
 
 public:
   Address();

@@ -4,7 +4,7 @@
 #include <QtGlobal>
 
 #if defined(Q_OS_WINDOWS)
-#include "pseudotermimalwindows.hh"
+#include "pseudoterminalwindows.hh"
 #elif defined(Q_OS_UNIX)
 #include "pseudoterminalposix.hh"
 #endif
