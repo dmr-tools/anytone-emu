@@ -41,7 +41,8 @@ qt_add_executable(anytone-emu-gui WIN32
 qt_add_resources(anytone-emu-gui "codeplugs"
   PREFIX "/codeplugs"
   BASE "${CMAKE_SOURCE_DIR}/codeplugs/"
-  FILES "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/codeplug.xml")
+  FILES "${CMAKE_SOURCE_DIR}/codeplugs/d868uv/codeplug.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/codeplug.xml")
 
 generate_icons(ICONS
   "${CMAKE_SOURCE_DIR}/shared/icons/codeplugpattern.svg"
