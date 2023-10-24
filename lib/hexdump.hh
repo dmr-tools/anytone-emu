@@ -66,9 +66,11 @@ public:
 
   HexElement &operator= (const HexElement &other);
 
+  QString title() const;
   uint32_t address() const;
 
   unsigned int size() const;
+  unsigned int diffLines() const;
   const HexLine &line(unsigned int n) const;
 
   bool isDiff() const;
@@ -78,7 +80,7 @@ protected:
   QVector<HexLine> _lines;
   uint32_t _address;
   bool _isDiff;
-  bool _hasDiff;
+  unsigned int _diffLines;
 };
 
 
@@ -92,6 +94,10 @@ public:
   HexImage &operator= (const HexImage &other) = default;
 
   unsigned int size() const;
+  unsigned int elementsWithDiff() const;
+  unsigned int totalLineCount() const;
+  unsigned int totalDiffLines() const;
+
   const HexElement &element(unsigned int i) const;
 
   bool isDiff() const;
@@ -100,7 +106,9 @@ public:
 protected:
   QVector<HexElement> _elements;
   bool _isDiff;
-  bool _hasDiff;
+  unsigned int _elementsWithDiff;
+  unsigned int _totalLineCount;
+  unsigned int _totalDiffLines;
 };
 
 void hexdump(const HexImage &hex, QTextStream &stream);

@@ -136,7 +136,7 @@ HexLine::hasDiff() const {
  * Implementation of HexElement
  * ********************************************************************************************* */
 HexElement::HexElement(const Element *element, const ImageAnnotation *annotation)
-  : _lines(), _address(element->address().byte()), _isDiff(false), _hasDiff(false)
+  : _lines(), _address(element->address().byte()), _isDiff(false), _diffLines(0)
 {
   uint32_t address = _address;
   QByteArray data = element->data();
@@ -150,7 +150,7 @@ HexElement::HexElement(const Element *element, const ImageAnnotation *annotation
 }
 
 HexElement::HexElement(const Element *left, const Element *right, const ImageAnnotation *annotation)
-  : _lines(), _address(0), _isDiff(true), _hasDiff(false)
+  : _lines(), _address(0), _isDiff(true), _diffLines(0)
 {
   uint32_t address;
   QByteArray left_data, right_data;
@@ -174,12 +174,13 @@ HexElement::HexElement(const Element *left, const Element *right, const ImageAnn
     address += line.consumed();
     offset  += line.consumed();
     _lines.append(line);
-    _hasDiff |= line.hasDiff();
+    _diffLines += line.hasDiff() ? 1 : 0;
   }
 }
 
 HexElement::HexElement(const HexElement &other)
-  : _lines(other._lines), _address(other._address), _isDiff(other._isDiff), _hasDiff(other._hasDiff)
+  : _lines(other._lines), _address(other._address), _isDiff(other._isDiff),
+    _diffLines(other._diffLines)
 {
   // pass...
 }
@@ -189,8 +190,13 @@ HexElement::operator =(const HexElement &other) {
   _lines = other._lines;
   _address = other._address;
   _isDiff = other._isDiff;
-  _hasDiff = other._hasDiff;
+  _diffLines = other._diffLines;
   return *this;
+}
+
+QString
+HexElement::title() const {
+  return QString("Element at %1h").arg(_address, 8, 16, QChar('0'));
 }
 
 uint32_t
@@ -201,6 +207,11 @@ HexElement::address() const {
 unsigned int
 HexElement::size() const {
   return _lines.size();
+}
+
+unsigned int
+HexElement::diffLines() const {
+  return _diffLines;
 }
 
 const HexLine &
@@ -215,49 +226,49 @@ HexElement::isDiff() const {
 
 bool
 HexElement::hasDiff() const {
-  return _hasDiff;
+  return 0 != _diffLines;
 }
+
 
 /* ********************************************************************************************* *
  * Implementation of HexImage
  * ********************************************************************************************* */
 HexImage::HexImage(const Image *image)
-  : _elements(), _isDiff(false), _hasDiff(false)
+  : _elements(), _isDiff(false), _elementsWithDiff(0), _totalDiffLines(0), _totalLineCount(0)
 {
   for (unsigned int i=0; i<image->count(); i++) {
     const ImageAnnotation *annotation = image->annotations();
     _elements.append(HexElement(image->element(i), annotation));
+    _totalLineCount += _elements.back().size();
   }
 }
 
 HexImage::HexImage(const Image *left, const Image *right)
-  : _elements(), _isDiff(false), _hasDiff(false)
+  : _elements(), _isDiff(true), _elementsWithDiff(0), _totalDiffLines(0), _totalLineCount(0)
 {
   const ImageAnnotation *annotation = left->annotations();
   for (unsigned int i=0,j=0; (i<left->count()) || (j<right->count());) {
     if ((i<left->count()) && (j<right->count())) {
       if (left->element(i)->address() < right->element(j)->address()) {
         _elements.append(HexElement(left->element(i), nullptr, annotation));
-        _hasDiff |= _elements.last().hasDiff();
         i++;
       } else if (left->element(i)->address() > right->element(j)->address()) {
         _elements.append(HexElement(nullptr, right->element(j), annotation));
-        _hasDiff |= _elements.last().hasDiff();
         j++;
       } else {
         _elements.append(HexElement(left->element(i), right->element(j), annotation));
-        _hasDiff |= _elements.last().hasDiff();
         i++; j++;
       }
     } else if (i<left->count()) {
       _elements.append(HexElement(left->element(i), nullptr, annotation));
-      _hasDiff |= _elements.last().hasDiff();
       i++;
     } else if (j<right->count()) {
       _elements.append(HexElement(nullptr, right->element(j), annotation));
-      _hasDiff |= _elements.last().hasDiff();
       j++;
     }
+    _elementsWithDiff += _elements.back().hasDiff() ? 1 : 0;
+    _totalDiffLines += _elements.back().diffLines();
+    _totalLineCount += _elements.back().size();
   }
 }
 
@@ -266,7 +277,22 @@ HexImage::size() const {
   return _elements.size();
 }
 
+unsigned int
+HexImage::elementsWithDiff() const {
+  return _elementsWithDiff;
+}
+
+unsigned int
+HexImage::totalLineCount() const {
+  return _totalLineCount;
+}
+
+unsigned int
+HexImage::totalDiffLines() const {
+  return _totalDiffLines;
+}
 const HexElement &
+
 HexImage::element(unsigned int i) const {
   return _elements[i];
 }
@@ -278,8 +304,9 @@ HexImage::isDiff() const {
 
 bool
 HexImage::hasDiff() const {
-  return _hasDiff;
+  return 0 != _totalDiffLines;
 }
+
 
 /* ********************************************************************************************* *
  * Implementation of hexdump(HexImage)
