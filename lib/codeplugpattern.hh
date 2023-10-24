@@ -123,7 +123,7 @@ public:
 
 /** A group pattern groups several other pattern into logical groups.
  *
- * Each sub-pattern must have an explicit or implicit position, as groups are considered to be
+ * Each sub-pattern must have an explicit position, as groups are considered to be
  * sparse. */
 class GroupPattern: public AbstractPattern, public StructuredPattern
 {

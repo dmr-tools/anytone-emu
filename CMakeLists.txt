@@ -13,6 +13,7 @@ include(GNUInstallDirs)
 include(GenerateIcons)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets SerialPort Test)
+
 if(BUILD_MANUAL)
 find_package(DocBookXSL REQUIRED)
 include(DocBook)
