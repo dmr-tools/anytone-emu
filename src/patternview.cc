@@ -8,6 +8,7 @@
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
+#include <QInputDialog>
 
 #include "sparserepeatdialog.hh"
 #include "blockrepeatdialog.hh"
@@ -109,15 +110,29 @@ PatternView::addSparseRepeat() {
     return;
   }
 
-  StructuredPattern *structure = parent->as<StructuredPattern>();
-  auto sr = new RepeatPattern();
-  sr->meta().setName("New sparse repeat");
-  sr->meta().setFlags(PatternMeta::Flags::Incomplete);
+  auto pattern = new RepeatPattern();
+  if (parent->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place pattern at"),
+          tr("Address of the pattern within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
 
-  if (! structure->addChildPattern(sr)) {
+  StructuredPattern *structure = parent->as<StructuredPattern>();
+  pattern->meta().setName("New sparse repeat");
+  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+
+  if (! structure->addChildPattern(pattern)) {
     logWarn() << "Cannot add sparse repeat pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
-    delete sr;
+    delete pattern;
   }
 }
 
@@ -129,6 +144,20 @@ PatternView::addBlockRepeat() {
   auto *pattern = new BlockRepeatPattern();
   pattern->meta().setName("New block repeat");
   pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place pattern at"),
+          tr("Address of the pattern within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add block-repeat pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -145,6 +174,21 @@ PatternView::addFixedRepeat() {
   auto *pattern = new FixedRepeatPattern();
   pattern->meta().setName("New fixed repeat");
   pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place pattern at"),
+          tr("Address of the pattern within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add fixed repeat pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -161,6 +205,20 @@ PatternView::addElement() {
   auto *pattern = new ElementPattern();
   pattern->meta().setName("New element");
   pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add element pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -177,6 +235,20 @@ PatternView::addInteger() {
   auto *pattern = new IntegerFieldPattern();
   pattern->meta().setName("New integer");
   pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add integer pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -196,6 +268,21 @@ PatternView::addBit() {
   pattern->setWidth(Size::fromBits(1));
   pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
   pattern->setEndian(IntegerFieldPattern::Endian::Little);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add bit pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -215,6 +302,21 @@ PatternView::addUInt8() {
   pattern->setWidth(Size::fromBits(8));
   pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
   pattern->setEndian(IntegerFieldPattern::Endian::Little);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add uint8 pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -234,6 +336,21 @@ PatternView::addInt8() {
   pattern->setWidth(Size::fromBits(8));
   pattern->setFormat(IntegerFieldPattern::Format::Signed);
   pattern->setEndian(IntegerFieldPattern::Endian::Little);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add int8 pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -253,6 +370,21 @@ PatternView::addUInt16() {
   pattern->setWidth(Size::fromBits(16));
   pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
   pattern->setEndian(IntegerFieldPattern::Endian::Little);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add uint16 pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -272,6 +404,21 @@ PatternView::addInt16() {
   pattern->setWidth(Size::fromBits(16));
   pattern->setFormat(IntegerFieldPattern::Format::Signed);
   pattern->setEndian(IntegerFieldPattern::Endian::Little);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add int16 pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -291,6 +438,21 @@ PatternView::addUInt32() {
   pattern->setWidth(Size::fromBits(32));
   pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
   pattern->setEndian(IntegerFieldPattern::Endian::Little);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add uint32 pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -310,6 +472,21 @@ PatternView::addInt32() {
   pattern->setWidth(Size::fromBits(32));
   pattern->setFormat(IntegerFieldPattern::Format::Signed);
   pattern->setEndian(IntegerFieldPattern::Endian::Little);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add int32 pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -329,6 +506,21 @@ PatternView::addBCD8() {
   pattern->setWidth(Size::fromBits(32));
   pattern->setFormat(IntegerFieldPattern::Format::BCD);
   pattern->setEndian(IntegerFieldPattern::Endian::Big);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add bcd8 pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -345,6 +537,21 @@ PatternView::addEnum() {
   auto *pattern = new EnumFieldPattern();
   pattern->meta().setName("New enum");
   pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add enum pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -361,6 +568,21 @@ PatternView::addString() {
   auto *pattern = new StringFieldPattern();
   pattern->meta().setName("New string");
   pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add string pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -377,6 +599,21 @@ PatternView::addUnused() {
   auto *pattern = new UnusedFieldPattern();
   pattern->meta().setName("New unused data pattern");
   pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add unused data pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";
@@ -393,6 +630,21 @@ PatternView::addUnknown() {
   auto *pattern = new UnusedFieldPattern();
   pattern->meta().setName("New unknown data pattern");
   pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
+
+  if (selectedPattern()->is<GroupPattern>()) {
+    QString addrString =  QInputDialog::getText(
+          nullptr, tr("Enter address to place element at"),
+          tr("Address of the element within the group"), QLineEdit::Normal);
+    Address addr = Address::fromString(addrString);
+    if (! addr.isValid()) {
+      logWarn() << "Cannot add pattern to " << selectedPattern()->metaObject()->className()
+                << ": Indass valid address entered.";
+      delete pattern;
+      return;
+    }
+    pattern->setAddress(addr);
+  }
+
   if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
     logWarn() << "Cannot add unknonw data pattern to " << selectedPattern()->metaObject()->className()
               << " '" << selectedPattern()->meta().name() << "'.";

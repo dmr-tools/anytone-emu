@@ -227,8 +227,10 @@ bool
 CodeplugPattern::addChildPattern(AbstractPattern *pattern) {
   // If the pattern is the first element and has no offset within the codeplug, I do not know,
   // where to put it.
-  if (! pattern->hasAddress())
+  if (! pattern->hasAddress()) {
+    logDebug() << "Cannot add child pattern: child has no explicit address.";
     return false;
+  }
 
   unsigned int idx = _content.size();
   pattern->setParent(this);
