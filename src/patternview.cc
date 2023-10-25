@@ -1,5 +1,5 @@
 #include "patternview.hh"
-#include "codeplugpattern.hh"
+#include "patterndefinition.hh"
 #include "device.hh"
 #include "application.hh"
 #include "patternwrapper.hh"
@@ -32,13 +32,12 @@ PatternView::PatternView(QWidget *parent)
   connect(this, &QWidget::customContextMenuRequested, this, &PatternView::onShowContextMenu);
 }
 
-AbstractPattern *
-PatternView::selectedPattern() const {
+AbstractPatternDefinition* PatternView::selectedPattern() const {
   QModelIndexList selection = selectedIndexes();
   if (selection.isEmpty())
     return nullptr;
   QModelIndex selected = selection.back();
-  return reinterpret_cast<AbstractPattern *>(selected.internalPointer());
+  return reinterpret_cast<AbstractPatternDefinition *>(selected.internalPointer());
 }
 
 void
@@ -110,7 +109,7 @@ PatternView::addSparseRepeat() {
     return;
   }
 
-  auto pattern = new RepeatPattern();
+  auto pattern = new RepeatPatternDefinition();
   if (parent->is<GroupPattern>()) {
     QString addrString =  QInputDialog::getText(
           nullptr, tr("Enter address to place pattern at"),

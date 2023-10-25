@@ -143,7 +143,7 @@ Device::write(uint32_t addr, const QByteArray &data) {
   return false;
 }
 
-CodeplugPattern *
+CodeplugPatternDefinition *
 Device::pattern() const {
   return _model->pattern();
 }

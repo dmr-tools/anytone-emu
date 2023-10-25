@@ -78,6 +78,26 @@ PatternDefinitionLibrary::get(const QString &qname) const {
   return qobject_cast<AbstractPatternDefinition*>(lib->_elements[elName]);
 }
 
+QHash<QString, AbstractPatternDefinition*>
+PatternDefinitionLibrary::pattern() const {
+  QHash<QString, AbstractPatternDefinition *> res;
+  QHashIterator<QString, QObject *> iter(_elements);
+  while (iter.hasNext()) {
+    iter.next();
+    if (auto lib = qobject_cast<PatternDefinitionLibrary*>(iter.value())) {
+      QHash<QString, AbstractPatternDefinition *> content = lib->pattern();
+      QHashIterator<QString, AbstractPatternDefinition *> citer(content);
+      while(citer.hasNext()) {
+        citer.next();
+        res[iter.key() + "." + citer.key()] = citer.value();
+      }
+    } else if (auto pattern = qobject_cast<AbstractPatternDefinition *>(iter.value())) {
+      res[iter.key()] = pattern;
+    }
+  }
+
+  return res;
+}
 
 
 /* ********************************************************************************************* *
@@ -165,6 +185,11 @@ CodeplugPatternDefinition::verify() const {
   return true;
 }
 
+AbstractPattern *
+CodeplugPatternDefinition::instantiate() const {
+  return new CodeplugPattern(this);
+}
+
 bool
 CodeplugPatternDefinition::serialize(QXmlStreamWriter &writer) const {
   writer.writeStartElement("codeplug");
@@ -234,6 +259,15 @@ CodeplugPatternDefinition::deleteChild(unsigned int n) {
 
   pattern->deleteLater();
   return true;
+}
+
+bool
+CodeplugPatternDefinition::hasSize() const {
+  return false;
+}
+Size
+CodeplugPatternDefinition::size() const {
+  return Size();
 }
 
 bool
@@ -346,6 +380,11 @@ RepeatPatternDefinition::verify() const {
   return _subpattern->verify();
 }
 
+AbstractPattern *
+RepeatPatternDefinition::instantiate() const {
+  return new RepeatPattern(this);
+}
+
 bool
 RepeatPatternDefinition::serialize(QXmlStreamWriter &writer) const {
   writer.writeStartElement("repeat");
@@ -368,6 +407,14 @@ RepeatPatternDefinition::serialize(QXmlStreamWriter &writer) const {
   return true;
 }
 
+bool
+RepeatPatternDefinition::hasSize() const {
+  return false;
+}
+Size
+RepeatPatternDefinition::size() const {
+  return Size();
+}
 
 bool
 RepeatPatternDefinition::hasMinRepetition() const {
@@ -487,6 +534,11 @@ BlockRepeatPatternDefinition::verify() const {
   return _subpattern->verify();
 }
 
+AbstractPattern *
+BlockRepeatPatternDefinition::instantiate() const {
+  return new BlockRepeatPattern(this);
+}
+
 bool
 BlockRepeatPatternDefinition::serialize(QXmlStreamWriter &writer) const {
   writer.writeStartElement("repeat");
@@ -506,6 +558,16 @@ BlockRepeatPatternDefinition::serialize(QXmlStreamWriter &writer) const {
 
   writer.writeEndElement();
   return true;
+}
+
+bool
+BlockRepeatPatternDefinition::hasSize() const {
+  return false;
+}
+
+Size
+BlockRepeatPatternDefinition::size() const {
+  return Size();
 }
 
 bool
@@ -608,7 +670,7 @@ FixedPatternDefinition::hasSize() const {
   return _size.isValid();
 }
 
-const Size &
+Size
 FixedPatternDefinition::size() const {
   return _size;
 }
@@ -639,6 +701,11 @@ ElementPatternDefinition::verify() const {
       return false;
 
   return true;
+}
+
+AbstractPattern *
+ElementPatternDefinition::instantiate() const {
+  return new ElementPattern(this);
 }
 
 bool
@@ -683,7 +750,7 @@ ElementPatternDefinition::addChildPattern(AbstractPatternDefinition *pattern) {
   connect(pattern, &AbstractPatternDefinition::added, this, &AbstractPatternDefinition::added);
   connect(pattern, &AbstractPatternDefinition::removing, this, &AbstractPatternDefinition::removing);
   connect(pattern, &AbstractPatternDefinition::removed, this, &AbstractPatternDefinition::removed);
-  connect(pattern->as<FixedPatternDefinition>(), &FixedPatternDefinition::resized,
+  connect(pattern, &AbstractPatternDefinition::resized,
           this, &ElementPatternDefinition::onChildResized);
 
   // update own size
@@ -740,7 +807,7 @@ ElementPatternDefinition::deleteChild(unsigned int n) {
 }
 
 void
-ElementPatternDefinition::onChildResized(const FixedPatternDefinition *child, const Size &size) {
+ElementPatternDefinition::onChildResized(const AbstractPatternDefinition *child, const Size &size) {
   int idx = indexOf(child);
   if (0 > idx)
     return;
@@ -773,6 +840,11 @@ FixedRepeatPatternDefinition::verify() const {
     return false;
 
   return true;
+}
+
+AbstractPattern *
+FixedRepeatPatternDefinition::instantiate() const {
+  return new FixedRepeatPattern(this);
 }
 
 bool
@@ -824,7 +896,7 @@ FixedRepeatPatternDefinition::addChildPattern(AbstractPatternDefinition *pattern
   connect(_subpattern, &AbstractPatternDefinition::added, this, &AbstractPatternDefinition::added);
   connect(_subpattern, &AbstractPatternDefinition::removing, this, &AbstractPatternDefinition::removing);
   connect(_subpattern, &AbstractPatternDefinition::removed, this, &AbstractPatternDefinition::removed);
-  connect(_subpattern, &FixedPatternDefinition::resized, this, &FixedRepeatPatternDefinition::onChildResized);
+  connect(_subpattern, &AbstractPatternDefinition::resized, this, &FixedRepeatPatternDefinition::onChildResized);
 
   emit added(this, 0);
 
@@ -865,7 +937,7 @@ FixedRepeatPatternDefinition::deleteChild(unsigned int n) {
 }
 
 void
-FixedRepeatPatternDefinition::onChildResized(const FixedPatternDefinition *pattern, const Size &size) {
+FixedRepeatPatternDefinition::onChildResized(const AbstractPatternDefinition *pattern, const Size &size) {
   if (_subpattern != pattern)
     return;
   setSize(_subpattern->size()*_repetition);
@@ -894,6 +966,11 @@ UnknownFieldPatternDefinition::UnknownFieldPatternDefinition(QObject *parent)
 bool
 UnknownFieldPatternDefinition::verify() const {
   return FixedPatternDefinition::verify();
+}
+
+AbstractPattern *
+UnknownFieldPatternDefinition::instantiate() const {
+  return new UnknownFieldPattern(this);
 }
 
 bool
@@ -941,6 +1018,11 @@ UnusedFieldPatternDefinition::verify() const {
   if (_content.isEmpty())
     return false;
   return true;
+}
+
+AbstractPattern *
+UnusedFieldPatternDefinition::instantiate() const {
+  return new UnusedFieldPattern(this);
 }
 
 bool
@@ -997,7 +1079,8 @@ UnusedFieldPatternDefinition::value(const Element *element, const Address& addre
  * Implementation of IntegerFieldPatternDefinition
  * ********************************************************************************************* */
 IntegerFieldPatternDefinition::IntegerFieldPatternDefinition(QObject *parent)
-  : FieldPatternDefinition{parent}, _format(Format::Unsigned), _endian(Endian::Little),
+  : FieldPatternDefinition{parent}, _format(IntegerFieldPattern::Format::Unsigned),
+    _endian(IntegerFieldPattern::Endian::Little),
     _minValue(std::numeric_limits<long long>().max()),
     _maxValue(std::numeric_limits<long long>().max()),
     _defaultValue(std::numeric_limits<long long>().max())
@@ -1010,6 +1093,11 @@ IntegerFieldPatternDefinition::verify() const {
   return FieldPatternDefinition::verify();
 }
 
+AbstractPattern *
+IntegerFieldPatternDefinition::instantiate() const {
+  return new IntegerFieldPattern(this);
+}
+
 bool
 IntegerFieldPatternDefinition::serialize(QXmlStreamWriter &writer) const {
   writer.writeStartElement("int");
@@ -1020,15 +1108,15 @@ IntegerFieldPatternDefinition::serialize(QXmlStreamWriter &writer) const {
   writer.writeAttribute("width", size().toString());
 
   switch(format()) {
-  case Format::Unsigned: writer.writeAttribute("format", "unsigned"); break;
-  case Format::Signed: writer.writeAttribute("format", "signed"); break;
-  case Format::BCD: writer.writeAttribute("format", "bcd"); break;
+  case IntegerFieldPattern::Format::Unsigned: writer.writeAttribute("format", "unsigned"); break;
+  case IntegerFieldPattern::Format::Signed: writer.writeAttribute("format", "signed"); break;
+  case IntegerFieldPattern::Format::BCD: writer.writeAttribute("format", "bcd"); break;
   }
 
   if (size().bits() > 8) {
     switch(endian()) {
-    case Endian::Little: writer.writeAttribute("endian", "little"); break;
-    case Endian::Big: writer.writeAttribute("endian", "big"); break;
+    case IntegerFieldPattern::Endian::Little: writer.writeAttribute("endian", "little"); break;
+    case IntegerFieldPattern::Endian::Big: writer.writeAttribute("endian", "big"); break;
     }
   }
 
@@ -1055,21 +1143,21 @@ IntegerFieldPatternDefinition::setWidth(const Offset &width) {
   setSize(width);
 }
 
-IntegerFieldPatternDefinition::Format
+IntegerFieldPattern::Format
 IntegerFieldPatternDefinition::format() const {
   return _format;
 }
 void
-IntegerFieldPatternDefinition::setFormat(Format format) {
+IntegerFieldPatternDefinition::setFormat(IntegerFieldPattern::Format format) {
   _format = format;
 }
 
-IntegerFieldPatternDefinition::Endian
+IntegerFieldPattern::Endian
 IntegerFieldPatternDefinition::endian() const {
   return _endian;
 }
 void
-IntegerFieldPatternDefinition::setEndian(Endian endian) {
+IntegerFieldPatternDefinition::setEndian(IntegerFieldPattern::Endian endian) {
   _endian = endian;
 }
 
@@ -1145,16 +1233,16 @@ IntegerFieldPatternDefinition::value(const Element *element, const Address& addr
       return QVariant();
     }
     const char *ptr = element->data().mid(within.byte(),2).constData();
-    if (Format::Signed == _format) {
-      if (Endian::Little == _endian)
+    if (IntegerFieldPattern::Format::Signed == _format) {
+      if (IntegerFieldPattern::Endian::Little == _endian)
         return QVariant::fromValue(qFromLittleEndian(*((int16_t *)ptr)));
       return QVariant::fromValue(qFromBigEndian(*((int16_t *)ptr)));
-    } else if (Format::Unsigned == _format) {
-      if (Endian::Little == _endian)
+    } else if (IntegerFieldPattern::Format::Unsigned == _format) {
+      if (IntegerFieldPattern::Endian::Little == _endian)
         return QVariant::fromValue(qFromLittleEndian(*((uint16_t *)ptr)));
       return QVariant::fromValue(qFromBigEndian(*((uint16_t *)ptr)));
-    } else if (Format::BCD == _format) {
-      if (Endian::Little == _endian)
+    } else if (IntegerFieldPattern::Format::BCD == _format) {
+      if (IntegerFieldPattern::Endian::Little == _endian)
         return QVariant::fromValue(fromBCD4le(*((uint16_t *)ptr)));
       return QVariant::fromValue(fromBCD4be(*((uint16_t *)ptr)));
     }
@@ -1167,16 +1255,16 @@ IntegerFieldPatternDefinition::value(const Element *element, const Address& addr
       return QVariant();
     }
     const char *ptr = element->data().mid(within.byte(),4).constData();
-    if (Format::Signed == _format) {
-      if (Endian::Little == _endian)
+    if (IntegerFieldPattern::Format::Signed == _format) {
+      if (IntegerFieldPattern::Endian::Little == _endian)
         return QVariant::fromValue(qFromLittleEndian(*((int32_t *)ptr)));
       return QVariant::fromValue(qFromBigEndian(*((int32_t *)ptr)));
-    } else if (Format::Unsigned == _format) {
-      if (Endian::Little == _endian)
+    } else if (IntegerFieldPattern::Format::Unsigned == _format) {
+      if (IntegerFieldPattern::Endian::Little == _endian)
         return QVariant::fromValue(qFromLittleEndian(*((uint32_t *)ptr)));
       return QVariant::fromValue(qFromBigEndian(*((uint32_t *)ptr)));
-    } else if (Format::BCD == _format) {
-      if (Endian::Little == _endian)
+    } else if (IntegerFieldPattern::Format::BCD == _format) {
+      if (IntegerFieldPattern::Endian::Little == _endian)
         return QVariant::fromValue(fromBCD8le(*((uint32_t *)ptr)));
       return QVariant::fromValue(fromBCD8be(*((uint32_t *)ptr)));
     }
@@ -1307,6 +1395,11 @@ EnumFieldPatternDefinition::verify() const {
   return 0 != _items.size();
 }
 
+AbstractPattern *
+EnumFieldPatternDefinition::instantiate() const {
+  return new EnumFieldPattern(this);
+}
+
 bool
 EnumFieldPatternDefinition::serialize(QXmlStreamWriter &writer) const {
   writer.writeStartElement("enum");
@@ -1399,7 +1492,7 @@ EnumFieldPatternDefinition::value(const Element *element, const Address& address
  * Implementation of StringFieldPatternDefinition
  * ********************************************************************************************* */
 StringFieldPatternDefinition::StringFieldPatternDefinition(QObject *parent)
-  : FieldPatternDefinition{parent}, _format(Format::ASCII), _numChars(0), _padValue(0)
+  : FieldPatternDefinition{parent}, _format(StringFieldPattern::Format::ASCII), _numChars(0), _padValue(0)
 {
   // pass...
 }
@@ -1407,6 +1500,11 @@ StringFieldPatternDefinition::StringFieldPatternDefinition(QObject *parent)
 bool
 StringFieldPatternDefinition::verify() const {
   return true;
+}
+
+AbstractPattern *
+StringFieldPatternDefinition::instantiate() const {
+  return new StringFieldPattern(this);
 }
 
 bool
@@ -1417,8 +1515,8 @@ StringFieldPatternDefinition::serialize(QXmlStreamWriter &writer) const {
     writer.writeAttribute("at", address().toString());
 
   switch(format()) {
-  case Format::ASCII: writer.writeAttribute("format", "ascii"); break;
-  case Format::Unicode: writer.writeAttribute("format", "unicode"); break;
+  case StringFieldPattern::Format::ASCII: writer.writeAttribute("format", "ascii"); break;
+  case StringFieldPattern::Format::Unicode: writer.writeAttribute("format", "unicode"); break;
   }
 
   writer.writeAttribute("width", QString::number(_numChars));
@@ -1435,18 +1533,18 @@ QVariant
 StringFieldPatternDefinition::value(const Element *element, const Address &address) const {
   QByteArray mid = element->data().mid(address.byte(), size().byte());
   switch (format()) {
-  case Format::ASCII: return QString(mid);
-  case Format::Unicode: return QString(mid);
+  case StringFieldPattern::Format::ASCII: return QString(mid);
+  case StringFieldPattern::Format::Unicode: return QString(mid);
   }
   return QVariant();
 }
 
-StringFieldPatternDefinition::Format
+StringFieldPattern::Format
 StringFieldPatternDefinition::format() const {
   return _format;
 }
 void
-StringFieldPatternDefinition::setFormat(Format format) {
+StringFieldPatternDefinition::setFormat(StringFieldPattern::Format format) {
   _format = format;
   setNumChars(_numChars);
 }
@@ -1459,8 +1557,8 @@ void
 StringFieldPatternDefinition::setNumChars(unsigned int n) {
   _numChars = n;
   switch (format()) {
-  case Format::ASCII: setSize(Size::fromByte(_numChars)); break;
-  case Format::Unicode: setSize(Size::fromByte(_numChars*2)); break;
+  case StringFieldPattern::Format::ASCII: setSize(Size::fromByte(_numChars)); break;
+  case StringFieldPattern::Format::Unicode: setSize(Size::fromByte(_numChars*2)); break;
   }
 }
 

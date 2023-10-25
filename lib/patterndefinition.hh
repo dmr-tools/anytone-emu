@@ -18,6 +18,8 @@ public:
   bool has(const QString &qname) const;
   AbstractPatternDefinition *get(const QString &qname) const;
 
+  QHash<QString, AbstractPatternDefinition *> pattern() const;
+
 protected:
   QHash<QString, QObject *> _elements;
 };
@@ -40,11 +42,8 @@ public:
   const Address &address() const;
   void setAddress(const Address &offset);
 
-  virtual int indexOf(const AbstractPatternDefinition *pattern) const = 0;
-  virtual unsigned int numChildPattern() const = 0;
-  virtual bool addChildPattern(AbstractPatternDefinition *pattern) = 0;
-  virtual AbstractPatternDefinition *childPattern(unsigned int n) const = 0;
-  virtual bool deleteChild(unsigned int n) = 0;
+  virtual bool hasSize() const = 0;
+  virtual Size size() const = 0;
 
   const PatternMeta &meta() const;
   PatternMeta &meta();
@@ -69,6 +68,7 @@ signals:
   void added(AbstractPatternDefinition *parent, unsigned int idx);
   void removing(AbstractPatternDefinition *parent, unsigned int idx);
   void removed(AbstractPatternDefinition *parent, unsigned int idx);
+  void resized(const AbstractPatternDefinition *pattern, const Size &newSize);
 
 private slots:
   void onMetaModified();
@@ -92,6 +92,7 @@ public:
   virtual bool addChildPattern(AbstractPatternDefinition *pattern) = 0;
   virtual AbstractPatternDefinition *childPattern(unsigned int n) const = 0;
   virtual bool deleteChild(unsigned int n) = 0;
+
 };
 
 
@@ -117,6 +118,7 @@ public:
   explicit CodeplugPatternDefinition(QObject *parent = nullptr);
 
   bool verify() const;
+  AbstractPattern *instantiate() const;
   bool serialize(QXmlStreamWriter &writer) const;
 
   int indexOf(const AbstractPatternDefinition *pattern) const;
@@ -124,6 +126,9 @@ public:
   bool addChildPattern(AbstractPatternDefinition *pattern);
   AbstractPatternDefinition *childPattern(unsigned int n) const;
   bool deleteChild(unsigned int n);
+
+  bool hasSize() const;
+  Size size() const;
 
   bool isModified() const;
   static CodeplugPatternDefinition *load(const QString &filename);
@@ -154,7 +159,11 @@ public:
   explicit RepeatPatternDefinition(QObject *parent = nullptr);
 
   bool verify() const;
+  AbstractPattern *instantiate() const;
   bool serialize(QXmlStreamWriter &writer) const;
+
+  bool hasSize() const;
+  Size size() const;
 
   bool hasMinRepetition() const;
   unsigned int minRepetition() const;
@@ -204,10 +213,7 @@ public:
   bool verify() const;
 
   bool hasSize() const;
-  const Size &size() const;
-
-signals:
-  void resized(const FixedPatternDefinition *pattern, const Size &newSize);
+  Size size() const;
 
 protected:
   virtual void setSize(const Size &size);
@@ -225,7 +231,11 @@ public:
   explicit BlockRepeatPatternDefinition(QObject *parent=nullptr);
 
   bool verify() const;
+  AbstractPattern *instantiate() const;
   bool serialize(QXmlStreamWriter &writer) const;
+
+  bool hasSize() const;
+  Size size() const;
 
   bool hasMinRepetition() const;
   unsigned int minRepetition() const;
@@ -256,6 +266,7 @@ public:
   explicit ElementPatternDefinition(QObject *parent = nullptr);
 
   bool verify() const;
+  AbstractPattern *instantiate() const;
   bool serialize(QXmlStreamWriter &writer) const;
 
   bool addChildPattern(AbstractPatternDefinition *pattern);
@@ -265,7 +276,7 @@ public:
   bool deleteChild(unsigned int n);
 
 private slots:
-  void onChildResized(const FixedPatternDefinition *child, const Size &size);
+  void onChildResized(const AbstractPatternDefinition* child, const Size &size);
 
 protected:
   QList<FixedPatternDefinition *> _content;
@@ -280,6 +291,7 @@ public:
   explicit FixedRepeatPatternDefinition(QObject *parent = nullptr);
 
   bool verify() const;
+  AbstractPattern *instantiate() const;
   bool serialize(QXmlStreamWriter &writer) const;
 
   unsigned int repetition() const;
@@ -293,7 +305,7 @@ public:
   bool deleteChild(unsigned int n);
 
 private slots:
-  void onChildResized(const FixedPatternDefinition *pattern, const Size &size);
+  void onChildResized(const AbstractPatternDefinition *pattern, const Size &size);
 
 protected:
   unsigned int _repetition;
@@ -321,6 +333,7 @@ public:
   explicit UnknownFieldPatternDefinition(QObject *parent=nullptr);
 
   bool verify() const;
+  AbstractPattern *instantiate() const;
   bool serialize(QXmlStreamWriter &writer) const;
 
   void setWidth(const Size &size);
@@ -337,6 +350,7 @@ public:
   explicit UnusedFieldPatternDefinition(QObject *parent=nullptr);
 
   bool verify() const;
+  AbstractPattern *instantiate() const;
   bool serialize(QXmlStreamWriter &writer) const;
 
   const QByteArray &content() const;
@@ -355,29 +369,19 @@ class IntegerFieldPatternDefinition: public FieldPatternDefinition
   Q_OBJECT
 
 public:
-  enum class Format {
-    Signed, Unsigned, BCD
-  };
-  Q_ENUM(Format)
-
-  enum class Endian {
-    Little, Big
-  };
-  Q_ENUM(Endian)
-
-public:
   explicit IntegerFieldPatternDefinition(QObject *parent=nullptr);
 
   bool verify() const;
+  AbstractPattern *instantiate() const;
   bool serialize(QXmlStreamWriter &writer) const;
 
   void setWidth(const Offset &width);
 
-  Format format() const;
-  void setFormat(Format format);
+  IntegerFieldPattern::Format format() const;
+  void setFormat(IntegerFieldPattern::Format format);
 
-  Endian endian() const;
-  void setEndian(Endian endian);
+  IntegerFieldPattern::Endian endian() const;
+  void setEndian(IntegerFieldPattern::Endian endian);
 
   bool hasMinValue() const;
   long long minValue() const;
@@ -401,8 +405,8 @@ protected:
   static uint32_t fromBCD8be(uint32_t bcd);
 
 protected:
-  Format _format;
-  Endian _endian;
+  IntegerFieldPattern::Format _format;
+  IntegerFieldPattern::Endian _endian;
   long long _minValue;
   long long _maxValue;
   long long _defaultValue;
@@ -437,6 +441,7 @@ public:
   explicit EnumFieldPatternDefinition(QObject *parent=nullptr);
 
   bool verify() const;
+  AbstractPattern *instantiate() const;
   bool serialize(QXmlStreamWriter &writer) const;
 
   bool addItem(EnumFieldPatternItemDefinition *item);
@@ -462,21 +467,16 @@ class StringFieldPatternDefinition: public FieldPatternDefinition
   Q_OBJECT
 
 public:
-  enum class Format {
-    ASCII, Unicode
-  };
-  Q_ENUM(Format)
-
-public:
   explicit StringFieldPatternDefinition(QObject *parent = nullptr);
 
   bool verify() const;
+  AbstractPattern *instantiate() const;
   bool serialize(QXmlStreamWriter &writer) const;
 
   QVariant value(const Element *element, const Address &address) const;
 
-  Format format() const;
-  void setFormat(Format format);
+  StringFieldPattern::Format format() const;
+  void setFormat(StringFieldPattern::Format format);
 
   unsigned int numChars() const;
   void setNumChars(unsigned int n);
@@ -485,7 +485,7 @@ public:
   void setPadValue(unsigned int pad);
 
 protected:
-  Format _format;
+  StringFieldPattern::Format _format;
   unsigned int _numChars;
   unsigned int _padValue;
 };

@@ -3,14 +3,14 @@
 
 #include <QAbstractItemModel>
 
-class AbstractPattern;
-class CodeplugPattern;
+class AbstractPatternDefinition;
+class CodeplugPatternDefinition;
 
 
 class PatternWrapper : public QAbstractItemModel
 {
 public:
-  explicit PatternWrapper(CodeplugPattern *pattern, QObject *parent = nullptr);
+  explicit PatternWrapper(CodeplugPatternDefinition *pattern, QObject *parent = nullptr);
 
   QModelIndex index(int row, int column, const QModelIndex &parent) const;
   QModelIndex parent(const QModelIndex &child) const;
@@ -24,22 +24,22 @@ public:
   QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
 private:
-  QVariant getIcon(const AbstractPattern *pattern) const;
-  QVariant getName(const AbstractPattern *pattern) const;
-  QVariant getTooltip(const AbstractPattern *pattern, int column) const;
-  QVariant getAddress(const AbstractPattern *pattern) const;
-  QVariant getAddressColor(const AbstractPattern *pattern) const;
-  QVariant getSize(const AbstractPattern *pattern) const;
-  QVariant getSizeColor(const AbstractPattern *pattern) const;
+  QVariant getIcon(const AbstractPatternDefinition *pattern) const;
+  QVariant getName(const AbstractPatternDefinition *pattern) const;
+  QVariant getTooltip(const AbstractPatternDefinition *pattern, int column) const;
+  QVariant getAddress(const AbstractPatternDefinition *pattern) const;
+  QVariant getAddressColor(const AbstractPatternDefinition *pattern) const;
+  QVariant getSize(const AbstractPatternDefinition *pattern) const;
+  QVariant getSizeColor(const AbstractPatternDefinition *pattern) const;
 
 private slots:
-  void onPatternModified(const AbstractPattern *pattern);
-  void onPatternAdded(const AbstractPattern *parent, unsigned int idx);
-  void onRemovingPattern(const AbstractPattern *parent, unsigned int idx);
-  void onPatternRemoved(const AbstractPattern *parent, unsigned int idx);
+  void onPatternModified(const AbstractPatternDefinition *pattern);
+  void onPatternAdded(const AbstractPatternDefinition *parent, unsigned int idx);
+  void onRemovingPattern(const AbstractPatternDefinition *parent, unsigned int idx);
+  void onPatternRemoved(const AbstractPatternDefinition *parent, unsigned int idx);
 
 protected:
-  CodeplugPattern *_pattern;
+  CodeplugPatternDefinition *_pattern;
 };
 
 #endif // PATTERNWRAPPER_HH

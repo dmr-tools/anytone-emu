@@ -37,7 +37,7 @@ message(STATUS "Build version ${PROJECT_VERSION}")
 # Sources...
 add_subdirectory(lib)
 add_subdirectory(cli)
-add_subdirectory(src)
+#add_subdirectory(src)
 if(BUILD_TESTS)
 add_subdirectory(test)
 endif()

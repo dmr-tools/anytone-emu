@@ -3,8 +3,8 @@
 
 #include <QTreeView>
 
-class CodeplugPattern;
-class AbstractPattern;
+class CodeplugPatternDefinition;
+class AbstractPatternDefinition;
 
 class PatternView : public QTreeView
 {
@@ -43,14 +43,14 @@ public slots:
   void save();
 
 protected:
-  AbstractPattern *selectedPattern() const;
+  AbstractPatternDefinition *selectedPattern() const;
   void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
 private slots:
   void onShowContextMenu(const QPoint &point);
 
 private:
-  CodeplugPattern *_pattern;
+  CodeplugPatternDefinition *_pattern;
 };
 
 #endif // PATTERNVIEW_HH

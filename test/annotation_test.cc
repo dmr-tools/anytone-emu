@@ -28,7 +28,7 @@ AnnotationTest::annotateUnusedTest() {
   image.append(0, QByteArray::fromRawData("\x01", 1));
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   if (! parser.parse(reader)) {
     QFAIL(parser.errorMessage().toLatin1().constData());
@@ -58,7 +58,7 @@ AnnotationTest::annotateUnknownTest() {
   image.append(0, QByteArray::fromRawData("\x01", 1));
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   if (! parser.parse(reader)) {
     QFAIL(parser.errorMessage().toLatin1().constData());
@@ -92,7 +92,7 @@ AnnotationTest::annotateIntTest() {
   image.append(0, QByteArray::fromHex("42ff00020300"));
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   if (! parser.parse(reader)) {
     QFAIL(parser.errorMessage().toLatin1().constData());
@@ -135,7 +135,7 @@ AnnotationTest::annotateFixedRepeatTest() {
   image.append(0, QByteArray::fromHex("010002030004050006"));
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   if (! parser.parse(reader)) {
     QFAIL(parser.errorMessage().toLatin1().constData());
@@ -178,7 +178,7 @@ AnnotationTest::annotateBlockRepeatTest() {
   image.append(0, QByteArray::fromHex("010002030004"));
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   if (! parser.parse(reader)) {
     QFAIL(parser.errorMessage().toLatin1().constData());
@@ -216,7 +216,7 @@ AnnotationTest::annotateSparseRepeatTest() {
   image.append(0, QByteArray::fromHex("0100020003"));
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   if (! parser.parse(reader)) {
     QFAIL(parser.errorMessage().toLatin1().constData());

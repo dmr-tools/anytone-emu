@@ -1,18 +1,18 @@
 #include "patternwrapper.hh"
-#include "codeplugpattern.hh"
+#include "patterndefinition.hh"
 #include <QIcon>
 #include <QApplication>
 #include <QPalette>
 
 
-PatternWrapper::PatternWrapper(CodeplugPattern *pattern, QObject *parent)
+PatternWrapper::PatternWrapper(CodeplugPatternDefinition *pattern, QObject *parent)
   : QAbstractItemModel{parent}, _pattern(pattern)
 {
   connect(_pattern, &QObject::destroyed, this, &PatternWrapper::deleteLater);
-  connect(_pattern, &AbstractPattern::modified, this, &PatternWrapper::onPatternModified);
-  connect(_pattern, &AbstractPattern::added, this, &PatternWrapper::onPatternAdded);
-  connect(_pattern, &AbstractPattern::removing, this, &PatternWrapper::onRemovingPattern);
-  connect(_pattern, &AbstractPattern::removed, this, &PatternWrapper::onPatternRemoved);
+  connect(_pattern, &AbstractPatternDefinition::modified, this, &PatternWrapper::onPatternModified);
+  connect(_pattern, &AbstractPatternDefinition::added, this, &PatternWrapper::onPatternAdded);
+  connect(_pattern, &AbstractPatternDefinition::removing, this, &PatternWrapper::onRemovingPattern);
+  connect(_pattern, &AbstractPatternDefinition::removed, this, &PatternWrapper::onPatternRemoved);
 }
 
 QModelIndex
@@ -20,27 +20,27 @@ PatternWrapper::index(int row, int column, const QModelIndex &parent) const {
   if (! parent.isValid()) {
     return createIndex(row, column, _pattern);
   }
-  AbstractPattern *parentPattern = reinterpret_cast<AbstractPattern *>(parent.internalPointer());
-  if (! parentPattern->is<StructuredPattern>())
+  auto parentPattern = reinterpret_cast<AbstractPatternDefinition *>(parent.internalPointer());
+  if (! parentPattern->is<StructuredPatternDefinition>())
     return QModelIndex();
 
-  if (row >= parentPattern->as<StructuredPattern>()->numChildPattern())
+  if (row >= parentPattern->as<StructuredPatternDefinition>()->numChildPattern())
     return QModelIndex();
 
-  return createIndex(row, column, parentPattern->as<StructuredPattern>()->childPattern(row));
+  return createIndex(row, column, parentPattern->as<StructuredPatternDefinition>()->childPattern(row));
 }
 
 QModelIndex
 PatternWrapper::parent(const QModelIndex &child) const {
   if (! child.isValid())
     return QModelIndex();
-  AbstractPattern *pattern = reinterpret_cast<AbstractPattern *>(child.internalPointer());
-  if ((nullptr == pattern) ||pattern->is<CodeplugPattern>())
+  auto pattern = reinterpret_cast<AbstractPatternDefinition *>(child.internalPointer());
+  if ((nullptr == pattern) ||pattern->is<CodeplugPatternDefinition>())
     return QModelIndex();
-  AbstractPattern *parent = dynamic_cast<AbstractPattern *>(pattern->parent());
-  if (parent->is<CodeplugPattern>())
+  auto parent = dynamic_cast<AbstractPatternDefinition *>(pattern->parent());
+  if (parent->is<CodeplugPatternDefinition>())
     return createIndex(0,0, parent);
-  StructuredPattern *grandParent = dynamic_cast<StructuredPattern *>(parent->parent());
+  auto grandParent = dynamic_cast<StructuredPatternDefinition *>(parent->parent());
   return createIndex(grandParent->indexOf(parent), 0, parent);
 }
 
@@ -48,10 +48,10 @@ int
 PatternWrapper::rowCount(const QModelIndex &parent) const {
   if (! parent.isValid())
     return 1;
-  AbstractPattern *pattern = reinterpret_cast<AbstractPattern *>(parent.internalPointer());
-  if (! pattern->is<StructuredPattern>())
+  auto pattern = reinterpret_cast<AbstractPatternDefinition *>(parent.internalPointer());
+  if (! pattern->is<StructuredPatternDefinition>())
     return 0;
-  return pattern->as<StructuredPattern>()->numChildPattern();
+  return pattern->as<StructuredPatternDefinition>()->numChildPattern();
 }
 
 int
@@ -67,7 +67,7 @@ PatternWrapper::flags(const QModelIndex &index) const {
 
 QVariant
 PatternWrapper::data(const QModelIndex &index, int role) const {
-  AbstractPattern *pattern = reinterpret_cast<AbstractPattern *>(index.internalPointer());
+  auto pattern = reinterpret_cast<AbstractPatternDefinition *>(index.internalPointer());
   if (nullptr == pattern)
     return QVariant();
 
@@ -110,12 +110,12 @@ PatternWrapper::headerData(int section, Qt::Orientation orientation, int role) c
 }
 
 QVariant
-PatternWrapper::getName(const AbstractPattern *pattern) const {
+PatternWrapper::getName(const AbstractPatternDefinition *pattern) const {
   QString name = QString("Unnamed %1").arg(pattern->metaObject()->className());
   if (! pattern->meta().name().isEmpty())
     name = pattern->meta().name();
-  if (pattern->is<CodeplugPattern>()) {
-    const CodeplugPattern *codeplug = pattern->as<CodeplugPattern>();
+  if (pattern->is<CodeplugPatternDefinition>()) {
+    auto *codeplug = pattern->as<CodeplugPatternDefinition>();
     if (! codeplug->source().isFile())
       name.append(" [build-in]");
     else if (codeplug->isModified())
@@ -125,41 +125,41 @@ PatternWrapper::getName(const AbstractPattern *pattern) const {
 }
 
 QVariant
-PatternWrapper::getTooltip(const AbstractPattern *pattern, int column) const {
+PatternWrapper::getTooltip(const AbstractPatternDefinition *pattern, int column) const {
   if (pattern->meta().hasDescription())
     return pattern->meta().description();
   return QVariant();
 }
 
 QVariant
-PatternWrapper::getIcon(const AbstractPattern *pattern) const {
-  if (pattern->is<CodeplugPattern>())
+PatternWrapper::getIcon(const AbstractPatternDefinition *pattern) const {
+  if (pattern->is<CodeplugPatternDefinition>())
     return QIcon(":/icons/16x16/codeplugpattern.png");
-  else if (pattern->is<RepeatPattern>())
+  else if (pattern->is<RepeatPatternDefinition>())
     return QIcon(":/icons/16x16/sparserepeat.png");
-  else if (pattern->is<BlockRepeatPattern>())
+  else if (pattern->is<BlockRepeatPatternDefinition>())
     return QIcon(":/icons/16x16/blockrepeat.png");
-  else if (pattern->is<FixedRepeatPattern>())
+  else if (pattern->is<FixedRepeatPatternDefinition>())
     return QIcon(":/icons/16x16/fixedrepeat.png");
-  else if (pattern->is<ElementPattern>())
+  else if (pattern->is<ElementPatternDefinition>())
   return QIcon(":/icons/16x16/element.png");
-  else if (pattern->is<IntegerFieldPattern>())
+  else if (pattern->is<IntegerFieldPatternDefinition>())
     return QIcon(":/icons/16x16/integer.png");
-  else if (pattern->is<EnumFieldPattern>())
+  else if (pattern->is<EnumFieldPatternDefinition>())
     return QIcon(":/icons/16x16/enum.png");
-  else if (pattern->is<EnumFieldPattern>())
+  else if (pattern->is<EnumFieldPatternDefinition>())
     return QIcon(":/icons/16x16/enum.png");
-  else if (pattern->is<StringFieldPattern>())
+  else if (pattern->is<StringFieldPatternDefinition>())
     return QIcon(":/icons/16x16/stringfield.png");
-  else if (pattern->is<UnusedFieldPattern>())
+  else if (pattern->is<UnusedFieldPatternDefinition>())
     return QIcon(":/icons/16x16/unused.png");
-  else if (pattern->is<UnknownFieldPattern>())
+  else if (pattern->is<UnknownFieldPatternDefinition>())
     return QIcon(":/icons/16x16/unknown.png");
   return QVariant();
 }
 
 QVariant
-PatternWrapper::getAddress(const AbstractPattern *pattern) const {
+PatternWrapper::getAddress(const AbstractPatternDefinition *pattern) const {
   if (pattern->hasImplicitAddress() && !pattern->hasAddress())
     return tr("variable");
   if (pattern->hasAddress())
@@ -168,7 +168,7 @@ PatternWrapper::getAddress(const AbstractPattern *pattern) const {
 }
 
 QVariant
-PatternWrapper::getAddressColor(const AbstractPattern *pattern) const {
+PatternWrapper::getAddressColor(const AbstractPatternDefinition *pattern) const {
   const QPalette &palette = QApplication::palette();
   if (pattern->hasImplicitAddress())
     return palette.brush(QPalette::Disabled, QPalette::Text);
@@ -176,11 +176,11 @@ PatternWrapper::getAddressColor(const AbstractPattern *pattern) const {
 }
 
 QVariant
-PatternWrapper::getSize(const AbstractPattern *pattern) const {
-  if (! pattern->is<FixedPattern>())
+PatternWrapper::getSize(const AbstractPatternDefinition *pattern) const {
+  if (! pattern->is<FixedPatternDefinition>())
     return QVariant();
 
-  const FixedPattern *fixed = pattern->as<FixedPattern>();
+  auto fixed = pattern->as<FixedPatternDefinition>();
   if (fixed->hasSize())
     return QString("%1:%2").arg(fixed->size().byte(), 0, 16).arg(fixed->size().bit());
 
@@ -188,16 +188,16 @@ PatternWrapper::getSize(const AbstractPattern *pattern) const {
 }
 
 QVariant
-PatternWrapper::getSizeColor(const AbstractPattern *pattern) const {
+PatternWrapper::getSizeColor(const AbstractPatternDefinition *pattern) const {
   const QPalette &palette = QApplication::palette();
-  if (pattern->is<FieldPattern>())
+  if (pattern->is<FieldPatternDefinition>())
     return palette.brush(QPalette::Normal, QPalette::Text);
   return palette.brush(QPalette::Disabled, QPalette::Text);
 }
 
 void
-PatternWrapper::onPatternModified(const AbstractPattern *pattern) {
-  AbstractPattern *parent = qobject_cast<AbstractPattern*>(pattern->parent());
+PatternWrapper::onPatternModified(const AbstractPatternDefinition *pattern) {
+  auto parent = qobject_cast<AbstractPatternDefinition*>(pattern->parent());
   if (nullptr == parent) {
     // root (codeplug) data changed
     emit dataChanged(index(0,0, QModelIndex()), index(0,2, QModelIndex()));
@@ -205,23 +205,23 @@ PatternWrapper::onPatternModified(const AbstractPattern *pattern) {
   }
 
   QModelIndex parentIndex;
-  if (parent->is<CodeplugPattern>()) {
+  if (parent->is<CodeplugPatternDefinition>()) {
     parentIndex = createIndex(0,0, parent);
   } else {
-    StructuredPattern *grandParent = dynamic_cast<StructuredPattern *>(parent->parent());
+    auto grandParent = dynamic_cast<StructuredPatternDefinition *>(parent->parent());
     parentIndex = createIndex(grandParent->indexOf(parent), 0, parent);
   }
-  int row = parent->as<StructuredPattern>()->indexOf(pattern);
+  int row = parent->as<StructuredPatternDefinition>()->indexOf(pattern);
   emit dataChanged(index(row, 0 , parentIndex), index(row, 2 , parentIndex));
 }
 
 void
-PatternWrapper::onPatternAdded(const AbstractPattern *parent, unsigned int idx) {
+PatternWrapper::onPatternAdded(const AbstractPatternDefinition *parent, unsigned int idx) {
   QModelIndex parentIndex;
-  if (parent->is<CodeplugPattern>()) {
+  if (parent->is<CodeplugPatternDefinition>()) {
     parentIndex = createIndex(0,0, parent);
   } else {
-    StructuredPattern *grandParent = dynamic_cast<StructuredPattern *>(parent->parent());
+    auto grandParent = dynamic_cast<StructuredPatternDefinition *>(parent->parent());
     parentIndex = createIndex(grandParent->indexOf(parent), 0, parent);
   }
   beginInsertRows(parentIndex, idx, idx);
@@ -229,19 +229,19 @@ PatternWrapper::onPatternAdded(const AbstractPattern *parent, unsigned int idx) 
 }
 
 void
-PatternWrapper::onRemovingPattern(const AbstractPattern *parent, unsigned int idx) {
+PatternWrapper::onRemovingPattern(const AbstractPatternDefinition *parent, unsigned int idx) {
   QModelIndex parentIndex;
-  if (parent->is<CodeplugPattern>()) {
+  if (parent->is<CodeplugPatternDefinition>()) {
     parentIndex = createIndex(0,0, parent);
   } else {
-    StructuredPattern *grandParent = dynamic_cast<StructuredPattern *>(parent->parent());
+    auto grandParent = dynamic_cast<StructuredPatternDefinition *>(parent->parent());
     parentIndex = createIndex(grandParent->indexOf(parent), 0, parent);
   }
   beginRemoveRows(parentIndex, idx, idx);
 }
 
 void
-PatternWrapper::onPatternRemoved(const AbstractPattern *parent, unsigned int idx) {
+PatternWrapper::onPatternRemoved(const AbstractPatternDefinition *parent, unsigned int idx) {
   Q_UNUSED(parent); Q_UNUSED(idx)
   endRemoveRows();
 }

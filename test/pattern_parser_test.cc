@@ -19,7 +19,7 @@ PatternParserTest::parseCodeplugTest() {
       R"(</codeplug>)";
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   if (! parser.parse(reader)) {
     QFAIL(parser.errorMessage().toLatin1().constData());
@@ -44,7 +44,7 @@ PatternParserTest::parseCodeplugMetaTest() {
       R"(</codeplug>)";
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   if (! parser.parse(reader)) {
     QFAIL(parser.errorMessage().toLatin1().constData());
@@ -65,7 +65,7 @@ PatternParserTest::parseUnusedFieldTest() {
       R"(</codeplug>)";
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   if (! parser.parse(reader)) {
     QFAIL(parser.errorMessage().toLatin1().constData());
@@ -98,7 +98,7 @@ PatternParserTest::parseIntFieldTest() {
       R"(</codeplug>)";
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   if (! parser.parse(reader)) {
     QFAIL(parser.errorMessage().toLatin1().constData());
@@ -144,7 +144,7 @@ PatternParserTest::parseEnumFieldTest() {
       R"(</codeplug>)";
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   if (! parser.parse(reader)) {
     QFAIL(parser.errorMessage().toLatin1().constData());
@@ -187,7 +187,7 @@ PatternParserTest::parseSerializedTest() {
       R"(  </repeat>)"
       R"(</codeplug>)";
 
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
 
   {
     QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));

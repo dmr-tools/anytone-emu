@@ -1,6 +1,7 @@
 #include "codeplugpattern.hh"
 #include "logger.hh"
 #include "image.hh"
+#include "patterndefinition.hh"
 #include "codeplugpatternparser.hh"
 
 #include <QVariant>
@@ -13,6 +14,13 @@
  * ********************************************************************************************* */
 PatternMeta::PatternMeta(QObject *parent)
   : QObject{parent}, _name(), _description(), _fwVersion(), _flags(Flags::None)
+{
+  // pass...
+}
+
+PatternMeta::PatternMeta(const PatternMeta &other, QObject *parent)
+  : QObject{parent}, _name(other.name()), _description(other.description()),
+    _fwVersion(other.firmwareVersion()), _flags(other.flags())
 {
   // pass...
 }
@@ -113,8 +121,8 @@ PatternMeta::setFlags(Flags flags) {
 /* ********************************************************************************************* *
  * Implementation of AbstractPattern
  * ********************************************************************************************* */
-AbstractPattern::AbstractPattern(QObject *parent)
-  : QObject{parent}, _meta(), _address()
+AbstractPattern::AbstractPattern(const AbstractPatternDefinition* def, QObject *parent)
+  : QObject{parent}, _meta(def->meta()), _address(def->address())
 {
   connect(&_meta, &PatternMeta::modified, this, &AbstractPattern::onMetaModified);
 }
@@ -171,8 +179,8 @@ StructuredPattern::~StructuredPattern() {
 /* ********************************************************************************************* *
  * Implementation of GroupPattern
  * ********************************************************************************************* */
-GroupPattern::GroupPattern(QObject *parent)
-  : AbstractPattern{parent}
+GroupPattern::GroupPattern(const AbstractPatternDefinition* def, QObject *parent)
+  : AbstractPattern{def, parent}
 {
   // pass...
 }
@@ -181,9 +189,12 @@ GroupPattern::GroupPattern(QObject *parent)
 /* ********************************************************************************************* *
  * Implementation of CodeplugPattern
  * ********************************************************************************************* */
-CodeplugPattern::CodeplugPattern(QObject *parent)
-  : GroupPattern(parent), _modified(false), _source(), _content()
+CodeplugPattern::CodeplugPattern(const CodeplugPatternDefinition* def, QObject *parent)
+  : GroupPattern(def, parent), _modified(false), _source(), _content()
 {
+  for(int i=0; i<def->numChildPattern(); i++) {
+    _content.append(def->childPattern(i)->instantiate());
+  }
   //connect(this, &AbstractPattern::modified, this, &CodeplugPattern::onModified);
 }
 
@@ -282,7 +293,7 @@ CodeplugPattern::load(const QString &filename) {
     return nullptr;
   }
 
-  CodeplugPatternParser parser;
+  PatternDefinitionParser parser;
   QXmlStreamReader reader(&file);
   if (! parser.parse(reader)) {
     logError() << "Cannot load annotation pattern from '" << filename
@@ -290,13 +301,14 @@ CodeplugPattern::load(const QString &filename) {
     return nullptr;
   }
 
-  if (! parser.topIs<CodeplugPattern>()) {
+  if (! parser.topIs<CodeplugPatternDefinition>()) {
     logError() << "Cannot load annotation pattern from '" << filename
                << "': Files does not contain a codeplug pattern.";
     return nullptr;
   }
 
-  CodeplugPattern *pattern = parser.popAs<CodeplugPattern>();
+  CodeplugPatternDefinition *definition = parser.popAs<CodeplugPatternDefinition>();
+  CodeplugPattern *pattern = definition->instantiate()->as<CodeplugPattern>();
   pattern->setSource(filename);
   return pattern;
 }
@@ -361,8 +373,8 @@ CodeplugPattern::onModified() {
 /* ********************************************************************************************* *
  * Implementation of RepeatPattern
  * ********************************************************************************************* */
-RepeatPattern::RepeatPattern(QObject *parent)
-  : GroupPattern{parent}, _minRepetition(std::numeric_limits<unsigned int>::max()),
+RepeatPattern::RepeatPattern(const RepeatPatternDefinition* def, QObject *parent)
+  : GroupPattern{def, parent}, _minRepetition(std::numeric_limits<unsigned int>::max()),
     _maxRepetition(std::numeric_limits<unsigned int>::max()), _step(), _subpattern(nullptr)
 {
   // pass...
@@ -493,8 +505,8 @@ RepeatPattern::setStep(const Offset &step) {
 /* ********************************************************************************************* *
  * Implementation of BlockPattern
  * ********************************************************************************************* */
-BlockPattern::BlockPattern(QObject *parent)
-  : AbstractPattern{parent}
+BlockPattern::BlockPattern(const BlockPatternDefinition *def, QObject *parent)
+  : AbstractPattern{def, parent}
 {
   // pass...
 }
@@ -503,8 +515,8 @@ BlockPattern::BlockPattern(QObject *parent)
 /* ********************************************************************************************* *
  * Implementation of BlockRepeatPattern
  * ********************************************************************************************* */
-BlockRepeatPattern::BlockRepeatPattern(QObject *parent)
-  : BlockPattern{parent}, _minRepetition(std::numeric_limits<unsigned int>::max()),
+BlockRepeatPattern::BlockRepeatPattern(const BlockRepeatPatternDefinition* def, QObject *parent)
+  : BlockPattern{def, parent}, _minRepetition(std::numeric_limits<unsigned int>::max()),
     _maxRepetition(std::numeric_limits<unsigned int>::max()), _subpattern(nullptr)
 {
   // pass...
@@ -622,8 +634,8 @@ BlockRepeatPattern::deleteChild(unsigned int n) {
 /* ********************************************************************************************* *
  * Implementation of FixedPattern
  * ********************************************************************************************* */
-FixedPattern::FixedPattern(QObject *parent)
-  : BlockPattern(parent), _size()
+FixedPattern::FixedPattern(const FixedPatternDefinition* def, QObject *parent)
+  : BlockPattern{def, parent}, _size()
 {
   // pass...
 }
@@ -653,8 +665,8 @@ FixedPattern::setSize(const Size &size) {
 /* ********************************************************************************************* *
  * Implementation of ElementPattern
  * ********************************************************************************************* */
-ElementPattern::ElementPattern(QObject *parent)
-  : FixedPattern(parent), _content()
+ElementPattern::ElementPattern(const ElementPatternDefinition* def, QObject *parent)
+  : FixedPattern{def, parent}, _content()
 {
   // pass...
 }
@@ -788,8 +800,8 @@ ElementPattern::onChildResized(const FixedPattern *child, const Size &size) {
 /* ********************************************************************************************* *
  * Implementation of FixedRepeatPattern
  * ********************************************************************************************* */
-FixedRepeatPattern::FixedRepeatPattern(QObject *parent)
-  : FixedPattern(parent), _repetition(0), _subpattern(nullptr)
+FixedRepeatPattern::FixedRepeatPattern(const FixedRepeatPatternDefinition* def, QObject *parent)
+  : FixedPattern{def, parent}, _repetition(0), _subpattern(nullptr)
 {
   // pass...
 }
@@ -905,8 +917,8 @@ FixedRepeatPattern::onChildResized(const FixedPattern *pattern, const Size &size
 /* ********************************************************************************************* *
  * Implementation of FieldPattern
  * ********************************************************************************************* */
-FieldPattern::FieldPattern(QObject *parent)
-  : FixedPattern{parent}
+FieldPattern::FieldPattern(const FieldPatternDefinition* def, QObject *parent)
+  : FixedPattern{def, parent}
 {
   // pass...
 }
@@ -915,8 +927,8 @@ FieldPattern::FieldPattern(QObject *parent)
 /* ********************************************************************************************* *
  * Implementation of UnknownFieldPattern
  * ********************************************************************************************* */
-UnknownFieldPattern::UnknownFieldPattern(QObject *parent)
-  : FieldPattern{parent}
+UnknownFieldPattern::UnknownFieldPattern(const UnknownFieldPatternDefinition* def, QObject *parent)
+  : FieldPattern{def, parent}
 {
   meta().setName("Unknown data");
 }
@@ -958,8 +970,8 @@ UnknownFieldPattern::value(const Element *element, const Address& address) const
 /* ********************************************************************************************* *
  * Implementation of UnusedFieldPattern
  * ********************************************************************************************* */
-UnusedFieldPattern::UnusedFieldPattern(QObject *parent)
-  : FieldPattern(parent), _content()
+UnusedFieldPattern::UnusedFieldPattern(const UnusedFieldPatternDefinition* def, QObject *parent)
+  : FieldPattern{def, parent}, _content(def->content())
 {
   meta().setName("Unused data");
 }
@@ -1026,11 +1038,11 @@ UnusedFieldPattern::value(const Element *element, const Address& address) const 
 /* ********************************************************************************************* *
  * Implementation of IntegerFieldPattern
  * ********************************************************************************************* */
-IntegerFieldPattern::IntegerFieldPattern(QObject *parent)
-  : FieldPattern{parent}, _format(Format::Unsigned), _endian(Endian::Little),
-    _minValue(std::numeric_limits<long long>().max()),
-    _maxValue(std::numeric_limits<long long>().max()),
-    _defaultValue(std::numeric_limits<long long>().max())
+IntegerFieldPattern::IntegerFieldPattern(const IntegerFieldPatternDefinition* def, QObject *parent)
+  : FieldPattern{def, parent}, _format(def->format()), _endian(def->endian()),
+    _minValue(def->minValue()),
+    _maxValue(def->maxValue()),
+    _defaultValue(def->defaultValue())
 {
   // pass...
 }
@@ -1324,8 +1336,8 @@ EnumFieldPatternItem::setValue(unsigned int value) {
 /* ********************************************************************************************* *
  * Implementation of EnumFieldPattern
  * ********************************************************************************************* */
-EnumFieldPattern::EnumFieldPattern(QObject *parent)
-  : FieldPattern(parent), _items()
+EnumFieldPattern::EnumFieldPattern(const EnumFieldPatternDefinition* def, QObject *parent)
+  : FieldPattern{def, parent}, _items()
 {
   // pass...
 }
@@ -1428,8 +1440,8 @@ EnumFieldPattern::value(const Element *element, const Address& address) const {
 /* ********************************************************************************************* *
  * Implementation of StringFieldPattern
  * ********************************************************************************************* */
-StringFieldPattern::StringFieldPattern(QObject *parent)
-  : FieldPattern{parent}, _format(Format::ASCII), _numChars(0), _padValue(0)
+StringFieldPattern::StringFieldPattern(const StringFieldPatternDefinition* def, QObject *parent)
+  : FieldPattern{def, parent}, _format(Format::ASCII), _numChars(0), _padValue(0)
 {
   // pass...
 }

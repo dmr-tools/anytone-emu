@@ -1,16 +1,16 @@
 #include "codeplugpatternparser.hh"
-#include "codeplugpattern.hh"
+#include "patterndefinition.hh"
 
 #include <QXmlStreamAttribute>
 
-CodeplugPatternParser::CodeplugPatternParser(QObject *parent)
+PatternDefinitionParser::PatternDefinitionParser(QObject *parent)
   : XmlParser(parent), _stack(), _state(State::None)
 {
   // pass...
 }
 
 bool
-CodeplugPatternParser::endDocument() {
+PatternDefinitionParser::endDocument() {
   if (! XmlParser::endDocument())
     return false;
 
@@ -19,7 +19,7 @@ CodeplugPatternParser::endDocument() {
     return false;
   }
 
-  if (! topIs<CodeplugPattern>()) {
+  if (! topIs<CodeplugPatternDefinition>()) {
     raiseError("Cannot parse codeplug pattern. No codeplug is left on the stack.");
     return false;
   }
@@ -28,7 +28,7 @@ CodeplugPatternParser::endDocument() {
 }
 
 bool
-CodeplugPatternParser::processText(const QStringView &content) {
+PatternDefinitionParser::processText(const QStringView &content) {
   if (topIs<PatternMeta>()) {
     switch(_state) {
     case State::None: break;
@@ -39,8 +39,8 @@ CodeplugPatternParser::processText(const QStringView &content) {
     return true;
   }
 
-  if (topIs<UnusedFieldPattern>()) {
-    if (! topAs<UnusedFieldPattern>()->setContent(QByteArray::fromHex(content.toLatin1()))) {
+  if (topIs<UnusedFieldPatternDefinition>()) {
+    if (! topAs<UnusedFieldPatternDefinition>()->setContent(QByteArray::fromHex(content.toLatin1()))) {
       raiseError("Cannot set content of <unused> tag.");
       return false;
     }
@@ -51,7 +51,7 @@ CodeplugPatternParser::processText(const QStringView &content) {
 }
 
 bool
-CodeplugPatternParser::processDefaultArgs(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::processDefaultArgs(const QXmlStreamAttributes &attributes) {
   Address addr;
   if (attributes.hasAttribute("at")) {
     addr = Address::fromString(attributes.value("at").toString());
@@ -59,7 +59,7 @@ CodeplugPatternParser::processDefaultArgs(const QXmlStreamAttributes &attributes
       raiseError("Invalid address value.");
       return false;
     }
-    topAs<AbstractPattern>()->setAddress(addr);
+    topAs<AbstractPatternDefinition>()->setAddress(addr);
   }
 
   return true;
@@ -67,8 +67,8 @@ CodeplugPatternParser::processDefaultArgs(const QXmlStreamAttributes &attributes
 
 
 bool
-CodeplugPatternParser::beginMetaElement(const QXmlStreamAttributes &attributes) {
-  if (! topIs<AbstractPattern>()) {
+PatternDefinitionParser::beginMetaElement(const QXmlStreamAttributes &attributes) {
+  if (! topIs<AbstractPatternDefinition>()) {
     raiseError("Unexpected <meta> tag.");
     return false;
   }
@@ -77,18 +77,18 @@ CodeplugPatternParser::beginMetaElement(const QXmlStreamAttributes &attributes) 
 }
 
 bool
-CodeplugPatternParser::endMetaElement() {
+PatternDefinitionParser::endMetaElement() {
   PatternMeta *meta = popAs<PatternMeta>();
   if (! meta)
     return false;
-  topAs<AbstractPattern>()->meta() = *meta;
+  topAs<AbstractPatternDefinition>()->meta() = *meta;
   delete meta;
   return true;
 }
 
 
 bool
-CodeplugPatternParser::beginNameElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginNameElement(const QXmlStreamAttributes &attributes) {
   if (! topIs<PatternMeta>()) {
     raiseError("Unexpected <name> tag.");
     return false;
@@ -98,13 +98,13 @@ CodeplugPatternParser::beginNameElement(const QXmlStreamAttributes &attributes) 
 }
 
 bool
-CodeplugPatternParser::endNameElement() {
+PatternDefinitionParser::endNameElement() {
   _state = State::None;
   return true;
 }
 
 bool
-CodeplugPatternParser::beginDescriptionElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginDescriptionElement(const QXmlStreamAttributes &attributes) {
   if (! topIs<PatternMeta>()) {
     raiseError("Unexpected <description> tag.");
     return false;
@@ -114,13 +114,13 @@ CodeplugPatternParser::beginDescriptionElement(const QXmlStreamAttributes &attri
 }
 
 bool
-CodeplugPatternParser::endDescriptionElement() {
+PatternDefinitionParser::endDescriptionElement() {
   _state = State::None;
   return true;
 }
 
 bool
-CodeplugPatternParser::beginVersionElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginVersionElement(const QXmlStreamAttributes &attributes) {
   if (! topIs<PatternMeta>()) {
     raiseError("Unexpected <version> tag.");
     return false;
@@ -130,13 +130,13 @@ CodeplugPatternParser::beginVersionElement(const QXmlStreamAttributes &attribute
 }
 
 bool
-CodeplugPatternParser::endVersionElement() {
+PatternDefinitionParser::endVersionElement() {
   _state = State::None;
   return true;
 }
 
 bool
-CodeplugPatternParser::beginDoneElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginDoneElement(const QXmlStreamAttributes &attributes) {
   if (! topIs<PatternMeta>()) {
     raiseError("Unexpected <done> tag.");
     return false;
@@ -145,12 +145,12 @@ CodeplugPatternParser::beginDoneElement(const QXmlStreamAttributes &attributes) 
   return true;
 }
 bool
-CodeplugPatternParser::endDoneElement() {
+PatternDefinitionParser::endDoneElement() {
   return true;
 }
 
 bool
-CodeplugPatternParser::beginNeedsReviewElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginNeedsReviewElement(const QXmlStreamAttributes &attributes) {
   if (! topIs<PatternMeta>()) {
     raiseError("Unexpected <needs-review> tag.");
     return false;
@@ -159,12 +159,12 @@ CodeplugPatternParser::beginNeedsReviewElement(const QXmlStreamAttributes &attri
   return true;
 }
 bool
-CodeplugPatternParser::endNeedsReviewElement() {
+PatternDefinitionParser::endNeedsReviewElement() {
   return true;
 }
 
 bool
-CodeplugPatternParser::beginIncompleteElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginIncompleteElement(const QXmlStreamAttributes &attributes) {
   if (! topIs<PatternMeta>()) {
     raiseError("Unexpected <incomplete> tag.");
     return false;
@@ -173,32 +173,32 @@ CodeplugPatternParser::beginIncompleteElement(const QXmlStreamAttributes &attrib
   return true;
 }
 bool
-CodeplugPatternParser::endIncompleteElement() {
+PatternDefinitionParser::endIncompleteElement() {
   return true;
 }
 
 
 bool
-CodeplugPatternParser::beginCodeplugElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginCodeplugElement(const QXmlStreamAttributes &attributes) {
   if (0 != _stack.size()) {
     raiseError("<codeplug> must be the root elment.");
     return false;
   }
 
-  push(new CodeplugPattern());
+  push(new CodeplugPatternDefinition());
 
   return true;
 }
 
 bool
-CodeplugPatternParser::endCodeplugElement() {
+PatternDefinitionParser::endCodeplugElement() {
   // Do nothing to keep the codeplug on the stack.
   return true;
 }
 
 
 bool
-CodeplugPatternParser::beginRepeatElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginRepeatElement(const QXmlStreamAttributes &attributes) {
   bool ok;
 
   Offset step;
@@ -257,7 +257,7 @@ CodeplugPatternParser::beginRepeatElement(const QXmlStreamAttributes &attributes
     }
 
     // Assemble with mandatory settings
-    RepeatPattern *pattern = new RepeatPattern();
+    auto *pattern = new RepeatPatternDefinition();
     pattern->setStep(step);
     pattern->setMaxRepetition(max);
     pattern->setMinRepetition(min);
@@ -281,7 +281,7 @@ CodeplugPatternParser::beginRepeatElement(const QXmlStreamAttributes &attributes
     }
 
     // Assemble with mandatory settings
-    BlockRepeatPattern *pattern = new BlockRepeatPattern();
+    auto *pattern = new BlockRepeatPatternDefinition();
     pattern->setMaxRepetition(max);
     pattern->setMinRepetition(min);
 
@@ -292,7 +292,7 @@ CodeplugPatternParser::beginRepeatElement(const QXmlStreamAttributes &attributes
 
   if (std::numeric_limits<unsigned int>().max() != n) { // -> FixedRepeatPattern
     // Assemble with mandatory settings
-    FixedRepeatPattern *pattern = new FixedRepeatPattern();
+    auto *pattern = new FixedRepeatPatternDefinition();
     pattern->setRepetition(n);
 
     push(pattern);
@@ -305,16 +305,16 @@ CodeplugPatternParser::beginRepeatElement(const QXmlStreamAttributes &attributes
 }
 
 bool
-CodeplugPatternParser::endRepeatElement() {
-  AbstractPattern *rep = popAs<AbstractPattern>();
+PatternDefinitionParser::endRepeatElement() {
+  AbstractPatternDefinition *rep = popAs<AbstractPatternDefinition>();
 
-  if (! topIs<StructuredPattern>()) {
+  if (! topIs<StructuredPatternDefinition>()) {
     raiseError("Cannot add <repeat> element to parent, not a stuctured pattern.");
     delete rep;
     return false;
   }
 
-  if (! topAs<StructuredPattern>()->addChildPattern(rep)) {
+  if (! topAs<StructuredPatternDefinition>()->addChildPattern(rep)) {
     raiseError("Cannot add <repeat> element to parent, parent rejects child.");
     delete rep;
     return false;
@@ -325,17 +325,17 @@ CodeplugPatternParser::endRepeatElement() {
 
 
 bool
-CodeplugPatternParser::beginElementElement(const QXmlStreamAttributes &attributes) {
-  push(new ElementPattern());
+PatternDefinitionParser::beginElementElement(const QXmlStreamAttributes &attributes) {
+  push(new ElementPatternDefinition());
   return processDefaultArgs(attributes);
 ;
 }
 
 bool
-CodeplugPatternParser::endElementElement() {
-  ElementPattern *el = popAs<ElementPattern>();
+PatternDefinitionParser::endElementElement() {
+  ElementPatternDefinition *el = popAs<ElementPatternDefinition>();
 
-  if (! topAs<StructuredPattern>()->addChildPattern(el)) {
+  if (! topAs<StructuredPatternDefinition>()->addChildPattern(el)) {
     raiseError("Cannot add element to parent.");
     delete el;
     return false;
@@ -345,8 +345,8 @@ CodeplugPatternParser::endElementElement() {
 }
 
 bool
-CodeplugPatternParser::beginUnusedElement(const QXmlStreamAttributes &attributes) {
-  UnusedFieldPattern *pattern = new UnusedFieldPattern();
+PatternDefinitionParser::beginUnusedElement(const QXmlStreamAttributes &attributes) {
+  UnusedFieldPatternDefinition *pattern = new UnusedFieldPatternDefinition();
 
   if (attributes.hasAttribute("width")) {
     Size size = Size::fromString(attributes.value("width").toString());
@@ -365,16 +365,16 @@ CodeplugPatternParser::beginUnusedElement(const QXmlStreamAttributes &attributes
 }
 
 bool
-CodeplugPatternParser::endUnusedElement() {
-  UnusedFieldPattern *pattern = popAs<UnusedFieldPattern>();
+PatternDefinitionParser::endUnusedElement() {
+  UnusedFieldPatternDefinition *pattern = popAs<UnusedFieldPatternDefinition>();
 
-  if (! topIs<StructuredPattern>()) {
+  if (! topIs<StructuredPatternDefinition>()) {
     raiseError("Cannot add <unused> field to parent, parent is not structured.");
     delete pattern;
     return false;
   }
 
-  if (! topAs<StructuredPattern>()->addChildPattern(pattern)) {
+  if (! topAs<StructuredPatternDefinition>()->addChildPattern(pattern)) {
     raiseError("Cannot add <unused> field to parent, parent rejected it.");
     delete pattern;
     return false;
@@ -384,7 +384,7 @@ CodeplugPatternParser::endUnusedElement() {
 }
 
 bool
-CodeplugPatternParser::beginUnknownElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginUnknownElement(const QXmlStreamAttributes &attributes) {
   Offset size;
 
   if (attributes.hasAttribute("width")) {
@@ -395,7 +395,7 @@ CodeplugPatternParser::beginUnknownElement(const QXmlStreamAttributes &attribute
     }
   }
 
-  UnknownFieldPattern *pattern = new UnknownFieldPattern();
+  auto *pattern = new UnknownFieldPatternDefinition();
   pattern->setWidth(size);
 
   push(pattern);
@@ -404,16 +404,16 @@ CodeplugPatternParser::beginUnknownElement(const QXmlStreamAttributes &attribute
 }
 
 bool
-CodeplugPatternParser::endUnknownElement() {
-  UnknownFieldPattern *pattern = popAs<UnknownFieldPattern>();
+PatternDefinitionParser::endUnknownElement() {
+  UnknownFieldPatternDefinition *pattern = popAs<UnknownFieldPatternDefinition>();
 
-  if (! topIs<StructuredPattern>()) {
+  if (! topIs<StructuredPatternDefinition>()) {
     raiseError("Cannot add <unknown> field to parent, parent is not structured.");
     delete pattern;
     return false;
   }
 
-  if (! topAs<StructuredPattern>()->addChildPattern(pattern)) {
+  if (! topAs<StructuredPatternDefinition>()->addChildPattern(pattern)) {
     raiseError("Cannot add <unkown> field to parent, parent rejected it.");
     delete pattern;
     return false;
@@ -423,7 +423,7 @@ CodeplugPatternParser::endUnknownElement() {
 }
 
 bool
-CodeplugPatternParser::beginIntElement(const QXmlStreamAttributes &attributes)
+PatternDefinitionParser::beginIntElement(const QXmlStreamAttributes &attributes)
 {
   if (! attributes.hasAttribute("width")) {
     raiseError("<int> tag requires 'width' attribute.");
@@ -467,7 +467,7 @@ CodeplugPatternParser::beginIntElement(const QXmlStreamAttributes &attributes)
     }
   }
 
-  IntegerFieldPattern *pattern = new IntegerFieldPattern();
+  IntegerFieldPatternDefinition *pattern = new IntegerFieldPatternDefinition();
   pattern->setWidth(size);
   pattern->setFormat(format);
   pattern->setEndian(endian);
@@ -503,16 +503,16 @@ CodeplugPatternParser::beginIntElement(const QXmlStreamAttributes &attributes)
 }
 
 bool
-CodeplugPatternParser::endIntElement() {
-  IntegerFieldPattern *pattern = popAs<IntegerFieldPattern>();
+PatternDefinitionParser::endIntElement() {
+  IntegerFieldPatternDefinition *pattern = popAs<IntegerFieldPatternDefinition>();
 
-  if (! topIs<StructuredPattern>()) {
+  if (! topIs<StructuredPatternDefinition>()) {
     raiseError("Cannot add <int> field to parent, parent is not structured.");
     delete pattern;
     return false;
   }
 
-  if (! topAs<StructuredPattern>()->addChildPattern(pattern)) {
+  if (! topAs<StructuredPatternDefinition>()->addChildPattern(pattern)) {
     raiseError("Cannot add <int> field to parent, parent rejected it.");
     delete pattern;
     return false;
@@ -523,7 +523,7 @@ CodeplugPatternParser::endIntElement() {
 
 
 bool
-CodeplugPatternParser::beginBitElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginBitElement(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("format", "unsigned");
   attrs.append("width", ":1");
@@ -531,48 +531,48 @@ CodeplugPatternParser::beginBitElement(const QXmlStreamAttributes &attributes) {
 }
 
 bool
-CodeplugPatternParser::endBitElement() {
+PatternDefinitionParser::endBitElement() {
   return endIntElement();
 }
 
 bool
-CodeplugPatternParser::beginBcdElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginBcdElement(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("format", "bcd");
   return beginIntElement(attrs);
 }
 
 bool
-CodeplugPatternParser::endBcdElement() {
+PatternDefinitionParser::endBcdElement() {
   return endIntElement();
 }
 
 bool
-CodeplugPatternParser::beginBcd8Element(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginBcd8Element(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("width", ":40");
   return beginBcdElement(attrs);
 }
 
 bool
-CodeplugPatternParser::endBcd8Element() {
+PatternDefinitionParser::endBcd8Element() {
   return endBcdElement();
 }
 
 bool
-CodeplugPatternParser::beginUintElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginUintElement(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("format", "unsigned");
   return beginIntElement(attrs);
 }
 
 bool
-CodeplugPatternParser::endUintElement() {
+PatternDefinitionParser::endUintElement() {
   return endIntElement();
 }
 
 bool
-CodeplugPatternParser::beginInt8Element(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginInt8Element(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("format", "signed");
   attrs.append("width", ":10");
@@ -580,37 +580,37 @@ CodeplugPatternParser::beginInt8Element(const QXmlStreamAttributes &attributes) 
 }
 
 bool
-CodeplugPatternParser::endInt8Element() {
+PatternDefinitionParser::endInt8Element() {
   return endIntElement();
 }
 
 bool
-CodeplugPatternParser::beginUint8Element(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginUint8Element(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("width", ":10");
   return beginUintElement(attrs);
 }
 
 bool
-CodeplugPatternParser::endUint8Element() {
+PatternDefinitionParser::endUint8Element() {
   return endUintElement();
 }
 
 
 bool
-CodeplugPatternParser::beginUint16Element(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginUint16Element(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("width", ":20");
   return beginUintElement(attrs);
 }
 
 bool
-CodeplugPatternParser::endUint16Element() {
+PatternDefinitionParser::endUint16Element() {
   return endUintElement();
 }
 
 bool
-CodeplugPatternParser::beginUint16leElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginUint16leElement(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("width", ":20");
   attrs.append("endian", "little");
@@ -618,12 +618,12 @@ CodeplugPatternParser::beginUint16leElement(const QXmlStreamAttributes &attribut
 }
 
 bool
-CodeplugPatternParser::endUint16leElement() {
+PatternDefinitionParser::endUint16leElement() {
   return endUintElement();
 }
 
 bool
-CodeplugPatternParser::beginUint16beElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginUint16beElement(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("width", ":20");
   attrs.append("endian", "big");
@@ -631,25 +631,25 @@ CodeplugPatternParser::beginUint16beElement(const QXmlStreamAttributes &attribut
 }
 
 bool
-CodeplugPatternParser::endUint16beElement() {
+PatternDefinitionParser::endUint16beElement() {
   return endUintElement();
 }
 
 
 bool
-CodeplugPatternParser::beginUint32Element(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginUint32Element(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("width", ":40");
   return beginUintElement(attrs);
 }
 
 bool
-CodeplugPatternParser::endUint32Element() {
+PatternDefinitionParser::endUint32Element() {
   return endUintElement();
 }
 
 bool
-CodeplugPatternParser::beginUint32leElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginUint32leElement(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("width", ":40");
   attrs.append("endian", "little");
@@ -657,12 +657,12 @@ CodeplugPatternParser::beginUint32leElement(const QXmlStreamAttributes &attribut
 }
 
 bool
-CodeplugPatternParser::endUint32leElement() {
+PatternDefinitionParser::endUint32leElement() {
   return endUintElement();
 }
 
 bool
-CodeplugPatternParser::beginUint32beElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginUint32beElement(const QXmlStreamAttributes &attributes) {
   QXmlStreamAttributes attrs(attributes);
   attrs.append("width", ":40");
   attrs.append("endian", "big");
@@ -670,13 +670,13 @@ CodeplugPatternParser::beginUint32beElement(const QXmlStreamAttributes &attribut
 }
 
 bool
-CodeplugPatternParser::endUint32beElement() {
+PatternDefinitionParser::endUint32beElement() {
   return endUintElement();
 }
 
 
 bool
-CodeplugPatternParser::beginEnumElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginEnumElement(const QXmlStreamAttributes &attributes) {
   if (! attributes.hasAttribute("width")) {
     raiseError("<enum> element requires a 'width' attribute.");
     return false;
@@ -689,7 +689,7 @@ CodeplugPatternParser::beginEnumElement(const QXmlStreamAttributes &attributes) 
     return false;
   }
 
-  EnumFieldPattern *pattern = new EnumFieldPattern();
+  EnumFieldPatternDefinition *pattern = new EnumFieldPatternDefinition();
   pattern->setWidth(width);
 
   push(pattern);
@@ -698,16 +698,16 @@ CodeplugPatternParser::beginEnumElement(const QXmlStreamAttributes &attributes) 
 }
 
 bool
-CodeplugPatternParser::endEnumElement() {
-  EnumFieldPattern *pattern = popAs<EnumFieldPattern>();
+PatternDefinitionParser::endEnumElement() {
+  EnumFieldPatternDefinition *pattern = popAs<EnumFieldPatternDefinition>();
 
-  if (! topIs<StructuredPattern>()) {
+  if (! topIs<StructuredPatternDefinition>()) {
     raiseError("Cannot add <enum> field to parent, parent is not structured.");
     delete pattern;
     return false;
   }
 
-  if (! topAs<StructuredPattern>()->addChildPattern(pattern)) {
+  if (! topAs<StructuredPatternDefinition>()->addChildPattern(pattern)) {
     raiseError("Cannot add <enum> field to parent, parent rejected it.");
     delete pattern;
     return false;
@@ -717,7 +717,7 @@ CodeplugPatternParser::endEnumElement() {
 }
 
 bool
-CodeplugPatternParser::beginItemElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginItemElement(const QXmlStreamAttributes &attributes) {
   if (! attributes.hasAttribute("value")) {
     raiseError(QString("<item> element requires a 'value' attribute."));
     return false;
@@ -729,7 +729,7 @@ CodeplugPatternParser::beginItemElement(const QXmlStreamAttributes &attributes) 
     return false;
   }
 
-  EnumFieldPatternItem *item = new EnumFieldPatternItem();
+  EnumFieldPatternItemDefinition *item = new EnumFieldPatternItemDefinition();
   item->setValue(value);
 
   push(item);
@@ -738,16 +738,16 @@ CodeplugPatternParser::beginItemElement(const QXmlStreamAttributes &attributes) 
 }
 
 bool
-CodeplugPatternParser::endItemElement() {
-  EnumFieldPatternItem *item = popAs<EnumFieldPatternItem>();
-  topAs<EnumFieldPattern>()->addItem(item);
+PatternDefinitionParser::endItemElement() {
+  EnumFieldPatternItemDefinition *item = popAs<EnumFieldPatternItemDefinition>();
+  topAs<EnumFieldPatternDefinition>()->addItem(item);
   return true;
 }
 
 
 
 bool
-CodeplugPatternParser::beginStringElement(const QXmlStreamAttributes &attributes) {
+PatternDefinitionParser::beginStringElement(const QXmlStreamAttributes &attributes) {
   if (! attributes.hasAttribute("width")) {
     raiseError("<string> element requires a 'chars' attribute.");
     return false;
@@ -784,7 +784,7 @@ CodeplugPatternParser::beginStringElement(const QXmlStreamAttributes &attributes
     }
   }
 
-  auto pattern = new StringFieldPattern();
+  auto pattern = new StringFieldPatternDefinition();
   pattern->setFormat(format);
   pattern->setNumChars(numChars);
   pattern->setPadValue(padValue);
@@ -795,16 +795,16 @@ CodeplugPatternParser::beginStringElement(const QXmlStreamAttributes &attributes
 }
 
 bool
-CodeplugPatternParser::endStringElement() {
-  auto pattern = popAs<StringFieldPattern>();
+PatternDefinitionParser::endStringElement() {
+  auto pattern = popAs<StringFieldPatternDefinition>();
 
-  if (! topIs<StructuredPattern>()) {
+  if (! topIs<StructuredPatternDefinition>()) {
     raiseError("Cannot add <string> field to parent, parent is not structured.");
     delete pattern;
     return false;
   }
 
-  if (! topAs<StructuredPattern>()->addChildPattern(pattern)) {
+  if (! topAs<StructuredPatternDefinition>()->addChildPattern(pattern)) {
     raiseError("Cannot add <string> field to parent, parent rejected it.");
     delete pattern;
     return false;
@@ -815,11 +815,11 @@ CodeplugPatternParser::endStringElement() {
 
 
 void
-CodeplugPatternParser::push(QObject *el) {
+PatternDefinitionParser::push(QObject *el) {
   _stack.append(el);
 }
 QObject *
-CodeplugPatternParser::pop() {
+PatternDefinitionParser::pop() {
   if (_stack.isEmpty())
     return nullptr;
 

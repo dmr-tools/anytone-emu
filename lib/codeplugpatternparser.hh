@@ -1,12 +1,12 @@
-#ifndef CODEPLUGPATTERNPARSER_HH
-#define CODEPLUGPATTERNPARSER_HH
+#ifndef PATTERNDEFINITIONPARSER_HH
+#define PATTERNDEFINITIONPARSER_HH
 
 #include "xmlparser.hh"
 #include <QObject>
 
-class AbstractPattern;
+class AbstractPatternDefinition;
 
-class CodeplugPatternParser: public XmlParser
+class PatternDefinitionParser: public XmlParser
 {
   Q_OBJECT
 
@@ -16,7 +16,7 @@ protected:
   };
 
 public:
-  explicit CodeplugPatternParser(QObject *parent = nullptr);
+  explicit PatternDefinitionParser(QObject *parent = nullptr);
 
   template<class T>
   bool topIs() const {

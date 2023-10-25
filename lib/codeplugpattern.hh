@@ -26,6 +26,7 @@ public:
 
 public:
   explicit PatternMeta(QObject *parent=nullptr);
+  PatternMeta(const PatternMeta &other, QObject *parent=nullptr);
 
   virtual bool serialize(QXmlStreamWriter &writer) const;
 
@@ -55,13 +56,13 @@ protected:
   Flags   _flags;
 };
 
-
-class AbstractPattern : public QObject
+class AbstractPatternDefinition;
+class AbstractPattern: public QObject
 {
   Q_OBJECT
 
 protected:
-  explicit AbstractPattern(QObject *parent = nullptr);
+  explicit AbstractPattern(const AbstractPatternDefinition *def, QObject *parent = nullptr);
 
 public:
   virtual bool verify() const = 0;
@@ -131,16 +132,17 @@ class GroupPattern: public AbstractPattern, public StructuredPattern
 
 protected:
   /** Hidden constructor. */
-  explicit GroupPattern(QObject *parent = nullptr);
+  explicit GroupPattern(const AbstractPatternDefinition *def, QObject *parent = nullptr);
 };
 
 
+class CodeplugPatternDefinition;
 class CodeplugPattern: public GroupPattern
 {
   Q_OBJECT
 
 public:
-  explicit CodeplugPattern(QObject *parent = nullptr);
+  explicit CodeplugPattern(const CodeplugPatternDefinition *def, QObject *parent = nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
@@ -172,12 +174,13 @@ protected:
 };
 
 
+class RepeatPatternDefinition;
 class RepeatPattern: public GroupPattern
 {
   Q_OBJECT
 
 public:
-  explicit RepeatPattern(QObject *parent = nullptr);
+  explicit RepeatPattern(const RepeatPatternDefinition *def, QObject *parent = nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
@@ -206,17 +209,18 @@ protected:
   AbstractPattern *_subpattern;
 };
 
-
+class BlockPatternDefinition;
 /** Represents a pattern of a continuous piece of memory. */
 class BlockPattern: public AbstractPattern
 {
   Q_OBJECT
 
 protected:
-  explicit BlockPattern(QObject *parent=nullptr);
+  explicit BlockPattern(const BlockPatternDefinition *def, QObject *parent=nullptr);
 };
 
 
+class FixedPatternDefinition;
 /** Represents a pattern of a continuous piece of memory of fixed size.
  * This is a specialization of the BlockPattern in that, the footprint of this pattern is known. */
 class FixedPattern: public BlockPattern
@@ -224,7 +228,7 @@ class FixedPattern: public BlockPattern
   Q_OBJECT
 
 protected:
-  explicit FixedPattern(QObject *parent = nullptr);
+  explicit FixedPattern(const FixedPatternDefinition *def, QObject *parent = nullptr);
 
 public:
   bool verify() const;
@@ -242,13 +246,13 @@ private:
   Size _size;
 };
 
-
+class BlockRepeatPatternDefinition;
 class BlockRepeatPattern: public BlockPattern, public StructuredPattern
 {
   Q_OBJECT
 
 public:
-  explicit BlockRepeatPattern(QObject *parent=nullptr);
+  explicit BlockRepeatPattern(const BlockRepeatPatternDefinition *def, QObject *parent=nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
@@ -274,12 +278,13 @@ protected:
 };
 
 
+class ElementPatternDefinition;
 class ElementPattern : public FixedPattern, public StructuredPattern
 {
   Q_OBJECT
 
 public:
-  explicit ElementPattern(QObject *parent = nullptr);
+  explicit ElementPattern(const ElementPatternDefinition *def, QObject *parent = nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
@@ -298,12 +303,13 @@ protected:
 };
 
 
+class FixedRepeatPatternDefinition;
 class FixedRepeatPattern: public FixedPattern, public StructuredPattern
 {
   Q_OBJECT
 
 public:
-  explicit FixedRepeatPattern(QObject *parent = nullptr);
+  explicit FixedRepeatPattern(const FixedRepeatPatternDefinition* def, QObject *parent = nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
@@ -327,24 +333,26 @@ protected:
 };
 
 
+class FieldPatternDefinition;
 class FieldPattern: public FixedPattern
 {
   Q_OBJECT
 
 protected:
-  explicit FieldPattern(QObject *parent=nullptr);
+  explicit FieldPattern(const FieldPatternDefinition *def, QObject *parent=nullptr);
 
 public:
   virtual QVariant value(const Element *element, const Address &address) const = 0;
 };
 
 
+class UnknownFieldPatternDefinition;
 class UnknownFieldPattern: public FieldPattern
 {
   Q_OBJECT
 
 public:
-  explicit UnknownFieldPattern(QObject *parent=nullptr);
+  explicit UnknownFieldPattern(const UnknownFieldPatternDefinition *def, QObject *parent=nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
@@ -355,12 +363,13 @@ public:
 };
 
 
+class UnusedFieldPatternDefinition;
 class UnusedFieldPattern: public FieldPattern
 {
   Q_OBJECT
 
 public:
-  explicit UnusedFieldPattern(QObject *parent=nullptr);
+  explicit UnusedFieldPattern(const UnusedFieldPatternDefinition *def, QObject *parent=nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
@@ -376,6 +385,7 @@ protected:
 };
 
 
+class IntegerFieldPatternDefinition;
 class IntegerFieldPattern: public FieldPattern
 {
   Q_OBJECT
@@ -392,7 +402,7 @@ public:
   Q_ENUM(Endian)
 
 public:
-  explicit IntegerFieldPattern(QObject *parent=nullptr);
+  explicit IntegerFieldPattern(const IntegerFieldPatternDefinition *def, QObject *parent=nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
@@ -454,13 +464,13 @@ protected:
   unsigned int _value;
 };
 
-
+class EnumFieldPatternDefinition;
 class EnumFieldPattern: public FieldPattern
 {
   Q_OBJECT
 
 public:
-  explicit EnumFieldPattern(QObject *parent=nullptr);
+  explicit EnumFieldPattern(const EnumFieldPatternDefinition *def, QObject *parent=nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
@@ -483,6 +493,7 @@ protected:
 };
 
 
+class StringFieldPatternDefinition;
 class StringFieldPattern: public FieldPattern
 {
   Q_OBJECT
@@ -494,7 +505,7 @@ public:
   Q_ENUM(Format)
 
 public:
-  explicit StringFieldPattern(QObject *parent = nullptr);
+  explicit StringFieldPattern(const StringFieldPatternDefinition *def, QObject *parent = nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;

@@ -9,7 +9,7 @@ class QIODevice;
 class Request;
 class Response;
 class Model;
-class CodeplugPattern;
+class CodeplugPatternDefinition;
 
 
 /** Abstract base class for all emulated devices. */
@@ -31,7 +31,7 @@ public:
   virtual bool read(uint32_t addr, uint8_t len, QByteArray &payload);
   virtual bool write(uint32_t addr, const QByteArray &data);
 
-  CodeplugPattern *pattern() const;
+  CodeplugPatternDefinition* pattern() const;
 
 signals:
   void startProgram();
