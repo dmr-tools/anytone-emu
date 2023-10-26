@@ -2,7 +2,7 @@
 #define PATTERNDEFINITION_HH
 
 #include <QObject>
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 
 class AbstractPatternDefinition;
 
@@ -14,13 +14,22 @@ class PatternDefinitionLibrary: public QObject
 public:
   explicit PatternDefinitionLibrary(QObject *parent=nullptr);
 
+  bool load(const QDir &directory);
+
   bool add(const QString &qname, AbstractPatternDefinition *definition);
   bool has(const QString &qname) const;
   AbstractPatternDefinition *get(const QString &qname) const;
 
   QHash<QString, AbstractPatternDefinition *> pattern() const;
 
+  int itemCount() const;
+  int indexOf(const QString &key) const;
+  int indexOf(QObject *item) const;
+  const QString &key(int idx) const;
+  QObject *item(const QString &key) const;
+
 protected:
+  QVector<QString> _keys;
   QHash<QString, QObject *> _elements;
 };
 
@@ -79,34 +88,28 @@ private:
 };
 
 
-class StructuredPatternDefinition
+class StructuredPatternDefinition: public AbstractPatternDefinition
 {
+  Q_OBJECT
+
 protected:
-  StructuredPatternDefinition();
+  explicit StructuredPatternDefinition(QObject *parent=nullptr);
 
 public:
-  virtual ~StructuredPatternDefinition();
-
   virtual int indexOf(const AbstractPatternDefinition *pattern) const = 0;
   virtual unsigned int numChildPattern() const = 0;
   virtual bool addChildPattern(AbstractPatternDefinition *pattern) = 0;
   virtual AbstractPatternDefinition *childPattern(unsigned int n) const = 0;
   virtual bool deleteChild(unsigned int n) = 0;
-
 };
 
 
-/** A group pattern groups several other pattern into logical groups.
- *
- * Each sub-pattern must have an explicit position, as groups are considered to be
- * sparse. */
-class GroupPatternDefinition: public AbstractPatternDefinition, public StructuredPatternDefinition
+class GroupPatternDefinition: public StructuredPatternDefinition
 {
   Q_OBJECT
 
 protected:
-  /** Hidden constructor. */
-  explicit GroupPatternDefinition(QObject *parent = nullptr);
+  explicit GroupPatternDefinition(QObject *parent=nullptr);
 };
 
 
@@ -190,40 +193,8 @@ protected:
 };
 
 
-/** Represents a pattern of a continuous piece of memory. */
-class BlockPatternDefinition: public AbstractPatternDefinition
-{
-  Q_OBJECT
 
-protected:
-  explicit BlockPatternDefinition(QObject *parent=nullptr);
-};
-
-
-/** Represents a pattern of a continuous piece of memory of fixed size.
- * This is a specialization of the BlockPattern in that, the footprint of this pattern is known. */
-class FixedPatternDefinition: public BlockPatternDefinition
-{
-  Q_OBJECT
-
-protected:
-  explicit FixedPatternDefinition(QObject *parent = nullptr);
-
-public:
-  bool verify() const;
-
-  bool hasSize() const;
-  Size size() const;
-
-protected:
-  virtual void setSize(const Size &size);
-
-private:
-  Size _size;
-};
-
-
-class BlockRepeatPatternDefinition: public BlockPatternDefinition, public StructuredPatternDefinition
+class BlockRepeatPatternDefinition: public StructuredPatternDefinition
 {
   Q_OBJECT
 
@@ -246,7 +217,7 @@ public:
 
   int indexOf(const AbstractPatternDefinition *pattern) const;
   unsigned int numChildPattern() const;
-  FixedPatternDefinition *subpattern() const;
+  AbstractPatternDefinition *subpattern() const;
   AbstractPatternDefinition *childPattern(unsigned int n) const;
   bool addChildPattern(AbstractPatternDefinition *subpattern);
   bool deleteChild(unsigned int n);
@@ -254,11 +225,11 @@ public:
 protected:
   unsigned int _minRepetition;
   unsigned int _maxRepetition;
-  FixedPatternDefinition *_subpattern;
+  AbstractPatternDefinition *_subpattern;
 };
 
 
-class ElementPatternDefinition: public FixedPatternDefinition, public StructuredPatternDefinition
+class ElementPatternDefinition: public StructuredPatternDefinition
 {
   Q_OBJECT
 
@@ -275,15 +246,22 @@ public:
   int indexOf(const AbstractPatternDefinition *pattern) const;
   bool deleteChild(unsigned int n);
 
+  bool hasSize() const;
+  Size size() const;
+
+protected:
+  virtual void setSize(const Size &size);
+
 private slots:
   void onChildResized(const AbstractPatternDefinition* child, const Size &size);
 
 protected:
-  QList<FixedPatternDefinition *> _content;
+  Size _size;
+  QList<AbstractPatternDefinition *> _content;
 };
 
 
-class FixedRepeatPatternDefinition: public FixedPatternDefinition, public StructuredPatternDefinition
+class FixedRepeatPatternDefinition: public StructuredPatternDefinition
 {
   Q_OBJECT
 
@@ -299,21 +277,24 @@ public:
 
   int indexOf(const AbstractPatternDefinition *pattern) const;
   unsigned int numChildPattern() const;
-  FixedPatternDefinition *subpattern() const;
+  AbstractPatternDefinition *subpattern() const;
   AbstractPatternDefinition *childPattern(unsigned int n) const;
   bool addChildPattern(AbstractPatternDefinition *pattern);
   bool deleteChild(unsigned int n);
+
+  bool hasSize() const;
+  Size size() const;
 
 private slots:
   void onChildResized(const AbstractPatternDefinition *pattern, const Size &size);
 
 protected:
   unsigned int _repetition;
-  FixedPatternDefinition *_subpattern;
+  AbstractPatternDefinition *_subpattern;
 };
 
 
-class FieldPatternDefinition: public FixedPatternDefinition
+class FieldPatternDefinition: public AbstractPatternDefinition
 {
   Q_OBJECT
 
@@ -321,7 +302,19 @@ protected:
   explicit FieldPatternDefinition(QObject *parent=nullptr);
 
 public:
+  bool verify() const;
+
   virtual QVariant value(const Element *element, const Address &address) const = 0;
+
+  bool hasSize() const;
+  Size size() const;
+
+protected:
+  void setSize(const Size &size);
+
+protected:
+  Size _size;
+
 };
 
 

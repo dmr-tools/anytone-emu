@@ -1,34 +1,95 @@
 #include "patterndefinition.hh"
+#include "patternparser.hh"
 #include "logger.hh"
 #include "image.hh"
 
 #include <QXmlStreamWriter>
 #include <QtEndian>
+#include <QDir>
 
 
 /* ********************************************************************************************* *
  * PatternDefinitionLibrary
  * ********************************************************************************************* */
 PatternDefinitionLibrary::PatternDefinitionLibrary(QObject *parent)
-  : QObject(parent), _elements()
+  : QObject(parent), _keys(), _elements()
 {
   // pass...
 }
 
 bool
+PatternDefinitionLibrary::load(const QDir &directory) {
+  // Traverse all sub directories
+  foreach (QFileInfo info, directory.entryInfoList(QDir::AllDirs|QDir::NoDotAndDotDot)) {
+    QString name = info.baseName();
+
+    if (! _elements.contains(name)) {
+      _keys.append(name);
+      _elements[name] = new PatternDefinitionLibrary(this);
+    }
+
+    auto lib = qobject_cast<PatternDefinitionLibrary *>(_elements[name]);
+    if (nullptr == lib) {
+      logError() << "Cannot load library " << info.path() << ": element '" << name
+                 << "' already defined.";
+      return false;
+    }
+
+    if (! lib->load(info.absoluteFilePath()))
+      return false;
+  }
+
+  foreach (QFileInfo info, directory.entryInfoList({QString("*.xml")}, QDir::Files|QDir::NoDotAndDotDot)) {
+    QString name = info.baseName();
+    if (_elements.contains(name)) {
+      logError() << "Cannot load pattern definition '" << info.filePath()
+                 << "': an element with that name is already defined.";
+      return false;
+    }
+
+    QFile file(info.absoluteFilePath());
+    if (! file.open(QIODevice::ReadOnly)) {
+      logError() << "Cannot parse pattern definition '" << file.fileName()
+                 << "': " << file.errorString() << ".";
+      return false;
+    }
+    QXmlStreamReader reader(&file);
+    PatternDefinitionParser parser;
+    if (! parser.parse(reader)) {
+      logError() << "Cannot parse pattern definition '" << info.filePath()
+                 << "': " << parser.errorMessage() << ".";
+      return false;
+    }
+
+    if (auto def = parser.popAs<AbstractPatternDefinition>())
+      add(name, def);
+
+  }
+
+  return true;
+}
+
+
+bool
 PatternDefinitionLibrary::add(const QString &qname, AbstractPatternDefinition *def) {
-  QStringList path = qname.split(".",Qt::SkipEmptyParts);
   PatternDefinitionLibrary *lib = this;
+
+  QStringList path = qname.split(".",Qt::SkipEmptyParts);
   while (path.size() > 1) {
     QString libName = path.first(); path.pop_front();
-    if (! lib->_elements.contains(libName))
+
+    if (! lib->_elements.contains(libName)) {
+      lib->_keys.append(libName);
       lib->_elements[libName] = new PatternDefinitionLibrary(lib);
-    if (nullptr == (lib = qobject_cast<PatternDefinitionLibrary*>(_elements[libName]))) {
+    }
+
+    if (nullptr == (lib = qobject_cast<PatternDefinitionLibrary*>(lib->_elements[libName]))) {
       logError() << "Cannot store pattern definition " << def->meta().name()
                  << " as " << qname << ": '" << libName << "' is not a library.";
       return false;
     }
   }
+
   QString elName = path.front(); path.pop_front();
   if (lib->_elements.contains(elName)) {
     logError() << "Cannot stroe pattern definition " << def->meta().name()
@@ -37,6 +98,7 @@ PatternDefinitionLibrary::add(const QString &qname, AbstractPatternDefinition *d
   }
 
   def->setParent(lib);
+  lib->_keys.append(elName);
   lib->_elements[elName] = def;
 
   return true;
@@ -100,6 +162,32 @@ PatternDefinitionLibrary::pattern() const {
 }
 
 
+int
+PatternDefinitionLibrary::itemCount() const {
+  return _keys.size();
+}
+
+int
+PatternDefinitionLibrary::indexOf(const QString &key) const {
+  return _keys.indexOf(key);
+}
+
+int
+PatternDefinitionLibrary::indexOf(QObject *item) const {
+  return _keys.indexOf(_elements.key(item));
+}
+
+const QString &
+PatternDefinitionLibrary::key(int idx) const {
+  return _keys[idx];
+}
+
+QObject *
+PatternDefinitionLibrary::item(const QString &key) const {
+  return _elements.value(key, nullptr);
+}
+
+
 /* ********************************************************************************************* *
  * AbstractPatternDefinition
  * ********************************************************************************************* */
@@ -147,12 +235,9 @@ AbstractPatternDefinition::onMetaModified() {
 /* ********************************************************************************************* *
  * Implementation of StructuredPatternDefinition
  * ********************************************************************************************* */
-StructuredPatternDefinition::StructuredPatternDefinition()
+StructuredPatternDefinition::StructuredPatternDefinition(QObject *parent)
+  : AbstractPatternDefinition{parent}
 {
-  // pass...
-}
-
-StructuredPatternDefinition::~StructuredPatternDefinition() {
   // pass...
 }
 
@@ -161,7 +246,7 @@ StructuredPatternDefinition::~StructuredPatternDefinition() {
  * Implementation of GroupPatternDefinition
  * ********************************************************************************************* */
 GroupPatternDefinition::GroupPatternDefinition(QObject *parent)
-  : AbstractPatternDefinition{parent}
+  : StructuredPatternDefinition{parent}
 {
   // pass...
 }
@@ -508,20 +593,10 @@ RepeatPatternDefinition::setStep(const Offset &step) {
 
 
 /* ********************************************************************************************* *
- * Implementation of BlockPatternDefinition
- * ********************************************************************************************* */
-BlockPatternDefinition::BlockPatternDefinition(QObject *parent)
-  : AbstractPatternDefinition{parent}
-{
-  // pass...
-}
-
-
-/* ********************************************************************************************* *
  * Implementation of BlockRepeatPatternDefinition
  * ********************************************************************************************* */
 BlockRepeatPatternDefinition::BlockRepeatPatternDefinition(QObject *parent)
-  : BlockPatternDefinition{parent}, _minRepetition(std::numeric_limits<unsigned int>::max()),
+  : StructuredPatternDefinition{parent}, _minRepetition(std::numeric_limits<unsigned int>::max()),
     _maxRepetition(std::numeric_limits<unsigned int>::max()), _subpattern(nullptr)
 {
   // pass...
@@ -596,19 +671,16 @@ BlockRepeatPatternDefinition::setMaxRepetition(unsigned int rep) {
   _maxRepetition = rep;
 }
 
-FixedPatternDefinition *
+AbstractPatternDefinition *
 BlockRepeatPatternDefinition::subpattern() const {
   return _subpattern;
 }
 bool
 BlockRepeatPatternDefinition::addChildPattern(AbstractPatternDefinition *subpattern) {
-  if (! subpattern->is<FixedPattern>())
-    return false;
-
   if (_subpattern)
     return false;
 
-  _subpattern = subpattern->as<FixedPatternDefinition>();
+  _subpattern = subpattern;
   _subpattern->setParent(this);
   connect(_subpattern, &AbstractPatternDefinition::modified, this, &AbstractPatternDefinition::modified);
   connect(_subpattern, &AbstractPatternDefinition::added, this, &AbstractPatternDefinition::added);
@@ -651,52 +723,19 @@ BlockRepeatPatternDefinition::deleteChild(unsigned int n) {
   return true;
 }
 
-/* ********************************************************************************************* *
- * Implementation of FixedPatternDefinition
- * ********************************************************************************************* */
-FixedPatternDefinition::FixedPatternDefinition(QObject *parent)
-  : BlockPatternDefinition(parent), _size()
-{
-  // pass...
-}
-
-bool
-FixedPatternDefinition::verify() const {
-  return hasSize();
-}
-
-bool
-FixedPatternDefinition::hasSize() const {
-  return _size.isValid();
-}
-
-Size
-FixedPatternDefinition::size() const {
-  return _size;
-}
-
-void
-FixedPatternDefinition::setSize(const Size &size) {
-  _size = size;
-  emit resized(this, _size);
-}
-
 
 /* ********************************************************************************************* *
  * Implementation of ElementPattern
  * ********************************************************************************************* */
 ElementPatternDefinition::ElementPatternDefinition(QObject *parent)
-  : FixedPatternDefinition(parent), _content()
+  : StructuredPatternDefinition(parent), _size(), _content()
 {
   // pass...
 }
 
 bool
 ElementPatternDefinition::verify() const {
-  if (! FixedPatternDefinition::verify())
-    return false;
-
-  foreach(FixedPatternDefinition *pattern, _content)
+  foreach(AbstractPatternDefinition *pattern, _content)
     if (! pattern->verify())
       return false;
 
@@ -718,7 +757,7 @@ ElementPatternDefinition::serialize(QXmlStreamWriter &writer) const {
   if (! meta().serialize(writer))
     return false;
 
-  foreach(FixedPatternDefinition *pattern, _content)
+  foreach(AbstractPatternDefinition *pattern, _content)
     if (! pattern->serialize(writer))
       return false;
 
@@ -728,9 +767,6 @@ ElementPatternDefinition::serialize(QXmlStreamWriter &writer) const {
 
 bool
 ElementPatternDefinition::addChildPattern(AbstractPatternDefinition *pattern) {
-  if (! pattern->is<FixedPatternDefinition>())
-    return false;
-
   // Compute offset, where to put pattern
   Address addr = Address::zero();
   if (! _content.isEmpty())
@@ -745,7 +781,7 @@ ElementPatternDefinition::addChildPattern(AbstractPatternDefinition *pattern) {
   // add to content
   unsigned int idx = _content.size();
   pattern->setParent(this);
-  _content.append(pattern->as<FixedPatternDefinition>());
+  _content.append(pattern);
   connect(pattern, &AbstractPatternDefinition::modified, this, &AbstractPatternDefinition::modified);
   connect(pattern, &AbstractPatternDefinition::added, this, &AbstractPatternDefinition::added);
   connect(pattern, &AbstractPatternDefinition::removing, this, &AbstractPatternDefinition::removing);
@@ -755,9 +791,9 @@ ElementPatternDefinition::addChildPattern(AbstractPatternDefinition *pattern) {
 
   // update own size
   if (size().isValid())
-    setSize(size() + pattern->as<FixedPatternDefinition>()->size());
+    setSize(size() + pattern->size());
   else
-    setSize(pattern->as<FixedPatternDefinition>()->size());
+    setSize(pattern->size());
 
   emit added(this, idx);
 
@@ -786,7 +822,7 @@ ElementPatternDefinition::deleteChild(unsigned int n) {
   if (n >= _content.size())
     return false;
 
-  FixedPatternDefinition *pattern = _content[n];
+  AbstractPatternDefinition *pattern = _content[n];
   emit removing(this, n);
   _content.remove(n);
   emit removed(this, n);
@@ -821,22 +857,42 @@ ElementPatternDefinition::onChildResized(const AbstractPatternDefinition *child,
 }
 
 
+bool
+ElementPatternDefinition::hasSize() const {
+  return true;
+}
+
+Size
+ElementPatternDefinition::size() const {
+  return _size;
+}
+
+void
+ElementPatternDefinition::setSize(const Size &size) {
+  if (size == _size)
+    return;
+  _size = size;
+  emit resized(this, _size);
+}
+
+
+
 
 /* ********************************************************************************************* *
  * Implementation of FixedRepeatPatternDefinition
  * ********************************************************************************************* */
 FixedRepeatPatternDefinition::FixedRepeatPatternDefinition(QObject *parent)
-  : FixedPatternDefinition(parent), _repetition(0), _subpattern(nullptr)
+  : StructuredPatternDefinition(parent), _repetition(0), _subpattern(nullptr)
 {
   // pass...
 }
 
 bool
 FixedRepeatPatternDefinition::verify() const {
-  if (! FixedPatternDefinition::verify())
+  if ((nullptr == _subpattern) || (0 == _repetition))
     return false;
 
-  if ((nullptr == _subpattern) || (0 == _repetition))
+  if (! _subpattern->hasSize())
     return false;
 
   return true;
@@ -872,26 +928,24 @@ FixedRepeatPatternDefinition::repetition() const {
 void
 FixedRepeatPatternDefinition::setRepetition(unsigned int n) {
   _repetition = n;
-  if (_subpattern)
-    setSize(_subpattern->size()*_repetition);
+  if (_subpattern) {
+    emit resized(this, _subpattern->size()*_repetition);
+  }
 }
 
-FixedPatternDefinition *
+AbstractPatternDefinition *
 FixedRepeatPatternDefinition::subpattern() const {
   return _subpattern;
 }
 bool
 FixedRepeatPatternDefinition::addChildPattern(AbstractPatternDefinition *pattern) {
-  if (! pattern->is<FixedPattern>())
-    return false;
-
   if (_subpattern)
     return false;
 
-  _subpattern = pattern->as<FixedPatternDefinition>();
+  _subpattern = pattern;
   _subpattern->setParent(this);
 
-  setSize(_subpattern->size()*_repetition);
+  emit resized(this, _subpattern->size()*_repetition);
   connect(_subpattern, &AbstractPatternDefinition::modified, this, &AbstractPatternDefinition::modified);
   connect(_subpattern, &AbstractPatternDefinition::added, this, &AbstractPatternDefinition::added);
   connect(_subpattern, &AbstractPatternDefinition::removing, this, &AbstractPatternDefinition::removing);
@@ -925,13 +979,13 @@ FixedRepeatPatternDefinition::deleteChild(unsigned int n) {
   if ((0 != n) || (nullptr == _subpattern))
     return false;
 
-  FixedPatternDefinition *pattern = _subpattern;
+  auto pattern = _subpattern;
   emit removing(this, 0);
   _subpattern = nullptr;
   emit removed(this, 0);
   pattern->deleteLater();
 
-  setSize(Size::zero());
+  emit resized(this, Size::zero());
 
   return true;
 }
@@ -940,7 +994,19 @@ void
 FixedRepeatPatternDefinition::onChildResized(const AbstractPatternDefinition *pattern, const Size &size) {
   if (_subpattern != pattern)
     return;
-  setSize(_subpattern->size()*_repetition);
+  emit resized(this, _subpattern->size()*_repetition);
+}
+
+bool
+FixedRepeatPatternDefinition::hasSize() const {
+  return true;
+}
+
+Size
+FixedRepeatPatternDefinition::size() const {
+  if (nullptr == _subpattern)
+    return Size();
+  return _subpattern->size() * _repetition;
 }
 
 
@@ -948,9 +1014,32 @@ FixedRepeatPatternDefinition::onChildResized(const AbstractPatternDefinition *pa
  * Implementation of FieldPatternDefinition
  * ********************************************************************************************* */
 FieldPatternDefinition::FieldPatternDefinition(QObject *parent)
-  : FixedPatternDefinition{parent}
+  : AbstractPatternDefinition{parent}, _size()
 {
   // pass...
+}
+
+bool
+FieldPatternDefinition::verify() const {
+  return _size.isValid();
+}
+
+bool
+FieldPatternDefinition::hasSize() const {
+  return true;
+}
+
+Size
+FieldPatternDefinition::size() const {
+  return _size;
+}
+
+void
+FieldPatternDefinition::setSize(const Size &size) {
+  if (size == _size)
+    return;
+  _size = size;
+  emit resized(this, _size);
 }
 
 
@@ -965,7 +1054,7 @@ UnknownFieldPatternDefinition::UnknownFieldPatternDefinition(QObject *parent)
 
 bool
 UnknownFieldPatternDefinition::verify() const {
-  return FixedPatternDefinition::verify();
+  return FieldPatternDefinition::verify();
 }
 
 AbstractPattern *

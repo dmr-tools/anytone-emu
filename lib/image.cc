@@ -1,6 +1,6 @@
 #include "image.hh"
-#include "codeplugannotation.hh"
-#include "codeplugpattern.hh"
+#include "annotation.hh"
+#include "pattern.hh"
 
 
 /* ********************************************************************************************* *

@@ -1,5 +1,5 @@
-#include "codeplugannotation.hh"
-#include "codeplugpattern.hh"
+#include "annotation.hh"
+#include "pattern.hh"
 #include "image.hh"
 #include "logger.hh"
 

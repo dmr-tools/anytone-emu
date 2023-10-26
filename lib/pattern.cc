@@ -1,8 +1,8 @@
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include "logger.hh"
 #include "image.hh"
 #include "patterndefinition.hh"
-#include "codeplugpatternparser.hh"
+#include "patternparser.hh"
 
 #include <QVariant>
 #include <QtEndian>
@@ -179,7 +179,7 @@ StructuredPattern::~StructuredPattern() {
 /* ********************************************************************************************* *
  * Implementation of GroupPattern
  * ********************************************************************************************* */
-GroupPattern::GroupPattern(const AbstractPatternDefinition* def, QObject *parent)
+GroupPattern::GroupPattern(const GroupPatternDefinition* def, QObject *parent)
   : AbstractPattern{def, parent}
 {
   // pass...
@@ -505,7 +505,7 @@ RepeatPattern::setStep(const Offset &step) {
 /* ********************************************************************************************* *
  * Implementation of BlockPattern
  * ********************************************************************************************* */
-BlockPattern::BlockPattern(const BlockPatternDefinition *def, QObject *parent)
+BlockPattern::BlockPattern(const AbstractPatternDefinition *def, QObject *parent)
   : AbstractPattern{def, parent}
 {
   // pass...
@@ -634,7 +634,7 @@ BlockRepeatPattern::deleteChild(unsigned int n) {
 /* ********************************************************************************************* *
  * Implementation of FixedPattern
  * ********************************************************************************************* */
-FixedPattern::FixedPattern(const FixedPatternDefinition* def, QObject *parent)
+FixedPattern::FixedPattern(const AbstractPatternDefinition *def, QObject *parent)
   : BlockPattern{def, parent}, _size()
 {
   // pass...

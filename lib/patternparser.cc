@@ -1,4 +1,4 @@
-#include "codeplugpatternparser.hh"
+#include "patternparser.hh"
 #include "patterndefinition.hh"
 
 #include <QXmlStreamAttribute>
@@ -19,8 +19,8 @@ PatternDefinitionParser::endDocument() {
     return false;
   }
 
-  if (! topIs<CodeplugPatternDefinition>()) {
-    raiseError("Cannot parse codeplug pattern. No codeplug is left on the stack.");
+  if (! topIs<AbstractPatternDefinition>()) {
+    raiseError("Cannot parse pattern. No pattern definition is left on the stack.");
     return false;
   }
 
@@ -240,7 +240,7 @@ PatternDefinitionParser::beginRepeatElement(const QXmlStreamAttributes &attribut
   // Dispatch by attributes
   if (step.isValid()) { // -> RepeatPattern
     // Check parent element
-    if ((! topIs<GroupPattern>())) {
+    if ((!_stack.isEmpty()) && (! topIs<GroupPatternDefinition>())) {
       raiseError("Unexpected <repeat> tag.");
       return false;
     }
@@ -269,7 +269,7 @@ PatternDefinitionParser::beginRepeatElement(const QXmlStreamAttributes &attribut
 
   if (std::numeric_limits<unsigned int>().max() != max) { // -> BlockRepeatPattern
     // Check parent element
-    if ((! topIs<GroupPattern>())) {
+    if ((!_stack.isEmpty()) && (! topIs<GroupPatternDefinition>())) {
       raiseError("Unexpected <repeat> tag.");
       return false;
     }
@@ -306,6 +306,9 @@ PatternDefinitionParser::beginRepeatElement(const QXmlStreamAttributes &attribut
 
 bool
 PatternDefinitionParser::endRepeatElement() {
+  if (1 == _stack.size())
+    return true;
+
   AbstractPatternDefinition *rep = popAs<AbstractPatternDefinition>();
 
   if (! topIs<StructuredPatternDefinition>()) {
@@ -333,6 +336,9 @@ PatternDefinitionParser::beginElementElement(const QXmlStreamAttributes &attribu
 
 bool
 PatternDefinitionParser::endElementElement() {
+  if (1 == _stack.size())
+    return true;
+
   ElementPatternDefinition *el = popAs<ElementPatternDefinition>();
 
   if (! topAs<StructuredPatternDefinition>()->addChildPattern(el)) {
@@ -366,6 +372,9 @@ PatternDefinitionParser::beginUnusedElement(const QXmlStreamAttributes &attribut
 
 bool
 PatternDefinitionParser::endUnusedElement() {
+  if (1 == _stack.size())
+    return true;
+
   UnusedFieldPatternDefinition *pattern = popAs<UnusedFieldPatternDefinition>();
 
   if (! topIs<StructuredPatternDefinition>()) {
@@ -405,6 +414,9 @@ PatternDefinitionParser::beginUnknownElement(const QXmlStreamAttributes &attribu
 
 bool
 PatternDefinitionParser::endUnknownElement() {
+  if (1 == _stack.size())
+    return true;
+
   UnknownFieldPatternDefinition *pattern = popAs<UnknownFieldPatternDefinition>();
 
   if (! topIs<StructuredPatternDefinition>()) {
@@ -423,8 +435,7 @@ PatternDefinitionParser::endUnknownElement() {
 }
 
 bool
-PatternDefinitionParser::beginIntElement(const QXmlStreamAttributes &attributes)
-{
+PatternDefinitionParser::beginIntElement(const QXmlStreamAttributes &attributes) {
   if (! attributes.hasAttribute("width")) {
     raiseError("<int> tag requires 'width' attribute.");
     return false;
@@ -504,6 +515,9 @@ PatternDefinitionParser::beginIntElement(const QXmlStreamAttributes &attributes)
 
 bool
 PatternDefinitionParser::endIntElement() {
+  if (1 == _stack.size())
+    return true;
+
   IntegerFieldPatternDefinition *pattern = popAs<IntegerFieldPatternDefinition>();
 
   if (! topIs<StructuredPatternDefinition>()) {
@@ -699,6 +713,9 @@ PatternDefinitionParser::beginEnumElement(const QXmlStreamAttributes &attributes
 
 bool
 PatternDefinitionParser::endEnumElement() {
+  if (1 == _stack.size())
+    return true;
+
   EnumFieldPatternDefinition *pattern = popAs<EnumFieldPatternDefinition>();
 
   if (! topIs<StructuredPatternDefinition>()) {
@@ -796,6 +813,9 @@ PatternDefinitionParser::beginStringElement(const QXmlStreamAttributes &attribut
 
 bool
 PatternDefinitionParser::endStringElement() {
+  if (1 == _stack.size())
+    return true;
+
   auto pattern = popAs<StringFieldPatternDefinition>();
 
   if (! topIs<StructuredPatternDefinition>()) {

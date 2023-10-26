@@ -6,11 +6,12 @@
 class Image;
 class CodeplugPatternDefinition;
 
+
 class Model : public QObject
 {
   Q_OBJECT
 
-  Q_PROPERTY(CodeplugPatternDefinition* pattern READ pattern WRITE setPattern)
+  //Q_PROPERTY(CodeplugPatternDefinition* pattern READ pattern WRITE setPattern)
 
 protected:
   explicit Model(CodeplugPatternDefinition* pattern = nullptr, QObject *parent = nullptr);

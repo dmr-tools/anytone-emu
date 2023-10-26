@@ -126,13 +126,14 @@ public:
  *
  * Each sub-pattern must have an explicit position, as groups are considered to be
  * sparse. */
+class GroupPatternDefinition;
 class GroupPattern: public AbstractPattern, public StructuredPattern
 {
   Q_OBJECT
 
 protected:
   /** Hidden constructor. */
-  explicit GroupPattern(const AbstractPatternDefinition *def, QObject *parent = nullptr);
+  explicit GroupPattern(const GroupPatternDefinition *def, QObject *parent = nullptr);
 };
 
 
@@ -209,18 +210,16 @@ protected:
   AbstractPattern *_subpattern;
 };
 
-class BlockPatternDefinition;
 /** Represents a pattern of a continuous piece of memory. */
 class BlockPattern: public AbstractPattern
 {
   Q_OBJECT
 
 protected:
-  explicit BlockPattern(const BlockPatternDefinition *def, QObject *parent=nullptr);
+  explicit BlockPattern(const AbstractPatternDefinition *def, QObject *parent=nullptr);
 };
 
 
-class FixedPatternDefinition;
 /** Represents a pattern of a continuous piece of memory of fixed size.
  * This is a specialization of the BlockPattern in that, the footprint of this pattern is known. */
 class FixedPattern: public BlockPattern
@@ -228,7 +227,7 @@ class FixedPattern: public BlockPattern
   Q_OBJECT
 
 protected:
-  explicit FixedPattern(const FixedPatternDefinition *def, QObject *parent = nullptr);
+  explicit FixedPattern(const AbstractPatternDefinition *def, QObject *parent = nullptr);
 
 public:
   bool verify() const;

@@ -1,6 +1,6 @@
 #include "hexdump.hh"
 #include "image.hh"
-#include "codeplugannotation.hh"
+#include "annotation.hh"
 #include <QTextStream>
 
 
