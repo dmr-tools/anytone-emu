@@ -3,6 +3,7 @@
 #include <QIcon>
 #include <QApplication>
 #include <QPalette>
+#include <QFont>
 
 
 PatternWrapper::PatternWrapper(CodeplugPattern *pattern, QObject *parent)
@@ -86,6 +87,8 @@ PatternWrapper::data(const QModelIndex &index, int role) const {
     return getAddressColor(pattern);
   if ((1 == index.column()) && (Qt::TextAlignmentRole == role))
     return Qt::AlignRight;
+  if ((1 == index.column()) && (Qt::FontRole == role))
+    return QFont("monospace");
 
   if ((2 == index.column()) && (Qt::DisplayRole == role))
     return getSize(pattern);
@@ -93,6 +96,8 @@ PatternWrapper::data(const QModelIndex &index, int role) const {
     return getSizeColor(pattern);
   if ((2 == index.column()) && (Qt::TextAlignmentRole == role))
     return Qt::AlignRight;
+  if ((2 == index.column()) && (Qt::FontRole == role))
+    return QFont("monospace");
 
   return QVariant();
 }
@@ -162,6 +167,8 @@ QVariant
 PatternWrapper::getAddress(const AbstractPattern *pattern) const {
   if (pattern->hasImplicitAddress() && !pattern->hasAddress())
     return tr("variable");
+  if (pattern->hasAddress() && 7 == pattern->address().bit())
+    return QString("%1  ").arg(pattern->address().byte(), 0, 16);
   if (pattern->hasAddress())
     return QString("%1:%2").arg(pattern->address().byte(), 0, 16).arg(pattern->address().bit());
   return tr("not set");

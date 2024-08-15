@@ -113,6 +113,7 @@ PatternView::addSparseRepeat() {
   auto sr = new RepeatPattern();
   sr->meta().setName("New sparse repeat");
   sr->meta().setFlags(PatternMeta::Flags::Incomplete);
+  sr->setAddress(Address::fromByte(0));
 
   if (! structure->addChildPattern(sr)) {
     logWarn() << "Cannot add sparse repeat pattern to " << selectedPattern()->metaObject()->className()

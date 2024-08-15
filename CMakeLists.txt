@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(anytone-emu VERSION 0.1.0 LANGUAGES CXX)
 
+option(BUILD_TESTS    "Build test programs" OFF)
+option(BUILD_API_DOCS "Build API documentation" OFF)
+option(BUILD_MANUAL   "Build man page for dmrconf" OFF)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -11,8 +15,15 @@ include(GenerateIcons)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets SerialPort Test)
 
-find_package(DocBookXSL REQUIRED)
-include(DocBook)
+if (BUILD_MANUAL)
+  find_package(DocBookXSL REQUIRED)
+  include(DocBook)
+endif()
+
+if (BUILD_API_DOCS)
+  find_package(Doxygen
+               REQUIRED dot)
+endif()
 
 cmake_policy(SET CMP0100 NEW)
 set(CMAKE_AUTOMOC ON)

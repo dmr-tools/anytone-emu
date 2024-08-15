@@ -153,7 +153,7 @@ Offset::fromBits(unsigned long n) {
 
 Offset
 Offset::fromString(const QString &str) {
-  QRegularExpression regex("([0-9A-Fa-f]*)h?:([0-7]?)|([0-9A-Fa-f]+)h?");
+  QRegularExpression regex("([0-9A-Fa-f]*)h?:([0-7]*)|([0-9A-Fa-f]+)h?");
 
   QRegularExpressionMatch match = regex.match(str);
   if (! match.isValid())
