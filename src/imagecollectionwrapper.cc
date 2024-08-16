@@ -19,6 +19,7 @@ CollectionWrapper::index(int row, int column, const QModelIndex &parent) const {
       return QModelIndex();
     return createIndex(row, column, image->element(row));
   }
+
   // Is Image
   if (row >= _collection->count())
     return QModelIndex();
@@ -29,6 +30,7 @@ QModelIndex
 CollectionWrapper::parent(const QModelIndex &child) const {
   if (! child.isValid() || (nullptr == child.constInternalPointer()))
     return QModelIndex();
+
   const QObject *obj = reinterpret_cast<const QObject *>(child.constInternalPointer());
   if (nullptr != dynamic_cast<const Image *>(obj)) {
     return QModelIndex();
@@ -39,6 +41,7 @@ CollectionWrapper::parent(const QModelIndex &child) const {
       return QModelIndex();
     return createIndex(row, 0, img);
   }
+
   return QModelIndex();
 }
 
@@ -67,10 +70,12 @@ CollectionWrapper::data(const QModelIndex &index, int role) const {
     const Element *el = reinterpret_cast<const Element *>(index.constInternalPointer());
     const Image *img = reinterpret_cast<const Image *>(el->parent());
     if (Qt::DisplayRole == role) {
-      if (const AbstractAnnotation *annotation = img->annotations()->at(el->address())) {
-        return QString("%1 @ %2h")
-            .arg(annotation->pattern()->meta().name())
-            .arg(el->address().byte(), 8, 16, QChar('0'));
+      if (img->annotations()) {
+        if (const AbstractAnnotation *annotation = img->annotations()->at(el->address())) {
+          return QString("%1 @ %2h")
+              .arg(annotation->pattern()->meta().name())
+              .arg(el->address().byte(), 8, 16, QChar('0'));
+        }
       }
       return QString("Unkown Element @ %1h")
           .arg(el->address().byte(), 8, 16, QChar('0'));

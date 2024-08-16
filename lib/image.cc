@@ -181,6 +181,8 @@ Image::find(const Address &address) const {
   // Chcek if we hit element
   if ((_elements.size() > idx) && _elements.at(idx)->contains(address))
     return _elements.at(idx);
+  if ((0 < idx) && _elements.at(idx-1)->contains(address))
+    return _elements.at(idx-1);
   return nullptr;
 }
 
@@ -205,13 +207,14 @@ Image::findInsertionIndex(uint32_t address, unsigned int a, unsigned int b) cons
 
 unsigned int
 Image::findInsertionIndex(const Address &address, unsigned int a, unsigned int b) const {
+
   if (a == b)
     return a;
 
   if (address <= _elements.at(a)->address())
     return a;
 
-  if (address > _elements.at(b-1)->address())
+  if (address >= _elements.at(b-1)->address())
     return b;
 
   unsigned int m = (a+b)/2;

@@ -291,7 +291,7 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Image *image, cons
         AnnotationIssue issue(child->address(), AnnotationIssue::Error);
         issue << "Cannot annotate block pattern '" << child->meta().name()
               << "': No element found for address " << child->address().toString() << ".";
-
+        logWarn() << "At " << issue.address().toString() << ": " << issue.message();
         return false;
       }
       annotate(parent, el, child->as<BlockPattern>(), child->address());
@@ -307,8 +307,15 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Image *image, cons
   for (unsigned int i=0; i<pattern->maxRepetition(); i++) {
     AbstractPattern *child = pattern->subpattern();
     if (child->is<RepeatPattern>()) {
-      if (! annotate(parent, image, child->as<RepeatPattern>(), addr))
-        return ((i+1) > pattern->minRepetition());
+      if (! annotate(parent, image, child->as<RepeatPattern>(), addr)) {
+        if ((i+1) <= pattern->minRepetition()) {
+          logWarn() << "Cannot annotate pattern '" << pattern->meta().name()
+                    << "': Minimum repetition not met.";
+          return false;
+        }
+        logDebug() << "Processed pattern '" << pattern->meta().name() << "'.";
+        return true;
+      }
     } else if (child->is<BlockPattern>()) {
       const Element *el = image->find(addr);
       if (nullptr == el) {
@@ -329,9 +336,9 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Image *image, cons
 bool
 ImageAnnotation::annotate(AnnotationCollection &parent, const Element *element, const BlockPattern *pattern, const Address &addr) {
   // Dispatch by type
-  if (pattern->is<BlockRepeatPattern>()) {
+  if (pattern->is<BlockRepeatPattern>())
     return annotate(parent, element, pattern->as<BlockRepeatPattern>(), addr);
-  } else if (pattern->is<FixedRepeatPattern>())
+  else if (pattern->is<FixedRepeatPattern>())
     return annotate(parent, element, pattern->as<FixedRepeatPattern>(), addr);
   else if (pattern->is<ElementPattern>())
     return annotate(parent, element, pattern->as<ElementPattern>(), addr);
@@ -391,6 +398,7 @@ bool
 ImageAnnotation::annotate(AnnotationCollection &parent, const Element *element, const ElementPattern *pattern, const Address& address) {
   Address addr = address;
   Address end = element->address() + element->size();
+
   StructuredAnnotation *annotation = new StructuredAnnotation(pattern, address);
   for (unsigned int i=0; i<pattern->numChildPattern(); i++) {
     if (addr >= end) {
@@ -407,6 +415,8 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Element *element, 
   }
 
   parent.addChild(annotation);
+  logDebug() << "Processed pattern '" << pattern->meta().name() << "' at " << address.toString() << ".";
+
   return true;
 }
 
@@ -415,6 +425,10 @@ ImageAnnotation::annotate(AnnotationCollection &parent, const Element *element, 
   Address end = element->address() + element->size();
 
   if ((address + pattern->size()) > end) {
+    logWarn() << "Field pattern '" << pattern->meta().name() << " at " << address.toString()
+              << " of size " << pattern->size().toString()
+              << " does not fit into element at " << element->address().toString()
+              << " of size " << element->size().toString() << ".";
     return false;
   }
 
