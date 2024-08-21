@@ -2,7 +2,7 @@
 #include "config.hh"
 #include "image.hh"
 #include "device.hh"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 
 Application::Application(int &argc, char *argv[])
   : QApplication(argc, argv), _collection(new Collection(this)), _device(nullptr)

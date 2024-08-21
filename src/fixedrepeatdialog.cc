@@ -1,6 +1,6 @@
 #include "fixedrepeatdialog.hh"
 #include "ui_fixedrepeatdialog.h"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include <QMessageBox>
 
 

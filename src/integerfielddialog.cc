@@ -1,6 +1,6 @@
 #include "integerfielddialog.hh"
 #include "ui_integerfielddialog.h"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include <QMessageBox>
 
 

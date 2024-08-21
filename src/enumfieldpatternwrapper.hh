@@ -3,7 +3,7 @@
 
 #include <QAbstractTableModel>
 #include <QComboBox>
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 class EnumFieldPattern;
 
 

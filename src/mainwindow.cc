@@ -235,7 +235,8 @@ MainWindow::onAnnotate() {
         continue;
       QObject *obj = reinterpret_cast<QObject *>(index.internalPointer());
       if (Image *img = qobject_cast<Image *>(obj))
-        images.append(img);
+        if (! images.contains(img))
+          images.append(img);
     }
   }
   if (0 == images.size())

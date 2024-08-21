@@ -1,5 +1,8 @@
 /** @defgroup log Log Message Handling
- * @ingroup util */
+ *
+ * The module collects classes and macros to create and handle log messages.
+ *
+ * @ingroup utils */
 #ifndef LOGGER_HH
 #define LOGGER_HH
 
@@ -7,15 +10,21 @@
 #include <QTextStream>
 #include <QList>
 
-/** Constructs a debug message. */
+/** Constructs a debug message.
+ * @ingroup log */
 #define logDebug() LogMessage(LogMessage::DEBUG, __FILE__, __LINE__)
-/** Constructs an info message. */
+/** Constructs an info message.
+ * @ingroup log */
 #define logInfo()  LogMessage(LogMessage::INFO, __FILE__, __LINE__)
-/** Constructs a warning message. */
+/** Constructs a warning message.
+ * @ingroup log */
 #define logWarn()  LogMessage(LogMessage::WARNING, __FILE__, __LINE__)
-/** Constructs an error message. */
+/** Constructs an error message.
+ * @ingroup log */
 #define logError() LogMessage(LogMessage::ERROR, __FILE__, __LINE__)
-/** Constructs a fatal error message. */
+/** Constructs a fatal error message.
+ * @ingroup log*/
+
 #ifdef __cpp_lib_stacktrace
 #include <stacktrace>
 #define logFatal() LogMessage(LogMessage::FATAL, __FILE__, __LINE__) << \

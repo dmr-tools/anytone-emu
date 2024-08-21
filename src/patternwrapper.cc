@@ -1,5 +1,5 @@
 #include "patternwrapper.hh"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include <QIcon>
 #include <QApplication>
 #include <QPalette>

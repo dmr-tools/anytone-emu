@@ -3,11 +3,17 @@
 
 #include "device.hh"
 
+/** Implements a Alinco DJ-MD5X device emulator.
+ * @ingroup device */
 class DJMD5X : public Device
 {
   Q_OBJECT
 
 public:
+  /** Constructor.
+   * @param interface Specifies the interace to the CPS.
+   * @param model Specifies the memory model for capturing codeplugs.
+   * @param parent The QObject parent. */
   explicit DJMD5X(QIODevice *interface, Model *model = nullptr, QObject *parent = nullptr);
 
   QByteArray model() const;

@@ -1,6 +1,6 @@
 #include "sparserepeatdialog.hh"
 #include "ui_sparserepeatdialog.h"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include <QMessageBox>
 
 

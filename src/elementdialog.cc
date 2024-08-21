@@ -1,6 +1,6 @@
 #include "elementdialog.hh"
 #include "ui_elementdialog.h"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include <QMessageBox>
 
 

@@ -1,6 +1,6 @@
 #include "enumfielddialog.hh"
 #include "ui_enumfielddialog.h"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include "enumfieldpatternwrapper.hh"
 #include <QMessageBox>
 #include <QStyledItemDelegate>

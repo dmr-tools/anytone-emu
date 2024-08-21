@@ -1,5 +1,5 @@
-#include "codeplugpatternparser.hh"
-#include "codeplugpattern.hh"
+#include "patternparser.hh"
+#include "pattern.hh"
 
 #include <QXmlStreamAttribute>
 

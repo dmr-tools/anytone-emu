@@ -16,8 +16,8 @@
 
 #include "image.hh"
 #include "imagecollectionadapter.hh"
-#include "codeplugpattern.hh"
-#include "codeplugpatternparser.hh"
+#include "pattern.hh"
+#include "patternparser.hh"
 
 #include <QSerialPort>
 #include <QXmlStreamReader>

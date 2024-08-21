@@ -1,5 +1,5 @@
 #include "patternview.hh"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include "device.hh"
 #include "application.hh"
 #include "patternwrapper.hh"

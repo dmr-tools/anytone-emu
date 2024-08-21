@@ -1,6 +1,6 @@
 #include "patternmetaeditor.hh"
 #include "ui_patternmetaeditor.h"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 
 
 PatternMetaEditor::PatternMetaEditor(QWidget *parent) :

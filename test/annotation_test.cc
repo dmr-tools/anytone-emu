@@ -1,9 +1,9 @@
 #include "annotation_test.hh"
 
 #include <QXmlStreamReader>
-#include "codeplugpatternparser.hh"
-#include "codeplugpattern.hh"
-#include "codeplugannotation.hh"
+#include "patternparser.hh"
+#include "pattern.hh"
+#include "annotation.hh"
 #include "image.hh"
 #include "logger.hh"
 
@@ -39,7 +39,7 @@ AnnotationTest::annotateUnusedTest() {
 
   QVERIFY(image.annotate(codeplug));
 
-  const FieldAnnotation *unk = image.annotations()->resolve(Address::zero());
+  const FieldAnnotation *unk = image.element(0)->annotationAt(Address::zero())->as<FieldAnnotation>();
   QVERIFY(unk->pattern()->is<UnusedFieldPattern>());
   QVERIFY(! unk->value().toByteArray().isEmpty());
   QCOMPARE(unk->value().toByteArray().at(0), 0x01);
@@ -69,7 +69,7 @@ AnnotationTest::annotateUnknownTest() {
 
   QVERIFY(image.annotate(codeplug));
 
-  const FieldAnnotation *unk = image.annotations()->resolve(Address::zero());
+  const FieldAnnotation *unk = image.find(Address::zero())->annotationAt(Address::zero())->as<FieldAnnotation>();
   QVERIFY(unk->pattern()->is<UnknownFieldPattern>());
   QVERIFY(! unk->value().toByteArray().isEmpty());
   QCOMPARE(unk->value().toByteArray().at(0), 0x01);
@@ -102,13 +102,13 @@ AnnotationTest::annotateIntTest() {
   CodeplugPattern *codeplug = parser.popAs<CodeplugPattern>();
 
   QVERIFY(image.annotate(codeplug));
-
-  const FieldAnnotation *bit0  = image.annotations()->resolve(Address::fromByte(0,7));
-  const FieldAnnotation *bit1  = image.annotations()->resolve(Address::fromByte(0,6));
-  const FieldAnnotation *uint0 = image.annotations()->resolve(Address::fromByte(0,5));
-  const FieldAnnotation *int1  = image.annotations()->resolve(Address::fromByte(1));
-  const FieldAnnotation *uint2 = image.annotations()->resolve(Address::fromByte(2));
-  const FieldAnnotation *uint3 = image.annotations()->resolve(Address::fromByte(4));
+  const Element *el = image.element(0);
+  const FieldAnnotation *bit0  = el->annotationAt(Address::fromByte(0,7))->as<FieldAnnotation>();
+  const FieldAnnotation *bit1  = el->annotationAt(Address::fromByte(0,6))->as<FieldAnnotation>();
+  const FieldAnnotation *uint0 = el->annotationAt(Address::fromByte(0,5))->as<FieldAnnotation>();
+  const FieldAnnotation *int1  = el->annotationAt(Address::fromByte(1))->as<FieldAnnotation>();
+  const FieldAnnotation *uint2 = el->annotationAt(Address::fromByte(2))->as<FieldAnnotation>();
+  const FieldAnnotation *uint3 = el->annotationAt(Address::fromByte(4))->as<FieldAnnotation>();
   QCOMPARE(bit0->value().value<uint8_t>(), false);
   QCOMPARE(bit1->value().value<uint8_t>(), true);
   QCOMPARE(uint0->value().value<uint8_t>(), 2);
@@ -146,18 +146,22 @@ AnnotationTest::annotateFixedRepeatTest() {
   QVERIFY(codeplug->verify());
 
   QVERIFY(image.annotate(codeplug));
-  QVERIFY(image.annotations()->resolve(Address::fromByte(0)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(0))->value().value<uint8_t>(), 1);
-  QVERIFY(image.annotations()->resolve(Address::fromByte(1)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(1))->value().value<uint16_t>(), 2);
-  QVERIFY(image.annotations()->resolve(Address::fromByte(3)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(3))->value().value<uint8_t>(), 3);
-  QVERIFY(image.annotations()->resolve(Address::fromByte(4)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(4))->value().value<uint16_t>(), 4);
-  QVERIFY(image.annotations()->resolve(Address::fromByte(6)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(6))->value().value<uint8_t>(), 5);
-  QVERIFY(image.annotations()->resolve(Address::fromByte(7)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(7))->value().value<uint16_t>(), 6);
+
+  const Element *el = image.element(0);
+  QCOMPARE(el->numAnnotations(), 1);
+  QVERIFY(el->annotationAt(Address::fromByte(0)) && el->annotationAt(Address::fromByte(0))->is<StructuredAnnotation>());
+  const StructuredAnnotation *root = el->annotationAt(Address::fromByte(0))->as<StructuredAnnotation>();
+
+  QCOMPARE(root->numAnnotations(), 3);
+  Address addr=Address::fromByte(0);
+  for (int i=0,v=1; i<root->numAnnotations(); i++, addr+=Offset::fromByte(3)) {
+    QVERIFY(root->annotationAt(addr) && root->annotationAt(addr)->is<StructuredAnnotation>());
+    const StructuredAnnotation *elm = root->annotationAt(addr)->as<StructuredAnnotation>();
+    QVERIFY(elm->annotationAt(addr) && elm->annotationAt(addr)->is<FieldAnnotation>());
+    QCOMPARE(elm->annotationAt(addr)->as<FieldAnnotation>()->value().value<uint8_t>(), v++);
+    QVERIFY(elm->annotationAt(addr+Offset::fromByte(1)) && elm->annotationAt(addr+Offset::fromByte(1))->is<FieldAnnotation>());
+    QCOMPARE(elm->annotationAt(addr+Offset::fromByte(1))->as<FieldAnnotation>()->value().value<uint16_t>(), v++);
+  }
 }
 
 
@@ -189,14 +193,25 @@ AnnotationTest::annotateBlockRepeatTest() {
   QVERIFY(codeplug->verify());
 
   QVERIFY(image.annotate(codeplug));
-  QVERIFY(image.annotations()->resolve(Address::fromByte(0)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(0))->value().value<uint8_t>(), 1);
-  QVERIFY(image.annotations()->resolve(Address::fromByte(1)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(1))->value().value<uint16_t>(), 2);
-  QVERIFY(image.annotations()->resolve(Address::fromByte(3)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(3))->value().value<uint8_t>(), 3);
-  QVERIFY(image.annotations()->resolve(Address::fromByte(4)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(4))->value().value<uint16_t>(), 4);
+  const Element *el = image.element(0);
+  QCOMPARE(el->numAnnotations(), 1);
+  QVERIFY(el->annotationAt(Address::fromByte(0)) && el->annotationAt(Address::fromByte(0))->is<StructuredAnnotation>());
+  const StructuredAnnotation *root = el->annotationAt(Address::fromByte(0))->as<StructuredAnnotation>();
+
+  QCOMPARE(root->numAnnotations(), 2);
+  Address addr = Address::fromByte(0);
+  for (int i=0,v=1; i<root->numAnnotations(); i++) {
+    QVERIFY(root->annotationAt(addr) && root->annotationAt(addr)->is<StructuredAnnotation>());
+    const StructuredAnnotation *elm = root->annotationAt(addr)->as<StructuredAnnotation>();
+
+    QVERIFY(elm->annotationAt(addr) && elm->annotationAt(addr)->is<FieldAnnotation>());
+    QCOMPARE(elm->annotationAt(addr)->as<FieldAnnotation>()->value().value<uint8_t>(), v++);
+    addr += Offset::fromByte(1);
+
+    QVERIFY(elm->annotationAt(addr) && elm->annotationAt(addr)->is<FieldAnnotation>());
+    QCOMPARE(elm->annotationAt(addr)->as<FieldAnnotation>()->value().value<uint8_t>(), v++);
+    addr += Offset::fromByte(2);
+  }
 }
 
 
@@ -213,7 +228,7 @@ AnnotationTest::annotateSparseRepeatTest() {
       R"(</codeplug>)";
 
   Image image;
-  image.append(0, QByteArray::fromHex("0100020003"));
+  image.append(0, QByteArray::fromHex("0000010002"));
 
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
@@ -227,12 +242,17 @@ AnnotationTest::annotateSparseRepeatTest() {
   QVERIFY(codeplug->verify());
 
   QVERIFY(image.annotate(codeplug));
-  QVERIFY(image.annotations()->resolve(Address::fromByte(0)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(0))->value().value<uint8_t>(), 1);
-  QVERIFY(image.annotations()->resolve(Address::fromByte(2)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(2))->value().value<uint8_t>(), 2);
-  QVERIFY(image.annotations()->resolve(Address::fromByte(4)));
-  QCOMPARE(image.annotations()->resolve(Address::fromByte(4))->value().value<uint8_t>(), 3);
+  const Element *el = image.element(0);
+  QCOMPARE(el->numAnnotations(), 3);
+  Address addr = Address::fromByte(0);
+  for (int i=0,v=0; i<el->numAnnotations(); i++) {
+    QVERIFY(el->annotationAt(addr) && el->annotationAt(addr)->is<StructuredAnnotation>());
+    const StructuredAnnotation *elm = el->annotationAt(addr)->as<StructuredAnnotation>();
+    QCOMPARE(elm->numAnnotations(), 1);
+    QVERIFY(elm->annotationAt(addr) && elm->annotationAt(addr)->is<FieldAnnotation>());
+    QCOMPARE(elm->annotationAt(addr)->as<FieldAnnotation>()->value().value<uint8_t>(), v++);
+    addr += Offset::fromByte(2);
+  }
 }
 
 QTEST_MAIN(AnnotationTest)

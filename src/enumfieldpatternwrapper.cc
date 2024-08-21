@@ -1,5 +1,5 @@
 #include "enumfieldpatternwrapper.hh"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include <QItemEditorFactory>
 
 /* ********************************************************************************************* *

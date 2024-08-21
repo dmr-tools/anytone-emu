@@ -1,6 +1,6 @@
 #include "unusedfielddialog.hh"
 #include "ui_unusedfielddialog.h"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include <QMessageBox>
 
 

@@ -1,6 +1,6 @@
 #include "stringfielddialog.hh"
 #include "ui_stringfielddialog.h"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include <QMessageBox>
 
 

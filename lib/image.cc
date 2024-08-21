@@ -1,19 +1,19 @@
 #include "image.hh"
-#include "codeplugannotation.hh"
-#include "codeplugpattern.hh"
+#include "annotation.hh"
+#include "pattern.hh"
 
 
 /* ********************************************************************************************* *
  * Implementation of Element
  * ********************************************************************************************* */
 Element::Element(const Address &address, uint32_t size, QObject *parent)
-  : QObject{parent}, _address(address), _data(size, 0)
+  : QObject{parent}, AnnotationCollection(), _address(address), _data(size, 0)
 {
   // pass...
 }
 
 Element::Element(const Address &address, const QByteArray &data, QObject *parent)
-  : QObject{parent}, _address(address), _data(data)
+  : QObject{parent}, AnnotationCollection(), _address(address), _data(data)
 {
   // pass...
 }
@@ -91,13 +91,19 @@ Element::append(const QByteArray &data) {
   emit modified(_address.byte());
 }
 
+void
+Element::addAnnotation(AbstractAnnotation *annotation) {
+  annotation->setParent(this);
+  AnnotationCollection::addAnnotation(annotation);
+}
+
 
 
 /* ********************************************************************************************* *
  * Implementation of Image
  * ********************************************************************************************* */
 Image::Image(const QString &label, QObject *parent)
-  : QObject{parent}, _label(label), _elements(), _annotations(nullptr)
+  : QObject{parent}, _label(label), _elements()
 {
   // pass...
 }
@@ -153,15 +159,10 @@ Image::setLabel(const QString &label) {
 
 bool
 Image::annotate(const CodeplugPattern *pattern) {
-  if (_annotations)
-    delete _annotations;
-  _annotations = new ImageAnnotation(this, pattern, this);
-  return ! _annotations->isEmpty();
-}
-
-const ImageAnnotation *
-Image::annotations() const {
-  return _annotations;
+ bool ok = ImageAnnotator::annotate(this, pattern);
+ if (ok)
+   emit annotated(this);
+ return ok;
 }
 
 void
@@ -253,6 +254,7 @@ Collection::append(Image *image) {
   _images.append(image);
   image->setParent(this);
   connect(image, &QObject::destroyed, this, &Collection::onImageDeleted);
+  connect(image, &Image::annotated, this, &Collection::onImageAnnotated);
   emit imageAdded(_images.size()-1);
 }
 
@@ -262,5 +264,14 @@ Collection::onImageDeleted(QObject *obj) {
   if (idx < 0)
     return;
   _images.remove(idx);
+  disconnect(qobject_cast<Image*>(obj), &Image::annotated, this, &Collection::onImageAnnotated);
   emit imageRemoved(idx);
+}
+
+void
+Collection::onImageAnnotated(Image *img) {
+  int idx = _images.indexOf(img);
+  if (idx < 0)
+    return;
+  emit imageAnnotated(idx);
 }

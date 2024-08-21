@@ -1,6 +1,6 @@
 #include "blockrepeatdialog.hh"
 #include "ui_blockrepeatdialog.h"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include <QMessageBox>
 
 

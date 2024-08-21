@@ -1,7 +1,7 @@
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 #include "logger.hh"
 #include "image.hh"
-#include "codeplugpatternparser.hh"
+#include "patternparser.hh"
 
 #include <QVariant>
 #include <QtEndian>
@@ -1113,6 +1113,10 @@ void
 IntegerFieldPattern::setMinValue(long long min) {
   _minValue = min;
 }
+void
+IntegerFieldPattern::clearMinValue() {
+  _minValue = std::numeric_limits<long long>().max();
+}
 
 bool
 IntegerFieldPattern::hasMaxValue() const {
@@ -1125,6 +1129,10 @@ IntegerFieldPattern::maxValue() const {
 void
 IntegerFieldPattern::setMaxValue(long long max) {
   _maxValue = max;
+}
+void
+IntegerFieldPattern::clearMaxValue() {
+  _maxValue = std::numeric_limits<long long>().max();
 }
 
 bool
@@ -1164,7 +1172,7 @@ IntegerFieldPattern::value(const Element *element, const Address& address) const
     unsigned int shift = (address.bit()+1)-size().bits();
     unsigned int mask  = (1<<size().bits())-1;
     uint8_t value = (uint8_t(element->data().at(within.byte())) >> shift) & mask;
-    return QVariant::fromValue(value) ;
+    return QVariant::fromValue((unsigned int)value) ;
   }
 
   if (size().bits() == 16) {
@@ -1382,6 +1390,15 @@ EnumFieldPattern::item(unsigned int n) const {
   return _items[n];
 }
 
+EnumFieldPatternItem *
+EnumFieldPattern::itemByValue(unsigned int val) const {
+  foreach(auto item, _items) {
+    if (item->hasValue() && (val == item->value()))
+      return item;
+  }
+  return nullptr;
+}
+
 bool
 EnumFieldPattern::deleteItem(unsigned int n) {
   if (n >= _items.size())
@@ -1398,6 +1415,7 @@ EnumFieldPattern::value(const Element *element, const Address& address) const {
   logDebug() << "Decode enum '" << meta().name() << "' @" << address.toString()
              << " in element starting at " << element->address().toString()
              << " of size " << element->size().toString() << ".";
+
   if (! element->contains(address, this->size())) {
     logError() << "Cannot decode enum '" << meta().name() << "': Outside of element bounds.";
     return QVariant();
@@ -1461,9 +1479,13 @@ StringFieldPattern::serialize(QXmlStreamWriter &writer) const {
 
 QVariant
 StringFieldPattern::value(const Element *element, const Address &address) const {
-  QByteArray mid = element->data().mid(address.byte(), size().byte());
+  if (! element->contains(address, size()))
+    return QVariant();
+  Offset offset = address-element->address();
+  QByteArray mid = element->data().mid(offset.byte(), size().byte());
+
   switch (format()) {
-  case Format::ASCII: return QString(mid);
+  case Format::ASCII: return QString::fromLocal8Bit(mid);
   case Format::Unicode: return QString(mid);
   }
   return QVariant();

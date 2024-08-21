@@ -1,7 +1,7 @@
 #include "model.hh"
 #include "image.hh"
 #include "logger.hh"
-#include "codeplugpattern.hh"
+#include "pattern.hh"
 
 /* ********************************************************************************************* *
  * Implementation of Model
@@ -9,7 +9,8 @@
 Model::Model(CodeplugPattern *pattern, QObject *parent)
   : QObject{parent}, _pattern(pattern)
 {
-  // pass...
+  if (_pattern)
+    _pattern->setParent(this);
 }
 
 
