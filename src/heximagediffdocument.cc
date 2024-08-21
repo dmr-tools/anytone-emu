@@ -8,7 +8,7 @@
 
 
 HexImageDiffDocument::HexImageDiffDocument(const HexImage &img, QObject *parent)
-  : HexDocument{parent}
+  : HexDocument{false, parent}
 {
   setUndoRedoEnabled(false);
 

@@ -17,6 +17,8 @@ public:
 
 protected:
   void closeEvent(QCloseEvent *event);
+  void changeEvent(QEvent *event);
+  bool isDarkMode() const;
 
 private slots:
   void onShowHexDump();

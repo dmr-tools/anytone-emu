@@ -14,6 +14,7 @@
 #include <QActionGroup>
 #include <QSettings>
 #include <QTextBrowser>
+#include <QStyleHints>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -35,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->log->horizontalHeader()->restoreState(settings.value("layout/logHeaderState").toByteArray());
   if (settings.contains("layout/patternsHeaderState"))
     ui->patterns->header()->restoreState(settings.value("layout/patternsHeaderState").toByteArray());
+  if (settings.contains("layout/imagesHeaderState"))
+    ui->images->header()->restoreState(settings.value("layout/imagesHeaderState").toByteArray());
 
   ui->log->setModel(new LogMessageList());
 
@@ -123,6 +126,7 @@ MainWindow::closeEvent(QCloseEvent *event) {
   settings.setValue("layout/horizontalSplitterState", ui->horizontalSplitter->saveState());
   settings.setValue("layout/logHeaderState", ui->log->horizontalHeader()->saveState());
   settings.setValue("layout/patternsHeaderState", ui->patterns->header()->saveState());
+  settings.setValue("layout/imagesHeaderState", ui->images->header()->saveState());
 
   if (ui->actionAutoViewNone->isChecked())
     settings.setValue("action/autoShow", "none");
@@ -134,6 +138,32 @@ MainWindow::closeEvent(QCloseEvent *event) {
     settings.setValue("action/autoShow", "prev");
   QMainWindow::closeEvent(event);
 }
+
+
+void
+MainWindow::changeEvent(QEvent *event) {
+  if (QEvent::ThemeChange == event->type()) {
+    if (isDarkMode())
+      QIcon::setThemeName("dark");
+    else
+      QIcon::setThemeName("light");
+    for (int i=0; i<ui->tabs->count(); i++) {
+      if (auto view = qobject_cast<QTextBrowser *>(ui->tabs->widget(i))) {
+        if (auto doc = qobject_cast<HexDocument *>(view->document()))
+          doc->enableDarkMode(isDarkMode());
+      }
+    }
+  }
+
+  QMainWindow::changeEvent(event);
+}
+
+
+bool
+MainWindow::isDarkMode() const {
+  return palette().window().color().lightness() < palette().windowText().color().lightness();
+}
+
 
 void
 MainWindow::onShowHexDump() {
@@ -149,11 +179,15 @@ MainWindow::onShowHexDump() {
   foreach (const QObject *obj, items) {
     if (const Image *img = qobject_cast<const Image *>(obj)) {
       QTextBrowser *view = new QTextBrowser();
-      view->setDocument(new HexImageDumpDocument(HexImage(img)));
+      auto document = new HexImageDumpDocument(HexImage(img));
+      document->enableDarkMode(isDarkMode());
+      view->setDocument(document);
       ui->tabs->addTab(view, img->label());
     } else if (const Element *el = qobject_cast<const Element *>(obj)) {
       QTextBrowser *view = new QTextBrowser();
-      view->setDocument(new HexElementDumpDocument(HexElement(el)));
+      auto document = new HexElementDumpDocument(HexElement(el));
+      document->enableDarkMode(isDarkMode());
+      view->setDocument(document);
       ui->tabs->addTab(view, QString("Element @ %1h").arg(el->address().byte(), 0, 16));
     }
   }
@@ -173,7 +207,9 @@ MainWindow::onShowHexDiff() {
   }
   for (int i=1; i<items.size(); i++) {
     QTextBrowser *view = new QTextBrowser();
-    view->setDocument(new HexImageDiffDocument(HexImage(items.at(i-1), items.at(i))));
+    auto document = new HexImageDiffDocument(HexImage(items.at(i-1), items.at(i)));
+    document->enableDarkMode(isDarkMode());
+    view->setDocument(document);
     ui->tabs->addTab(view, QString("%1 vs. %2").arg(items.at(i-1)->label()).arg(items.at(i)->label()));
   }
 }
