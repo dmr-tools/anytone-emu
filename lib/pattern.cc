@@ -1191,8 +1191,8 @@ IntegerFieldPattern::value(const Element *element, const Address& address) const
       return QVariant::fromValue(qFromBigEndian(*((uint16_t *)ptr)));
     } else if (Format::BCD == _format) {
       if (Endian::Little == _endian)
-        return QVariant::fromValue(fromBCD4le(*((uint16_t *)ptr)));
-      return QVariant::fromValue(fromBCD4be(*((uint16_t *)ptr)));
+        return QVariant::fromValue(fromBCD4(qFromLittleEndian(*((uint16_t *)ptr))));
+      return QVariant::fromValue(fromBCD4(qFromBigEndian(*((uint16_t *)ptr))));
     }
     return QVariant();
   }
@@ -1213,8 +1213,8 @@ IntegerFieldPattern::value(const Element *element, const Address& address) const
       return QVariant::fromValue(qFromBigEndian(*((uint32_t *)ptr)));
     } else if (Format::BCD == _format) {
       if (Endian::Little == _endian)
-        return QVariant::fromValue(fromBCD8le(*((uint32_t *)ptr)));
-      return QVariant::fromValue(fromBCD8be(*((uint32_t *)ptr)));
+        return QVariant::fromValue(fromBCD8(qFromLittleEndian(*((uint32_t *)ptr))));
+      return QVariant::fromValue(fromBCD8(qFromBigEndian(*((uint32_t *)ptr))));
     }
     return QVariant();
   }
@@ -1222,19 +1222,9 @@ IntegerFieldPattern::value(const Element *element, const Address& address) const
   return QVariant();
 }
 
-uint16_t
-IntegerFieldPattern::fromBCD4le(uint16_t bcd) {
-  uint16_t res = 0;
-  for (int i=0; i<4; i++) {
-    res *= 10;
-    res += bcd & 0xf;
-    bcd >>= 4;
-  }
-  return res;
-}
 
 uint16_t
-IntegerFieldPattern::fromBCD4be(uint16_t bcd) {
+IntegerFieldPattern::fromBCD4(uint16_t bcd) {
   uint16_t res = 0;
   for (int i=0; i<4; i++) {
     res *= 10;
@@ -1244,19 +1234,9 @@ IntegerFieldPattern::fromBCD4be(uint16_t bcd) {
   return res;
 }
 
-uint32_t
-IntegerFieldPattern::fromBCD8le(uint32_t bcd) {
-  uint32_t res = 0;
-  for (int i=0; i<8; i++) {
-    res *= 10;
-    res += bcd & 0xf;
-    bcd >>= 4;
-  }
-  return res;
-}
 
 uint32_t
-IntegerFieldPattern::fromBCD8be(uint32_t bcd) {
+IntegerFieldPattern::fromBCD8(uint32_t bcd) {
   uint32_t res = 0;
   for (int i=0; i<8; i++) {
     res *= 10;
@@ -1265,6 +1245,7 @@ IntegerFieldPattern::fromBCD8be(uint32_t bcd) {
   }
   return res;
 }
+
 
 
 /* ********************************************************************************************* *
