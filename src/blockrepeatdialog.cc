@@ -2,12 +2,13 @@
 #include "ui_blockrepeatdialog.h"
 #include "pattern.hh"
 #include <QMessageBox>
-
+#include "logger.hh"
 
 BlockRepeatDialog::BlockRepeatDialog(QWidget *parent) :
   QDialog(parent), ui(new Ui::BlockRepeatDialog), _pattern(nullptr)
 {
   ui->setupUi(this);
+  ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-blockrepeat").pixmap(QSize(64,64)));
 }
 
 BlockRepeatDialog::~BlockRepeatDialog()

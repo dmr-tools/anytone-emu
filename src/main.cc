@@ -31,6 +31,10 @@ main(int argc, char *argv[])
   Logger::get().addHandler(new StreamLogHandler(err, LogMessage::DEBUG, true));
 
   Application app(argc, argv);
+  if (app.palette().window().color().lightness() < app.palette().windowText().color().lightness())
+    QIcon::setThemeName("dark");
+  else
+    QIcon::setThemeName("light");
 
   SetupDialog setup;
   if (QDialog::Accepted != setup.exec()) {

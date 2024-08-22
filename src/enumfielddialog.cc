@@ -15,6 +15,7 @@ EnumFieldDialog::EnumFieldDialog(QWidget *parent) :
   QDialog(parent), ui(new Ui::EnumFieldDialog), _pattern(nullptr)
 {
   ui->setupUi(this);
+  ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-enum").pixmap(QSize(64,64)));
 
   QSettings settings;
   if (settings.contains("layout/enumFieldDialogSize"))

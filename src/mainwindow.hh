@@ -17,6 +17,8 @@ public:
 
 protected:
   void closeEvent(QCloseEvent *event);
+  void changeEvent(QEvent *event);
+  bool isDarkMode() const;
 
 private slots:
   void onShowHexDump();
@@ -24,6 +26,7 @@ private slots:
   void onCloseTab(int index=-1);
   void onImageReceived(unsigned int idx);
   void onAnnotate();
+  void onShowAboutDialog();
 
 private:
   Ui::MainWindow *ui;

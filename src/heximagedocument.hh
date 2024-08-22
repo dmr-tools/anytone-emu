@@ -13,7 +13,10 @@ class HexDocument: public QTextDocument
   Q_OBJECT
 
 public:
-  HexDocument(QObject *parent = nullptr);
+  HexDocument(bool darkMode = false, QObject *parent = nullptr);
+
+public slots:
+  void enableDarkMode(bool enable);
 
 protected:
   virtual void putElement(const HexElement &element, QTextCursor &cursor) = 0;

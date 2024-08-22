@@ -1155,7 +1155,7 @@ IntegerFieldPattern::clearDefaultValue() {
 QVariant
 IntegerFieldPattern::value(const Element *element, const Address& address) const {
   if ((address+size()) >  element->address() + element->size()) {
-    logError() << "Cannot decode integer, extends the element bounds.";
+    logError() << "Cannot decode integer, extends beyond element bounds.";
     return QVariant();
   }
 
@@ -1199,7 +1199,7 @@ IntegerFieldPattern::value(const Element *element, const Address& address) const
 
   if (size().bits() <= 32) {
     if (!address.byteAligned()) {
-      logWarn() << "Cannot decode int16, values does not align with bytes.";
+      logWarn() << "Cannot decode int32, values does not align with bytes.";
       return QVariant();
     }
     const char *ptr = element->data().mid(within.byte(),4).constData();
@@ -1423,17 +1423,15 @@ EnumFieldPattern::value(const Element *element, const Address& address) const {
 
   Offset within = address - element->address();
 
-  // sub-byte integers should not span multiple bytes
-  // larger integers must align with bytes
-
-  if (size().bits() <= 8) {
+  if (size().bits() <= 8) {   // int8_t or smaller
     if ((address.bit()+1)<size().bits()) {
-      logWarn() << "Cannot decode enum, bitpattern extens across bytes.";
+      logWarn() << "Cannot decode integer, bitpattern extens across bytes.";
       return QVariant();
     }
     unsigned int shift = (address.bit()+1)-size().bits();
     unsigned int mask  = (1<<size().bits())-1;
-    return QVariant((unsigned int) (uint8_t(element->data().at(within.byte())) & mask) >> shift);
+    uint8_t value = (uint8_t(element->data().at(within.byte())) >> shift) & mask;
+    return QVariant::fromValue((unsigned int)value) ;
   }
 
   return QVariant();

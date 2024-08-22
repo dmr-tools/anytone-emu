@@ -7,7 +7,7 @@
 #include <QTextCursor>
 #include <QTextDocumentFragment>
 
-HexDocument::HexDocument(QObject *parent)
+HexDocument::HexDocument(bool darkMode, QObject *parent)
   : QTextDocument{parent}, _elementFormat(), _elementTitleFormat(), _lineFormat(), _baseFormat(),
     _addressFormat(), _valueFormat(), _keepValueFormat(), _addValueFormat(), _remValueFormat(),
     _unusedValueFormat(), _charsFormat(), _separatorFormat()
@@ -33,28 +33,47 @@ HexDocument::HexDocument(QObject *parent)
 
   _addressFormat = _baseFormat;
   _addressFormat.setFontWordSpacing(10);
-  _addressFormat.setForeground(Qt::darkBlue);
+  //_addressFormat.setForeground(QColor(Qt::darkBlue));
 
   _valueFormat = _baseFormat;
   _valueFormat.setFontFixedPitch(true);
   _valueFormat.setFontWordSpacing(5);
 
   _keepValueFormat = _valueFormat;
-  _keepValueFormat.setForeground(QColor(Qt::gray));
+  //_keepValueFormat.setForeground(QColor(Qt::gray));
 
   _addValueFormat = _valueFormat;
-  _addValueFormat.setForeground(QColor(Qt::darkGreen));
+  //_addValueFormat.setForeground(QColor(Qt::darkGreen));
 
   _remValueFormat = _valueFormat;
-  _remValueFormat.setForeground(QColor(Qt::darkRed));
+  //_remValueFormat.setForeground(QColor(Qt::darkRed));
 
   _unusedValueFormat = _valueFormat;
-  _unusedValueFormat.setForeground(QColor(Qt::lightGray));
+  //_unusedValueFormat.setForeground(QColor(Qt::lightGray));
 
   _charsFormat = _baseFormat;
 
   _separatorFormat = _baseFormat;
   _separatorFormat.setFontWordSpacing(10);
+
+  enableDarkMode(darkMode);
+}
+
+void
+HexDocument::enableDarkMode(bool enable) {
+  if (enable) {
+    _addressFormat.setForeground(QColor(Qt::cyan));
+    _keepValueFormat.setForeground(QColor(Qt::lightGray));
+    _addValueFormat.setForeground(QColor(Qt::green));
+    _remValueFormat.setForeground(QColor(Qt::red));
+    _unusedValueFormat.setForeground(QColor(Qt::gray));
+  } else {
+    _addressFormat.setForeground(QColor(Qt::darkBlue));
+    _keepValueFormat.setForeground(QColor(Qt::gray));
+    _addValueFormat.setForeground(QColor(Qt::darkGreen));
+    _remValueFormat.setForeground(QColor(Qt::darkRed));
+    _unusedValueFormat.setForeground(QColor(Qt::lightGray));
+  }
 }
 
 void

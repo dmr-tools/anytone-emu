@@ -3,6 +3,7 @@
 #include <QSettings>
 #include <QSerialPortInfo>
 #include <QFileDialog>
+#include "logger.hh"
 
 
 SetupDialog::SetupDialog(QWidget *parent) :
@@ -12,6 +13,9 @@ SetupDialog::SetupDialog(QWidget *parent) :
   QSettings settings;
 
   ui->setupUi(this);
+  setWindowIcon(QIcon::fromTheme("application-anytone-emu"));
+  ui->iconLabel->setPixmap(QIcon::fromTheme("settings-interface").pixmap(QSize(64,64)));
+  ui->buttonBox->button(QDialogButtonBox::Abort)->setIcon(QIcon::fromTheme("dialog-cancel"));
 
   ui->deviceSelection->addItem("AnyTone AT-D868UV", QVariant::fromValue(Device::D868UV));
   ui->deviceSelection->addItem("AnyTone AT-D868UVE", QVariant::fromValue(Device::D868UVE));

@@ -6,7 +6,7 @@
 #include <QTextDocumentFragment>
 
 HexImageDumpDocument::HexImageDumpDocument(const HexImage &img, QObject *parent)
-  : HexDocument{parent}
+  : HexDocument{false, parent}
 {
   _keepValueFormat.setForeground(Qt::black);
 

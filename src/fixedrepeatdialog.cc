@@ -8,6 +8,7 @@ FixedRepeatDialog::FixedRepeatDialog(QWidget *parent) :
   QDialog(parent), ui(new Ui::FixedRepeatDialog), _pattern(nullptr)
 {
   ui->setupUi(this);
+  ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-fixedrepeat").pixmap(QSize(64,64)));
 }
 
 FixedRepeatDialog::~FixedRepeatDialog()

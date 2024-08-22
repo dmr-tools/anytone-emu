@@ -3,6 +3,7 @@
 #include "image.hh"
 #include "device.hh"
 #include "pattern.hh"
+#include <QIcon>
 
 Application::Application(int &argc, char *argv[])
   : QApplication(argc, argv), _collection(new Collection(this)), _device(nullptr)
@@ -11,6 +12,7 @@ Application::Application(int &argc, char *argv[])
   setApplicationName("anytone-emu-gui");
   setApplicationVersion(PROJECT_VERSION);
 }
+
 
 Collection *
 Application::collection() {
