@@ -57,8 +57,7 @@ jobs:
     - name: Install Dependencies
       id: deps
       shell: bash
-      run: >
-        sudo apt-get update
+      run: |
         sudo apt-get -y install libqt6serialport6-dev
 
     - name: Configure CMake
