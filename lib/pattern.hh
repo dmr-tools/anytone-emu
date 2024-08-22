@@ -609,13 +609,9 @@ public:
 
 protected:
   /** Helper function to decode BCD numbers. */
-  static uint16_t fromBCD4le(uint16_t bcd);
+  static uint16_t fromBCD4(uint16_t bcd);
   /** Helper function to decode BCD numbers. */
-  static uint16_t fromBCD4be(uint16_t bcd);
-  /** Helper function to decode BCD numbers. */
-  static uint32_t fromBCD8le(uint32_t bcd);
-  /** Helper function to decode BCD numbers. */
-  static uint32_t fromBCD8be(uint32_t bcd);
+  static uint32_t fromBCD8(uint32_t bcd);
 
 protected:
   /** Holds the format. */
