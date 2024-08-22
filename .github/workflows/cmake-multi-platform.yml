@@ -58,7 +58,7 @@ jobs:
       id: deps
       shell: bash
       run: |
-        sudo apt-get -y install libqt6serialport6-dev
+        sudo apt-get -y install qt6-base-dev qt6-tools-dev libqt6serialport6-dev imagemagick
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
