@@ -43,41 +43,51 @@ qt_add_resources(anytone-emu-gui "codeplugs"
   BASE "${CMAKE_SOURCE_DIR}/codeplugs/"
   FILES "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/codeplug.xml")
 
-generate_icons(ICONS
-  "${CMAKE_SOURCE_DIR}/shared/icons/codeplugpattern.svg"
-  "${CMAKE_SOURCE_DIR}/shared/icons/sparserepeat.svg"
-  "${CMAKE_SOURCE_DIR}/shared/icons/blockrepeat.svg"
-  "${CMAKE_SOURCE_DIR}/shared/icons/fixedrepeat.svg"
-  "${CMAKE_SOURCE_DIR}/shared/icons/element.svg"
-  "${CMAKE_SOURCE_DIR}/shared/icons/integer.svg"
-  "${CMAKE_SOURCE_DIR}/shared/icons/enum.svg"
-  "${CMAKE_SOURCE_DIR}/shared/icons/stringfield.svg"
-  "${CMAKE_SOURCE_DIR}/shared/icons/unused.svg"
-  "${CMAKE_SOURCE_DIR}/shared/icons/unknown.svg"
+
+generate_icons(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
+  ICONS pattern-codeplug pattern-sparserepeat pattern-blockrepeat pattern-fixedrepeat
+        pattern-element pattern-integer pattern-enum pattern-stringfield pattern-unused
+        pattern-unknown
+  THEMES light dark
+  CONTEXT pattern
   SIZES 16 32 64)
+
+generate_icons(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
+  ICONS settings-interface
+  THEMES light dark
+  CONTEXT categories
+  SIZES 64)
+
+generate_icons(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
+  ICONS application-anytone-emu
+  THEMES light dark
+  CONTEXT apps
+  SIZES 16)
+
+generate_icons(
+  DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
+  ICONS application-exit dialog-ok dialog-cancel document-save document-save-as
+        edit edit-annotate edit-clear edit-delete edit-erase
+        help-about help-contents show-log window-close
+  THEMES light dark
+  CONTEXT actions
+  SIZES 16)
+
+
 qt_add_resources(anytone-emu-gui "icons"
-  PREFIX "icons/"
-  BASE "${CMAKE_CURRENT_BINARY_DIR}/icons/"
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/icons/64x64/codeplugpattern.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/16x16/codeplugpattern.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/64x64/sparserepeat.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/16x16/sparserepeat.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/64x64/blockrepeat.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/16x16/blockrepeat.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/64x64/fixedrepeat.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/16x16/fixedrepeat.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/64x64/element.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/16x16/element.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/64x64/integer.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/16x16/integer.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/64x64/enum.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/16x16/enum.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/64x64/stringfield.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/16x16/stringfield.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/64x64/unused.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/16x16/unused.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/64x64/unknown.png"
-        "${CMAKE_CURRENT_BINARY_DIR}/icons/16x16/unknown.png")
+  PREFIX "icons"
+  BASE "${CMAKE_CURRENT_BINARY_DIR}/icons"
+  FILES ${GENERATE_ICONS_OUTPUT_FILES})
+
+qt_add_resources(anytone-emu-gui "icons-themes"
+  PREFIX "icons"
+  BASE "${CMAKE_SOURCE_DIR}/shared/icons"
+  FILES "${CMAKE_SOURCE_DIR}/shared/icons/light/index.theme"
+        "${CMAKE_SOURCE_DIR}/shared/icons/dark/index.theme")
+
 
 target_link_libraries(anytone-emu-gui PRIVATE Qt6::Widgets Qt6::SerialPort libanytone-emu)
 target_include_directories(anytone-emu-gui PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")

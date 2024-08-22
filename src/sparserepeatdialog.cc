@@ -8,6 +8,7 @@ SparseRepeatDialog::SparseRepeatDialog(QWidget *parent) :
   QDialog(parent), ui(new Ui::SparseRepeatDialog), _pattern(nullptr)
 {
   ui->setupUi(this);
+  ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-sparserepeat").pixmap(QSize(64,64)));
 }
 
 

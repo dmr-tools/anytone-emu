@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QPalette>
 #include <QFont>
+#include "logger.hh"
 
 
 PatternWrapper::PatternWrapper(CodeplugPattern *pattern, QObject *parent)
@@ -139,27 +140,25 @@ PatternWrapper::getTooltip(const AbstractPattern *pattern, int column) const {
 QVariant
 PatternWrapper::getIcon(const AbstractPattern *pattern) const {
   if (pattern->is<CodeplugPattern>())
-    return QIcon(":/icons/16x16/codeplugpattern.png");
+    return QIcon::fromTheme("pattern-codeplug");
   else if (pattern->is<RepeatPattern>())
-    return QIcon(":/icons/16x16/sparserepeat.png");
+    return QIcon::fromTheme("pattern-sparserepeat");
   else if (pattern->is<BlockRepeatPattern>())
-    return QIcon(":/icons/16x16/blockrepeat.png");
+    return QIcon::fromTheme("pattern-blockrepeat");
   else if (pattern->is<FixedRepeatPattern>())
-    return QIcon(":/icons/16x16/fixedrepeat.png");
+    return QIcon::fromTheme("pattern-fixedrepeat");
   else if (pattern->is<ElementPattern>())
-  return QIcon(":/icons/16x16/element.png");
+    return QIcon::fromTheme("pattern-element");
   else if (pattern->is<IntegerFieldPattern>())
-    return QIcon(":/icons/16x16/integer.png");
+    return QIcon::fromTheme("pattern-integer");
   else if (pattern->is<EnumFieldPattern>())
-    return QIcon(":/icons/16x16/enum.png");
-  else if (pattern->is<EnumFieldPattern>())
-    return QIcon(":/icons/16x16/enum.png");
+    return QIcon::fromTheme("pattern-enum");
   else if (pattern->is<StringFieldPattern>())
-    return QIcon(":/icons/16x16/stringfield.png");
+    return QIcon::fromTheme("pattern-stringfield");
   else if (pattern->is<UnusedFieldPattern>())
-    return QIcon(":/icons/16x16/unused.png");
+    return QIcon::fromTheme("pattern-unused");
   else if (pattern->is<UnknownFieldPattern>())
-    return QIcon(":/icons/16x16/unknown.png");
+    return QIcon::fromTheme("pattern-unknown");
   return QVariant();
 }
 

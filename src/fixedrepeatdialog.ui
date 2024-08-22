@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>420</height>
+    <height>291</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,15 +17,18 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="iconLabel">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="text">
-        <string notr="true">&lt;img src=&quot;:/icons/64x64/fixedrepeat.png&quot;&gt;</string>
+       <property name="minimumSize">
+        <size>
+         <width>64</width>
+         <height>64</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -100,7 +103,14 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="PatternMetaEditor" name="metaEdit" native="true"/>
+       <widget class="PatternMetaEditor" name="metaEdit" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

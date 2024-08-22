@@ -8,6 +8,7 @@ IntegerFieldDialog::IntegerFieldDialog(QWidget *parent) :
   QDialog(parent), ui(new Ui::IntegerFieldDialog), _pattern(nullptr)
 {
   ui->setupUi(this);
+  ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-integer").pixmap(QSize(64,64)));
 }
 
 void

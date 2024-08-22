@@ -22,6 +22,8 @@ MainWindow::MainWindow(QWidget *parent) :
   ui(new Ui::MainWindow)
 {
   ui->setupUi(this);
+  setWindowIcon(QIcon::fromTheme("application-anytone-emu"));
+
   QSettings settings;
 
   if (settings.contains("layout/mainWindowSize"))
@@ -143,6 +145,7 @@ MainWindow::closeEvent(QCloseEvent *event) {
 void
 MainWindow::changeEvent(QEvent *event) {
   if (QEvent::ThemeChange == event->type()) {
+    logDebug() << "Theme changed to " << (isDarkMode() ? "dark" : "light") << ".";
     if (isDarkMode())
       QIcon::setThemeName("dark");
     else

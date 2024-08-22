@@ -9,6 +9,7 @@ ElementDialog::ElementDialog(QWidget *parent) :
   ui(new Ui::ElementDialog)
 {
   ui->setupUi(this);
+  ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-element").pixmap(QSize(64,64)));
 }
 
 ElementDialog::~ElementDialog()

@@ -8,6 +8,7 @@ UnusedFieldDialog::UnusedFieldDialog(QWidget *parent) :
   QDialog(parent), ui(new Ui::UnusedFieldDialog), _pattern(nullptr)
 {
   ui->setupUi(this);
+  ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-unused").pixmap(QSize(64,64)));
 }
 
 UnusedFieldDialog::~UnusedFieldDialog()

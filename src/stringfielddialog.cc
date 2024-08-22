@@ -8,6 +8,7 @@ StringFieldDialog::StringFieldDialog(QWidget *parent) :
   QDialog(parent),  ui(new Ui::StringFieldDialog), _pattern(nullptr)
 {
   ui->setupUi(this);
+  ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-stringfield").pixmap(QSize(64,64)));
 }
 
 StringFieldDialog::~StringFieldDialog()

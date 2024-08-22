@@ -8,6 +8,9 @@ option(BUILD_MANUAL   "Build man page for dmrconf" OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+cmake_policy(SET CMP0100 NEW)
+cmake_policy(SET CMP0140 NEW)
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
 
 include(GNUInstallDirs)
@@ -25,7 +28,6 @@ if (BUILD_API_DOCS)
                REQUIRED dot)
 endif()
 
-cmake_policy(SET CMP0100 NEW)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)

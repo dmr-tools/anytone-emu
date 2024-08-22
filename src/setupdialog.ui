@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>393</height>
+    <width>426</width>
+    <height>434</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,20 +18,41 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <widget class="QLabel" name="label">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Setup the device to emulate and interface to the manufacturer CPS</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QLabel" name="iconLabel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>64</width>
+         <height>64</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string notr="true">&lt;h4&gt;Interface Setup&lt;/h4&gt;
+&lt;p&gt;Setup the device to emulate and interface to the manufacturer CPS&lt;/p&gt;</string>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="Line" name="line">
@@ -60,7 +81,14 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QComboBox" name="deviceSelection"/>
+       <widget class="QComboBox" name="deviceSelection">
+        <property name="toolTip">
+         <string>Select a device to emulate.</string>
+        </property>
+        <property name="whatsThis">
+         <string>Selects the device to emulate and also selects the codeplug annotation pattern, if present.</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="interfaceLabel">
@@ -70,7 +98,14 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QComboBox" name="interfaceSelection"/>
+       <widget class="QComboBox" name="interfaceSelection">
+        <property name="toolTip">
+         <string>Select, how the CPS talks to the device emulation.</string>
+        </property>
+        <property name="whatsThis">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This specifies how the CPS will talk to the device emulation. There are two options: &lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Pseudo terminal&lt;/span&gt; (Linux only)&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Serial port&lt;/span&gt; (all platforms)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -78,7 +113,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Interface settings</string>
+      <string>Interface Settings</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
@@ -91,7 +126,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>symlink path</string>
+             <string>Symlink Path</string>
             </property>
            </widget>
           </item>
@@ -159,7 +194,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>build-in</string>
+         <string>Build-in</string>
         </property>
        </widget>
       </item>
@@ -176,7 +211,7 @@
       <item row="1" column="0">
        <widget class="QLabel" name="label_5">
         <property name="text">
-         <string>pattern dir</string>
+         <string>Pattern Dir</string>
         </property>
        </widget>
       </item>
