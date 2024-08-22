@@ -15,6 +15,7 @@
 #include <QSettings>
 #include <QTextBrowser>
 #include <QStyleHints>
+#include "aboutdialog.hh"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -112,6 +113,7 @@ MainWindow::MainWindow(QWidget *parent) :
   connect(ui->actionAnnotate, &QAction::triggered, this, &MainWindow::onAnnotate);
   connect(ui->tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::onCloseTab);
   connect(app->collection(), &Collection::imageAdded, this, &MainWindow::onImageReceived);
+  connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onShowAboutDialog);
 }
 
 MainWindow::~MainWindow()
@@ -144,6 +146,8 @@ MainWindow::closeEvent(QCloseEvent *event) {
 
 void
 MainWindow::changeEvent(QEvent *event) {
+  QMainWindow::changeEvent(event);
+
   if (QEvent::ThemeChange == event->type()) {
     logDebug() << "Theme changed to " << (isDarkMode() ? "dark" : "light") << ".";
     if (isDarkMode())
@@ -157,8 +161,6 @@ MainWindow::changeEvent(QEvent *event) {
       }
     }
   }
-
-  QMainWindow::changeEvent(event);
 }
 
 
@@ -175,7 +177,9 @@ MainWindow::onShowHexDump() {
     foreach (const QModelIndex &index, range.indexes()) {
       if (! index.isValid())
         continue;
-      items.append(reinterpret_cast<const QObject *>(index.constInternalPointer()));
+      const QObject *obj = reinterpret_cast<const QObject *>(index.constInternalPointer());
+      if (! items.contains(obj))
+        items.append(obj);
     }
   }
 
@@ -287,4 +291,10 @@ MainWindow::onAnnotate() {
       logError() << "Annotation failed.";
     }
   }
+}
+
+void
+MainWindow::onShowAboutDialog() {
+  AboutDialog about;
+  about.exec();
 }

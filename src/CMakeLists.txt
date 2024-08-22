@@ -15,6 +15,7 @@ SET(anytone-emu-gui_SOURCES
   heximagedocument.cc heximagedumpdocument.cc hexelementdumpdocument.cc heximagediffdocument.cc
   logmessagelist.cc
   mainwindow.cc mainwindow.ui
+  aboutdialog.cc aboutdialog.ui
 )
 
 SET(anytone-emu-gui_HEADERS
@@ -31,8 +32,9 @@ SET(anytone-emu-gui_HEADERS
   unusedfielddialog.hh
   imagecollectionadapter.hh imagecollectionwrapper.hh
   heximagedocument.hh heximagedumpdocument.hh hexelementdumpdocument.hh heximagediffdocument.hh
+  logmessagelist.hh
   mainwindow.hh
-  logmessagelist.hh)
+  aboutdialog.hh)
 
 
 qt_add_executable(anytone-emu-gui WIN32
@@ -65,7 +67,7 @@ generate_icons(
   ICONS application-anytone-emu
   THEMES light dark
   CONTEXT apps
-  SIZES 16)
+  SIZES 16 48 64)
 
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons

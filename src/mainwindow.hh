@@ -26,6 +26,7 @@ private slots:
   void onCloseTab(int index=-1);
   void onImageReceived(unsigned int idx);
   void onAnnotate();
+  void onShowAboutDialog();
 
 private:
   Ui::MainWindow *ui;

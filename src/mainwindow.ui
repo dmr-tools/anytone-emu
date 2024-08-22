@@ -32,15 +32,15 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="imagesPage">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>256</width>
-          <height>70</height>
+          <width>389</width>
+          <height>495</height>
          </rect>
         </property>
         <attribute name="label">
@@ -74,10 +74,10 @@
             <enum>QAbstractItemView::ExtendedSelection</enum>
            </property>
            <property name="headerHidden">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <attribute name="headerVisible">
-            <bool>false</bool>
+            <bool>true</bool>
            </attribute>
           </widget>
          </item>
@@ -256,6 +256,10 @@
     <widget class="QMenu" name="menuAdd_integer">
      <property name="title">
       <string>Add integer</string>
+     </property>
+     <property name="icon">
+      <iconset theme="pattern-integer">
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <addaction name="actionAdd_bit"/>
      <addaction name="actionAdd_uint8"/>
@@ -510,7 +514,7 @@
   </action>
   <action name="actionAdd_bit">
    <property name="icon">
-    <iconset theme="pattern-int">
+    <iconset theme="pattern-integer">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
@@ -519,7 +523,7 @@
   </action>
   <action name="actionAdd_uint8">
    <property name="icon">
-    <iconset theme="pattern-int">
+    <iconset theme="pattern-integer">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
@@ -528,7 +532,7 @@
   </action>
   <action name="actionAdd_int8">
    <property name="icon">
-    <iconset theme="pattern-int">
+    <iconset theme="pattern-integer">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
@@ -537,7 +541,7 @@
   </action>
   <action name="actionAdd_uint16">
    <property name="icon">
-    <iconset theme="pattern-int">
+    <iconset theme="pattern-integer">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
@@ -546,7 +550,7 @@
   </action>
   <action name="actionAdd_int16">
    <property name="icon">
-    <iconset theme="pattern-int">
+    <iconset theme="pattern-integer">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
@@ -555,7 +559,7 @@
   </action>
   <action name="actionAdd_uint32">
    <property name="icon">
-    <iconset theme="pattern-int">
+    <iconset theme="pattern-integer">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
@@ -564,7 +568,7 @@
   </action>
   <action name="actionAdd_int32">
    <property name="icon">
-    <iconset theme="pattern-int">
+    <iconset theme="pattern-integer">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
@@ -573,7 +577,7 @@
   </action>
   <action name="actionAdd_BCD8">
    <property name="icon">
-    <iconset theme="pattern-int">
+    <iconset theme="pattern-integer">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
@@ -591,7 +595,7 @@
   </action>
   <action name="actionAdd_string">
    <property name="icon">
-    <iconset theme="pattern-int-stringfield">
+    <iconset theme="pattern-stringfield">
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
