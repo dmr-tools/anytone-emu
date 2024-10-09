@@ -5,11 +5,9 @@
 #include <QTextCursor>
 #include <QTextDocumentFragment>
 
-HexImageDumpDocument::HexImageDumpDocument(const HexImage &img, QObject *parent)
-  : HexDocument{false, parent}
+HexImageDumpDocument::HexImageDumpDocument(const HexImage &img, bool darkMode, QObject *parent)
+  : HexDocument{darkMode, parent}
 {
-  _keepValueFormat.setForeground(Qt::black);
-
   QTextCursor cursor = this->rootFrame()->firstCursorPosition();
   for (unsigned int ei=0; ei<img.size(); ei++) {
     const HexElement &element = img.element(ei);

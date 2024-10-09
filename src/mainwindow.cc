@@ -186,13 +186,13 @@ MainWindow::onShowHexDump() {
   foreach (const QObject *obj, items) {
     if (const Image *img = qobject_cast<const Image *>(obj)) {
       QTextBrowser *view = new QTextBrowser();
-      auto document = new HexImageDumpDocument(HexImage(img));
+      auto document = new HexImageDumpDocument(HexImage(img), isDarkMode());
       document->enableDarkMode(isDarkMode());
       view->setDocument(document);
       ui->tabs->addTab(view, img->label());
     } else if (const Element *el = qobject_cast<const Element *>(obj)) {
       QTextBrowser *view = new QTextBrowser();
-      auto document = new HexElementDumpDocument(HexElement(el));
+      auto document = new HexElementDumpDocument(HexElement(el), isDarkMode());
       document->enableDarkMode(isDarkMode());
       view->setDocument(document);
       ui->tabs->addTab(view, QString("Element @ %1h").arg(el->address().byte(), 0, 16));
@@ -214,7 +214,7 @@ MainWindow::onShowHexDiff() {
   }
   for (int i=1; i<items.size(); i++) {
     QTextBrowser *view = new QTextBrowser();
-    auto document = new HexImageDiffDocument(HexImage(items.at(i-1), items.at(i)));
+    auto document = new HexImageDiffDocument(HexImage(items.at(i-1), items.at(i)), isDarkMode());
     document->enableDarkMode(isDarkMode());
     view->setDocument(document);
     ui->tabs->addTab(view, QString("%1 vs. %2").arg(items.at(i-1)->label()).arg(items.at(i)->label()));
@@ -243,7 +243,7 @@ MainWindow::onImageReceived(unsigned int idx) {
 
   if (ui->actionAutoViewHexDump->isChecked()) {
     QTextBrowser *view = new QTextBrowser();
-    view->setDocument(new HexImageDumpDocument(HexImage(last)));
+    view->setDocument(new HexImageDumpDocument(HexImage(last), isDarkMode()));
     ui->tabs->addTab(view, last->label());
     return;
   }
@@ -254,12 +254,12 @@ MainWindow::onImageReceived(unsigned int idx) {
   if (ui->actionAutoViewHexDiffFirst->isChecked()) {
     const Image *first = app->collection()->image(0);
     QTextBrowser *view = new QTextBrowser();
-    view->setDocument(new HexImageDiffDocument(HexImage(first, last)));
+    view->setDocument(new HexImageDiffDocument(HexImage(first, last), isDarkMode()));
     ui->tabs->addTab(view, QString("%1 vs. %2").arg(first->label()).arg(last->label()));
   } else if (ui->actionAutoViewHexDiffPrev->isChecked()) {
     const Image *prev = app->collection()->image(idx-1);
     QTextBrowser *view = new QTextBrowser();
-    view->setDocument(new HexImageDiffDocument(HexImage(prev, last)));
+    view->setDocument(new HexImageDiffDocument(HexImage(prev, last), isDarkMode()));
     ui->tabs->addTab(view, QString("%1 vs. %2").arg(prev->label()).arg(last->label()));
   }
 }

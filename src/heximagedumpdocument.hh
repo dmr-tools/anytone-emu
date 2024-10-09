@@ -8,7 +8,7 @@ class HexImageDumpDocument: public HexDocument
   Q_OBJECT
 
 public:
-  HexImageDumpDocument(const HexImage &img, QObject *parent = nullptr);
+  HexImageDumpDocument(const HexImage &img, bool darkMode = false, QObject *parent = nullptr);
 
 protected:
   void putElement(const HexElement &element, QTextCursor &cursor);

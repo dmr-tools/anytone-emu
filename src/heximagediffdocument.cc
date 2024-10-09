@@ -7,8 +7,8 @@
 #include <QTextDocumentFragment>
 
 
-HexImageDiffDocument::HexImageDiffDocument(const HexImage &img, QObject *parent)
-  : HexDocument{false, parent}
+HexImageDiffDocument::HexImageDiffDocument(const HexImage &img, bool darkMode, QObject *parent)
+  : HexDocument{darkMode, parent}
 {
   setUndoRedoEnabled(false);
 
