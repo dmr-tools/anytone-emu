@@ -53,42 +53,19 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->patterns->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(ui->patterns, &PatternView::canEdit, ui->actionEdit_pattern, &QAction::setVisible);
   connect(ui->actionEdit_pattern, &QAction::triggered, ui->patterns, &PatternView::editPattern);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->menuAdd_repeat, &QMenu::setEnabled);
-  connect(ui->actionAdd_sparse_repeat, &QAction::triggered, ui->patterns, &PatternView::addSparseRepeat);
-  connect(ui->patterns, &PatternView::canAddSparse, ui->actionAdd_sparse_repeat, &QAction::setVisible);
-  connect(ui->actionAdd_block_repeat, &QAction::triggered, ui->patterns, &PatternView::addBlockRepeat);
-  connect(ui->patterns, &PatternView::canAddBlock, ui->actionAdd_block_repeat, &QAction::setVisible);
-  connect(ui->actionAdd_fixed_repeat, &QAction::triggered, ui->patterns, &PatternView::addFixedRepeat);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_fixed_repeat, &QAction::setVisible);
-  connect(ui->actionAdd_element, &QAction::triggered, ui->patterns, &PatternView::addElement);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_element, &QAction::setVisible);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->menuAdd_integer, &QMenu::setEnabled);
-  connect(ui->actionAdd_bit, &QAction::triggered, ui->patterns, &PatternView::addBit);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_bit, &QAction::setVisible);
-  connect(ui->actionAdd_uint8, &QAction::triggered, ui->patterns, &PatternView::addUInt8);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_uint8, &QAction::setVisible);
-  connect(ui->actionAdd_int8, &QAction::triggered, ui->patterns, &PatternView::addInt8);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_int8, &QAction::setVisible);
-  connect(ui->actionAdd_uint16, &QAction::triggered, ui->patterns, &PatternView::addUInt16);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_uint16, &QAction::setVisible);
-  connect(ui->actionAdd_int16, &QAction::triggered, ui->patterns, &PatternView::addInt16);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_int16, &QAction::setVisible);
-  connect(ui->actionAdd_uint32, &QAction::triggered, ui->patterns, &PatternView::addUInt32);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_uint32, &QAction::setVisible);
-  connect(ui->actionAdd_int32, &QAction::triggered, ui->patterns, &PatternView::addInt32);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_int32, &QAction::setVisible);
-  connect(ui->actionAdd_BCD8, &QAction::triggered, ui->patterns, &PatternView::addBCD8);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_BCD8, &QAction::setVisible);
-  connect(ui->actionAdd_enum, &QAction::triggered, ui->patterns, &PatternView::addEnum);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_enum, &QAction::setVisible);
-  connect(ui->actionAdd_string, &QAction::triggered, ui->patterns, &PatternView::addString);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_string, &QAction::setVisible);
-  connect(ui->actionAdd_unused, &QAction::triggered, ui->patterns, &PatternView::addUnused);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_unused, &QAction::setVisible);
-  connect(ui->actionAdd_unknown, &QAction::triggered, ui->patterns, &PatternView::addUnknown);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_unknown, &QAction::setVisible);
+
+  connect(ui->patterns, &PatternView::canAppendPattern, ui->actionAppend_pattern, &QAction::setVisible);
+  connect(ui->actionAppend_pattern, &QAction::triggered, ui->patterns, &PatternView::appendPattern);
+
+  connect(ui->patterns, &PatternView::canInsertPatternAbove, ui->actionInsert_above, &QAction::setVisible);
+  connect(ui->actionInsert_above, &QAction::triggered, ui->patterns, &PatternView::insertPatternAbove);
+
+  connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionInsert_below, &QAction::setVisible);
+  connect(ui->actionInsert_below, &QAction::triggered, ui->patterns, &PatternView::insertPatternBelow);
+
   connect(ui->actionDelete_pattern, &QAction::triggered, ui->patterns, &PatternView::removeSelected);
   connect(ui->patterns, &PatternView::canRemove, ui->actionDelete_pattern, &QAction::setVisible);
+
   connect(ui->actionSave_pattern, &QAction::triggered, ui->patterns, &PatternView::save);
 
   QActionGroup *viewGrp = new QActionGroup(this);
