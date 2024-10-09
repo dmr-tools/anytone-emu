@@ -17,6 +17,8 @@
 #include "enumfielddialog.hh"
 #include "stringfielddialog.hh"
 #include "unusedfielddialog.hh"
+#include "newpatterndialog.hh"
+
 
 
 PatternView::PatternView(QWidget *parent)
@@ -110,6 +112,10 @@ PatternView::appendPattern() {
   }
 
   StructuredPattern *structure = parent->as<StructuredPattern>();
+  NewPatternDialog dialog(parent, nullptr);
+  if (QDialog::Accepted == dialog.exec())
+    return;
+
 
 }
 
@@ -130,6 +136,9 @@ PatternView::insertPatternAbove() {
     return;
   }
   StructuredPattern *structure = parent->as<StructuredPattern>();
+  NewPatternDialog dialog(parent, nullptr);
+  if (QDialog::Accepted == dialog.exec())
+    return;
 
   structure->indexOf(nextSibling);
 }
@@ -152,6 +161,9 @@ PatternView::insertPatternBelow() {
     return;
   }
   StructuredPattern *structure = parent->as<StructuredPattern>();
+  NewPatternDialog dialog(parent, nullptr);
+  if (QDialog::Accepted == dialog.exec())
+    return;
 
   structure->indexOf(nextSibling);
 }

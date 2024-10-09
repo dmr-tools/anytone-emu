@@ -17,7 +17,7 @@ class NewPatternDialog : public QDialog
   Q_OBJECT
 
 public:
-  explicit NewPatternDialog(AbstractPattern *parentPattern, QWidget *parent = nullptr);
+  NewPatternDialog(AbstractPattern *parentPattern, QWidget *parent = nullptr);
   ~NewPatternDialog();
 
 private:
