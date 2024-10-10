@@ -2,19 +2,8 @@
 #include "ui_newpatterndialog.h"
 #include "pattern.hh"
 
-enum class PatternType {
-  None = 0,
-  FixedPattern = 1,
-  DensePattern = 3,
-  SparsePattern = 7
-};
 
-inline bool operator|(PatternType left, PatternType right) {
-  return (int) left | (int) right;
-}
-
-
-NewPatternDialog::NewPatternDialog(AbstractPattern *parentPattern, QWidget *parent)
+NewPatternDialog::NewPatternDialog(AbstractPattern *parentPattern, const Address &addr, QWidget *parent)
   : QDialog(parent), ui(new Ui::NewPatternDialog)
 {
   ui->setupUi(this);
@@ -22,54 +11,40 @@ NewPatternDialog::NewPatternDialog(AbstractPattern *parentPattern, QWidget *pare
   if (nullptr == parentPattern)
     return;
 
-  connect(ui->category, &QComboBox::activated, ui->stack, &QStackedWidget::setCurrentIndex);
+  ui->address->setText(addr.toString());
+  ui->address->setEnabled(parentPattern->is<CodeplugPattern>());
 
-  PatternType pattern = PatternType::None;
+  int pattern = (int)PatternSelectionWidget::PatternType::None;
   if (parentPattern->is<CodeplugPattern>()  ) {
-    pattern = PatternType::SparsePattern;
+    pattern = PatternSelectionWidget::PatternType::FixedPattern
+        | PatternSelectionWidget::PatternType::DensePattern
+        | PatternSelectionWidget::PatternType::SparsePattern;
   } else if (parentPattern->is<ElementPattern>()) {
-    pattern = PatternType::FixedPattern;
+    pattern = (int)PatternSelectionWidget::PatternType::FixedPattern;
   } else if (parentPattern->is<StructuredPattern>()) {
     pattern = (0 == parentPattern->as<StructuredPattern>()->numChildPattern())
-        ? PatternType::DensePattern
-        : PatternType::None;
+        ? (PatternSelectionWidget::PatternType::FixedPattern
+           | PatternSelectionWidget::PatternType::DensePattern)
+        : (int) PatternSelectionWidget::PatternType::None;
   }
-
-  if (pattern | PatternType::FixedPattern) {    
-    ui->fieldPattern->addItem(tr("ASCII string"), "ascii");
-    ui->fieldPattern->addItem(tr("unicode string"), "uc16");
-    ui->fieldPattern->addItem(tr("enumeration"), "enum");
-    ui->fieldPattern->addItem(tr("unknown"), "unknown");
-    ui->fieldPattern->addItem(tr("unused"), "unused");
-
-    ui->integerPattern->addItem(tr("boolean"), "bool");
-    ui->integerPattern->addItem(tr("unsigend integer"), "uint");
-    ui->integerPattern->addItem(tr("signed integer"), "int");
-    ui->integerPattern->addItem(tr("8bit unsigned integer"), "uint8");
-    ui->integerPattern->addItem(tr("8bit signed integer"), "int8");
-    ui->integerPattern->addItem(tr("16bit unsigned integer little-endian"), "uint16le");
-    ui->integerPattern->addItem(tr("16bit signed integer little-endian"), "int16le");
-    ui->integerPattern->addItem(tr("16bit unsigned integer big-endian"), "uint16be");
-    ui->integerPattern->addItem(tr("16bit signed integer big-endian"), "int16be");
-    ui->integerPattern->addItem(tr("32bit unsigned integer little-endian"), "uint32le");
-    ui->integerPattern->addItem(tr("32bit signed integer little-endian"), "int32le");
-    ui->integerPattern->addItem(tr("32bit unsigned integer big-endian"), "uint32be");
-    ui->integerPattern->addItem(tr("32bit signed integer big-endian"), "int32be");
-
-    ui->structurePattern->addItem(tr("element"), "element");
-    ui->structurePattern->addItem(tr("fixed repeat"), "fixed repeat");
-  }
-
-  if (pattern | PatternType::DensePattern) {
-    ui->structurePattern->addItem(tr("block repeat"), "block repeat");
-  }
-
-  if (pattern | PatternType::SparsePattern) {
-    ui->structurePattern->addItem(tr("repeat"), "repeat");
-  }
+  ui->patternSelection->setPatternTypes(pattern);
+  ui->patternSelection->headLabel()->setText(tr("Select new pattern type:"));
 }
 
 NewPatternDialog::~NewPatternDialog()
 {
   delete ui;
 }
+
+
+AbstractPattern *
+NewPatternDialog::create() const {
+  AbstractPattern *pattern = ui->patternSelection->createPattern();
+
+  if (ui->address->isEnabled()) {
+    pattern->setAddress(Address::fromString(ui->address->text().simplified()));
+  }
+
+  return pattern;
+}
+

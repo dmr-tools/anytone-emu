@@ -230,9 +230,16 @@ CodeplugPattern::addChildPattern(AbstractPattern *pattern) {
   if (! pattern->hasAddress())
     return false;
 
-  unsigned int idx = _content.size();
+  Address addr = pattern->address();
+
+  // Find index, where to add item
+  unsigned int idx = 0;
+  QList<AbstractPattern*>::const_iterator iter = _content.constBegin();
+  for (; (iter != _content.constEnd()) && (addr > (*iter)->address()); iter++, idx++);
+
   pattern->setParent(this);
-  _content.append(pattern);
+  _content.insert(iter, pattern);
+
   connect(pattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
   connect(pattern, &AbstractPattern::added, this, &AbstractPattern::added);
   connect(pattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
@@ -721,6 +728,50 @@ ElementPattern::addChildPattern(AbstractPattern *pattern) {
     setSize(pattern->as<FixedPattern>()->size());
 
   emit added(this, idx);
+
+  return true;
+}
+
+bool
+ElementPattern::insertChildPattern(FixedPattern *pattern, unsigned int idx) {
+  if (idx > _content.size())
+    return false;
+  // Compute offset, where to put pattern
+  Address addr = Address::zero();
+  if (idx == _content.size())
+    addr = _content.back()->address() + _content.back()->size();
+  else
+    addr = _content.at(idx)->address();
+
+  // If a offset is set -> check it
+  if (pattern->hasAddress() && (pattern->address() != addr))
+    return false;
+
+  // Set/update offset
+  pattern->setAddress(addr);
+
+  // add to content
+  pattern->setParent(this);
+  _content.append(pattern->as<FixedPattern>());
+  connect(pattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
+  connect(pattern, &AbstractPattern::added, this, &AbstractPattern::added);
+  connect(pattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
+  connect(pattern, &AbstractPattern::removed, this, &AbstractPattern::removed);
+  connect(pattern->as<FixedPattern>(), &FixedPattern::resized,
+          this, &ElementPattern::onChildResized);
+
+  // update own size
+  if (size().isValid())
+    setSize(size() + pattern->size());
+  else
+    setSize(pattern->size());
+
+  emit added(this, idx);
+
+  // Update addresses of all subsequent patterns:
+  for (idx++; idx < _content.size(); idx++) {
+    _content[idx]->setAddress(_content[idx-1]->address() + _content[idx-1]->size());
+  }
 
   return true;
 }

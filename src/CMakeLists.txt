@@ -16,6 +16,7 @@ SET(anytone-emu-gui_SOURCES
   logmessagelist.cc
   mainwindow.cc mainwindow.ui
   aboutdialog.cc aboutdialog.ui
+  patternselectionwidget.cc patternselectionwidget.ui
   newpatterndialog.cc newpatterndialog.ui
 )
 
@@ -36,6 +37,7 @@ SET(anytone-emu-gui_HEADERS
   logmessagelist.hh
   mainwindow.hh
   aboutdialog.hh
+  patternselectionwidget.hh
   newpatterndialog.hh)
 
 

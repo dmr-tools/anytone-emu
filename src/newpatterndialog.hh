@@ -17,8 +17,10 @@ class NewPatternDialog : public QDialog
   Q_OBJECT
 
 public:
-  NewPatternDialog(AbstractPattern *parentPattern, QWidget *parent = nullptr);
+  NewPatternDialog(AbstractPattern *parentPattern, const Address &addr = Address(), QWidget *parent = nullptr);
   ~NewPatternDialog();
+
+  AbstractPattern *create() const;
 
 private:
   Ui::NewPatternDialog *ui;

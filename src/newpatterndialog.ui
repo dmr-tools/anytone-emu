@@ -7,93 +7,49 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>203</height>
+    <height>210</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Select the type of the pattern to create</string>
-     </property>
+    <widget class="QWidget" name="addressRow" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Address</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="address"/>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
-    <widget class="QComboBox" name="category">
-     <item>
-      <property name="text">
-       <string>Field Pattern</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Integer Pattern</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Structured Pattern</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item>
-    <widget class="QStackedWidget" name="stack">
-     <property name="currentIndex">
-      <number>1</number>
-     </property>
-     <widget class="QWidget" name="structurePatternPage">
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Select structure pattern type</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="structurePattern"/>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="fieldPatternPage">
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <item>
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Select the fixed field pattern type</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="fieldPattern"/>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="integerPatternPage">
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Select the integer field type</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="integerPattern"/>
-       </item>
-      </layout>
-     </widget>
-    </widget>
+    <widget class="PatternSelectionWidget" name="patternSelection" native="true"/>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -107,6 +63,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PatternSelectionWidget</class>
+   <extends>QWidget</extends>
+   <header>patternselectionwidget.hh</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

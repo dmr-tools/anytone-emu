@@ -112,11 +112,26 @@ PatternView::appendPattern() {
   }
 
   StructuredPattern *structure = parent->as<StructuredPattern>();
-  NewPatternDialog dialog(parent, nullptr);
-  if (QDialog::Accepted == dialog.exec())
+
+  Address insertionAddress;
+  if (structure->numChildPattern()) {
+    AbstractPattern *pred = structure->childPattern(structure->numChildPattern()-1);
+    insertionAddress = pred->address();
+    if (FixedPattern *fixed = pred->as<FixedPattern>())
+      insertionAddress += fixed->size();
+  }
+
+  NewPatternDialog dialog(parent, insertionAddress, nullptr);
+  if (QDialog::Accepted != dialog.exec())
     return;
 
-
+  AbstractPattern *newPattern = dialog.create();
+  if (! structure->addChildPattern(newPattern)) {
+    QMessageBox::information(nullptr, tr("Cannot append pattern."),
+                             tr("Cannot append pattern to {}.").arg(parent->meta().name()));
+    newPattern->deleteLater();
+    return;
+  }
 }
 
 void
@@ -135,12 +150,35 @@ PatternView::insertPatternAbove() {
                              tr("The parent of the selected pattern must be a structured pattern."));
     return;
   }
+
+  Address insertionAddress = nextSibling->address();
+
   StructuredPattern *structure = parent->as<StructuredPattern>();
-  NewPatternDialog dialog(parent, nullptr);
-  if (QDialog::Accepted == dialog.exec())
+  unsigned int insertionIndex = structure->indexOf(nextSibling);
+  if (! parent->is<ElementPattern>()) {
+    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
+                             tr("The parent of the selected pattern must be an element pattern."));
+    return;
+  }
+
+  NewPatternDialog dialog(parent, insertionAddress, nullptr);
+  if (QDialog::Accepted != dialog.exec())
     return;
 
-  structure->indexOf(nextSibling);
+  AbstractPattern *newPattern = dialog.create();
+  if (! newPattern->is<FixedPattern>()) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Can onyl add fixed-sized patterns to an element pattern."));
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! parent->as<ElementPattern>()->insertChildPattern(newPattern->as<FixedPattern>(), insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    newPattern->deleteLater();
+    return;
+  }
 }
 
 
@@ -160,12 +198,37 @@ PatternView::insertPatternBelow() {
                              tr("The parent of the selected pattern must be a structured pattern."));
     return;
   }
+
+  Address insertionAddress = nextSibling->address();
+  if (FixedPattern *fixed = nextSibling->as<FixedPattern>())
+    insertionAddress += fixed->size();
+
   StructuredPattern *structure = parent->as<StructuredPattern>();
-  NewPatternDialog dialog(parent, nullptr);
-  if (QDialog::Accepted == dialog.exec())
+  unsigned int insertionIndex = structure->indexOf(nextSibling) + 1;
+  if (! parent->is<ElementPattern>()) {
+    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
+                             tr("The parent of the selected pattern must be an element pattern."));
+    return;
+  }
+
+  NewPatternDialog dialog(parent, insertionAddress, nullptr);
+  if (QDialog::Accepted != dialog.exec())
     return;
 
-  structure->indexOf(nextSibling);
+  AbstractPattern *newPattern = dialog.create();
+  if (! newPattern->is<FixedPattern>()) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Can onyl add fixed-sized patterns to an element pattern."));
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! parent->as<ElementPattern>()->insertChildPattern(newPattern->as<FixedPattern>(), insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    newPattern->deleteLater();
+    return;
+  }
 }
 
 
@@ -236,7 +299,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canAppendPattern(false);
   }
 
-  if (parent->is<ElementPattern>() || parent->is<CodeplugPattern>()) {
+  if (parent->is<ElementPattern>()) {
     emit canInsertPatternAbove(true);
     emit canInsertPatternBelow(true);
   } else {
