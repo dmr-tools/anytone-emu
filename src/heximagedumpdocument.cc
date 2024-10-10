@@ -5,7 +5,7 @@
 #include <QTextCursor>
 #include <QTextDocumentFragment>
 
-HexImageDumpDocument::HexImageDumpDocument(const HexImage &img, bool darkMode, QObject *parent)
+HexImageDumpDocument::HexImageDumpDocument(bool darkMode, const HexImage &img, QObject *parent)
   : HexDocument{darkMode, parent}
 {
   QTextCursor cursor = this->rootFrame()->firstCursorPosition();

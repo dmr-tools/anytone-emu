@@ -8,7 +8,7 @@ class HexElementDumpDocument: public HexDocument
   Q_OBJECT
 
 public:
-  HexElementDumpDocument(const HexElement &element, bool darkMode=false, QObject *parent = nullptr);
+  HexElementDumpDocument(bool darkMode, const HexElement &element, QObject *parent = nullptr);
 
 protected:
   void putElement(const HexElement &element, QTextCursor &cursor);

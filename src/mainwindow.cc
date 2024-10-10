@@ -8,7 +8,6 @@
 #include "hexelementdumpdocument.hh"
 #include "heximagediffdocument.hh"
 #include "imagecollectionwrapper.hh"
-#include "patternwrapper.hh"
 #include "logger.hh"
 #include "logmessagelist.hh"
 #include <QActionGroup>
@@ -53,42 +52,20 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->patterns->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(ui->patterns, &PatternView::canEdit, ui->actionEdit_pattern, &QAction::setVisible);
   connect(ui->actionEdit_pattern, &QAction::triggered, ui->patterns, &PatternView::editPattern);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->menuAdd_repeat, &QMenu::setEnabled);
-  connect(ui->actionAdd_sparse_repeat, &QAction::triggered, ui->patterns, &PatternView::addSparseRepeat);
-  connect(ui->patterns, &PatternView::canAddSparse, ui->actionAdd_sparse_repeat, &QAction::setVisible);
-  connect(ui->actionAdd_block_repeat, &QAction::triggered, ui->patterns, &PatternView::addBlockRepeat);
-  connect(ui->patterns, &PatternView::canAddBlock, ui->actionAdd_block_repeat, &QAction::setVisible);
-  connect(ui->actionAdd_fixed_repeat, &QAction::triggered, ui->patterns, &PatternView::addFixedRepeat);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_fixed_repeat, &QAction::setVisible);
-  connect(ui->actionAdd_element, &QAction::triggered, ui->patterns, &PatternView::addElement);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_element, &QAction::setVisible);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->menuAdd_integer, &QMenu::setEnabled);
-  connect(ui->actionAdd_bit, &QAction::triggered, ui->patterns, &PatternView::addBit);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_bit, &QAction::setVisible);
-  connect(ui->actionAdd_uint8, &QAction::triggered, ui->patterns, &PatternView::addUInt8);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_uint8, &QAction::setVisible);
-  connect(ui->actionAdd_int8, &QAction::triggered, ui->patterns, &PatternView::addInt8);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_int8, &QAction::setVisible);
-  connect(ui->actionAdd_uint16, &QAction::triggered, ui->patterns, &PatternView::addUInt16);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_uint16, &QAction::setVisible);
-  connect(ui->actionAdd_int16, &QAction::triggered, ui->patterns, &PatternView::addInt16);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_int16, &QAction::setVisible);
-  connect(ui->actionAdd_uint32, &QAction::triggered, ui->patterns, &PatternView::addUInt32);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_uint32, &QAction::setVisible);
-  connect(ui->actionAdd_int32, &QAction::triggered, ui->patterns, &PatternView::addInt32);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_int32, &QAction::setVisible);
-  connect(ui->actionAdd_BCD8, &QAction::triggered, ui->patterns, &PatternView::addBCD8);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_BCD8, &QAction::setVisible);
-  connect(ui->actionAdd_enum, &QAction::triggered, ui->patterns, &PatternView::addEnum);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_enum, &QAction::setVisible);
-  connect(ui->actionAdd_string, &QAction::triggered, ui->patterns, &PatternView::addString);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_string, &QAction::setVisible);
-  connect(ui->actionAdd_unused, &QAction::triggered, ui->patterns, &PatternView::addUnused);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_unused, &QAction::setVisible);
-  connect(ui->actionAdd_unknown, &QAction::triggered, ui->patterns, &PatternView::addUnknown);
-  connect(ui->patterns, &PatternView::canAddFixed, ui->actionAdd_unknown, &QAction::setVisible);
+
+  connect(ui->patterns, &PatternView::canAppendPattern, ui->actionAppend_pattern, &QAction::setVisible);
+  connect(ui->actionAppend_pattern, &QAction::triggered, ui->patterns, &PatternView::appendPattern);
+
+  connect(ui->patterns, &PatternView::canInsertPatternAbove, ui->actionInsert_above, &QAction::setVisible);
+  connect(ui->actionInsert_above, &QAction::triggered, ui->patterns, &PatternView::insertPatternAbove);
+  connect(ui->patterns, &PatternView::canSplitFieldPattern, ui->actionSplitUnknownField, &QAction::setVisible);
+  connect(ui->actionSplitUnknownField, &QAction::triggered, ui->patterns, &PatternView::splitFieldPattern);
+  connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionInsert_below, &QAction::setVisible);
+  connect(ui->actionInsert_below, &QAction::triggered, ui->patterns, &PatternView::insertPatternBelow);
+
   connect(ui->actionDelete_pattern, &QAction::triggered, ui->patterns, &PatternView::removeSelected);
   connect(ui->patterns, &PatternView::canRemove, ui->actionDelete_pattern, &QAction::setVisible);
+
   connect(ui->actionSave_pattern, &QAction::triggered, ui->patterns, &PatternView::save);
 
   QActionGroup *viewGrp = new QActionGroup(this);
@@ -186,13 +163,13 @@ MainWindow::onShowHexDump() {
   foreach (const QObject *obj, items) {
     if (const Image *img = qobject_cast<const Image *>(obj)) {
       QTextBrowser *view = new QTextBrowser();
-      auto document = new HexImageDumpDocument(HexImage(img), isDarkMode());
+      auto document = new HexImageDumpDocument(isDarkMode(), HexImage(img));
       document->enableDarkMode(isDarkMode());
       view->setDocument(document);
       ui->tabs->addTab(view, img->label());
     } else if (const Element *el = qobject_cast<const Element *>(obj)) {
       QTextBrowser *view = new QTextBrowser();
-      auto document = new HexElementDumpDocument(HexElement(el), isDarkMode());
+      auto document = new HexElementDumpDocument(isDarkMode(), HexElement(el));
       document->enableDarkMode(isDarkMode());
       view->setDocument(document);
       ui->tabs->addTab(view, QString("Element @ %1h").arg(el->address().byte(), 0, 16));
@@ -214,8 +191,7 @@ MainWindow::onShowHexDiff() {
   }
   for (int i=1; i<items.size(); i++) {
     QTextBrowser *view = new QTextBrowser();
-    auto document = new HexImageDiffDocument(HexImage(items.at(i-1), items.at(i)), isDarkMode());
-    document->enableDarkMode(isDarkMode());
+    auto document = new HexImageDiffDocument(isDarkMode(), HexImage(items.at(i-1), items.at(i)));
     view->setDocument(document);
     ui->tabs->addTab(view, QString("%1 vs. %2").arg(items.at(i-1)->label()).arg(items.at(i)->label()));
   }
@@ -243,7 +219,7 @@ MainWindow::onImageReceived(unsigned int idx) {
 
   if (ui->actionAutoViewHexDump->isChecked()) {
     QTextBrowser *view = new QTextBrowser();
-    view->setDocument(new HexImageDumpDocument(HexImage(last), isDarkMode()));
+    view->setDocument(new HexImageDumpDocument(isDarkMode(), HexImage(last)));
     ui->tabs->addTab(view, last->label());
     return;
   }
@@ -254,12 +230,12 @@ MainWindow::onImageReceived(unsigned int idx) {
   if (ui->actionAutoViewHexDiffFirst->isChecked()) {
     const Image *first = app->collection()->image(0);
     QTextBrowser *view = new QTextBrowser();
-    view->setDocument(new HexImageDiffDocument(HexImage(first, last), isDarkMode()));
+    view->setDocument(new HexImageDiffDocument(isDarkMode(), HexImage(first, last)));
     ui->tabs->addTab(view, QString("%1 vs. %2").arg(first->label()).arg(last->label()));
   } else if (ui->actionAutoViewHexDiffPrev->isChecked()) {
     const Image *prev = app->collection()->image(idx-1);
     QTextBrowser *view = new QTextBrowser();
-    view->setDocument(new HexImageDiffDocument(HexImage(prev, last), isDarkMode()));
+    view->setDocument(new HexImageDiffDocument(isDarkMode(), HexImage(prev, last)));
     ui->tabs->addTab(view, QString("%1 vs. %2").arg(prev->label()).arg(last->label()));
   }
 }

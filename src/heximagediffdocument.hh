@@ -11,7 +11,7 @@
 class HexImageDiffDocument : public HexDocument
 {
 public:
-  explicit HexImageDiffDocument(const HexImage &img, bool darkMode=false, QObject *parent = nullptr);
+  explicit HexImageDiffDocument(bool darkMode, const HexImage &img, QObject *parent = nullptr);
 
 protected:
   void putElement(const HexElement &element, QTextCursor &cursor);
