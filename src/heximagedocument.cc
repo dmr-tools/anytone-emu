@@ -57,12 +57,14 @@ HexDocument::HexDocument(bool darkMode, QObject *parent)
 void
 HexDocument::enableDarkMode(bool enable) {
   if (enable) {
-    _addressFormat.setForeground(QColor(Qt::cyan));
+    _elementTitleFormat.setForeground(QColor(Qt::lightGray));
+    _addressFormat.setForeground(QColor(Qt::darkMagenta));
     _keepValueFormat.setForeground(QColor(Qt::lightGray));
     _addValueFormat.setForeground(QColor(Qt::green));
     _remValueFormat.setForeground(QColor(Qt::red));
     _unusedValueFormat.setForeground(QColor(Qt::gray));
   } else {
+    _elementTitleFormat.setForeground(QColor(Qt::black));
     _addressFormat.setForeground(QColor(Qt::darkBlue));
     _keepValueFormat.setForeground(QColor(Qt::gray));
     _addValueFormat.setForeground(QColor(Qt::darkGreen));
