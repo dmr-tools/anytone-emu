@@ -3,7 +3,6 @@
 #include "device.hh"
 #include "application.hh"
 #include "patternwrapper.hh"
-#include "logger.hh"
 
 #include <QAction>
 #include <QMenu>
@@ -18,7 +17,7 @@
 #include "stringfielddialog.hh"
 #include "unusedfielddialog.hh"
 #include "newpatterndialog.hh"
-
+#include "splitfieldpatterndialog.hh"
 
 
 PatternView::PatternView(QWidget *parent)
@@ -232,6 +231,34 @@ PatternView::insertPatternBelow() {
 }
 
 
+void
+PatternView::splitFieldPattern() {
+  AbstractPattern *replaced = selectedPattern();
+
+  if ((nullptr == replaced) || (! replaced->is<UnknownFieldPattern>())) {
+    QMessageBox::information(nullptr, tr("Select an unknown field first."),
+                             tr("To split an unknown field, select one first."));
+    return;
+  }
+
+  AbstractPattern *parent = qobject_cast<AbstractPattern *>(replaced->parent());
+  if ((nullptr == parent) || (! parent->is<ElementPattern>())) {
+    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
+                             tr("The parent of the selected pattern must be an element pattern."));
+    return;
+  }
+
+  ElementPattern *parentElement = parent->as<ElementPattern>();
+  Address insertionAddress = replaced->address();
+  unsigned int insertionIndex = parentElement->indexOf(replaced);
+
+  SplitFieldPatternDialog dialog(replaced->as<UnknownFieldPattern>());
+  if (QDialog::Accepted != dialog.exec())
+    return;
+
+
+}
+
 
 void
 PatternView::removeSelected() {
@@ -254,6 +281,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canEdit(false);
     emit canAppendPattern(false);
     emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
     return;
@@ -265,6 +293,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canEdit(false);
     emit canAppendPattern(false);
     emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
     return;
@@ -275,6 +304,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
   if (pattern->is<CodeplugPattern>()) {
     emit canAppendPattern(true);
     emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
     return;
@@ -284,6 +314,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
   if (nullptr == parent) {
     emit canAppendPattern(false);
     emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
     return;
@@ -293,8 +324,10 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
 
   if (pattern->is<RepeatPattern>() || pattern->is<BlockRepeatPattern>() || pattern->is<FixedRepeatPattern>()) {
     emit canAppendPattern(0 == pattern->as<StructuredPattern>()->numChildPattern());
+    emit canSplitFieldPattern(false);
   } else if (pattern->is<ElementPattern>()) {
     emit canAppendPattern(true);
+    emit canSplitFieldPattern(false);
   } else {
     emit canAppendPattern(false);
   }
@@ -302,9 +335,14 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
   if (parent->is<ElementPattern>()) {
     emit canInsertPatternAbove(true);
     emit canInsertPatternBelow(true);
+    if (pattern->is<UnknownFieldPattern>())
+      emit canSplitFieldPattern(true);
+    else
+      emit canSplitFieldPattern(false);
   } else {
     emit canInsertPatternAbove(false);
     emit canInsertPatternBelow(false);
+    emit canSplitFieldPattern(false);
   }
 }
 
@@ -317,6 +355,7 @@ PatternView::onShowContextMenu(const QPoint &point) {
   contextMenu.addSeparator();
   contextMenu.addAction(app->findObject<QAction>("actionAppend_pattern"));
   contextMenu.addAction(app->findObject<QAction>("actionInsert_above"));
+  contextMenu.addAction(app->findObject<QAction>("actionSplitUnknownField"));
   contextMenu.addAction(app->findObject<QAction>("actionInsert_below"));
   contextMenu.addSeparator();
   contextMenu.addAction(app->findObject<QAction>("actionDelete_pattern"));

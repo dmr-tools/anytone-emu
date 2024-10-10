@@ -111,7 +111,9 @@ CollectionWrapper::data(const QModelIndex &index, int role) const {
     if (0 == index.column()) {
       return tr("Field '%1'").arg(el->pattern()->meta().name());
     } else if (1 == index.column()) {
-      return el->address().toString();
+      if ((7 == el->address().bit()) && (0 == (el->size().bits() % 8)))
+        return QString("%1h  ").arg(el->address().byte(), 0, 16);
+      return QString("%1h:%2").arg(el->address().byte(), 0, 16).arg(el->address().bit(),0,8);
     } else if (2 == index.column()) {
       return formatFieldValue(el);
     }

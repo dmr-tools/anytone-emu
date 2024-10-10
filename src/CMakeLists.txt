@@ -18,6 +18,7 @@ SET(anytone-emu-gui_SOURCES
   aboutdialog.cc aboutdialog.ui
   patternselectionwidget.cc patternselectionwidget.ui
   newpatterndialog.cc newpatterndialog.ui
+  splitfieldpatterndialog.cc splitfieldpatterndialog.ui
 )
 
 SET(anytone-emu-gui_HEADERS
@@ -38,12 +39,14 @@ SET(anytone-emu-gui_HEADERS
   mainwindow.hh
   aboutdialog.hh
   patternselectionwidget.hh
-  newpatterndialog.hh)
+  newpatterndialog.hh
+  splitfieldpatterndialog.hh)
 
 
 qt_add_executable(anytone-emu-gui WIN32
   ${anytone-emu-gui_SOURCES}
-  newpatterndialog.hh newpatterndialog.cc newpatterndialog.ui)
+  newpatterndialog.hh newpatterndialog.cc newpatterndialog.ui
+  splitfieldpatterndialog.hh splitfieldpatterndialog.cc splitfieldpatterndialog.ui)
 
 qt_add_resources(anytone-emu-gui "codeplugs"
   PREFIX "/codeplugs"
