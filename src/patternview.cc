@@ -50,56 +50,63 @@ PatternView::editPattern() {
     return;
   }
 
+  _editPattern(pattern);
+}
+
+
+bool
+PatternView::_editPattern(AbstractPattern *pattern) {
   if (pattern->is<RepeatPattern>()) {
     SparseRepeatDialog dialog;
     dialog.setPattern(pattern->as<RepeatPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<BlockRepeatPattern>()) {
+  if (pattern->is<BlockRepeatPattern>()) {
     BlockRepeatDialog dialog;
     dialog.setPattern(pattern->as<BlockRepeatPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<FixedRepeatPattern>()) {
+  if (pattern->is<FixedRepeatPattern>()) {
     FixedRepeatDialog dialog;
     dialog.setPattern(pattern->as<FixedRepeatPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<ElementPattern>()) {
+  if (pattern->is<ElementPattern>()) {
     ElementDialog dialog;
     dialog.setPattern(pattern->as<ElementPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<IntegerFieldPattern>()) {
+  if (pattern->is<IntegerFieldPattern>()) {
     IntegerFieldDialog dialog;
     dialog.setPattern(pattern->as<IntegerFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<EnumFieldPattern>()) {
+  if (pattern->is<EnumFieldPattern>()) {
     EnumFieldDialog dialog;
     dialog.setPattern(pattern->as<EnumFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<StringFieldPattern>()) {
+  if (pattern->is<StringFieldPattern>()) {
     StringFieldDialog dialog;
     dialog.setPattern(pattern->as<StringFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<UnusedFieldPattern>()) {
+  if (pattern->is<UnusedFieldPattern>()) {
     UnusedFieldDialog dialog;
     dialog.setPattern(pattern->as<UnusedFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
-
-    }
+    return QDialog::Accepted == dialog.exec();
   }
+
+  return false;
 }
+
 
 void
 PatternView::appendPattern() {
@@ -249,14 +256,48 @@ PatternView::splitFieldPattern() {
   }
 
   ElementPattern *parentElement = parent->as<ElementPattern>();
-  Address insertionAddress = replaced->address();
+  Address startAddress = replaced->address();
+  Offset originalSize = replaced->as<FieldPattern>()->size();
   unsigned int insertionIndex = parentElement->indexOf(replaced);
 
   SplitFieldPatternDialog dialog(replaced->as<UnknownFieldPattern>());
   if (QDialog::Accepted != dialog.exec())
     return;
 
+  Address insertionAddr = dialog.address();
+  FixedPattern *inserted = dialog.createPattern();
 
+  if (! _editPattern(inserted)) {
+    inserted->deleteLater();
+    return;
+  }
+
+  Offset headFieldSize = insertionAddr - startAddress;
+
+  if (originalSize < (headFieldSize + inserted->size())) {
+    inserted->deleteLater();
+    return;
+  }
+
+  // Clear address
+  inserted->setAddress(Address());
+
+  Offset tailFieldSize = Offset::fromBits(
+        originalSize.bits() - headFieldSize.bits() - inserted->size().bits());
+
+  parentElement->deleteChild(insertionIndex);
+
+  if (headFieldSize.bits()) {
+    auto head = new UnknownFieldPattern(); head->setWidth(headFieldSize);
+    parentElement->insertChildPattern(head, insertionIndex++);
+  }
+
+  parentElement->insertChildPattern(inserted, insertionIndex++);
+
+  if (tailFieldSize.bits()) {
+    auto tail = new UnknownFieldPattern(); tail->setWidth(tailFieldSize);
+    parentElement->insertChildPattern(tail, insertionIndex++);
+  }
 }
 
 

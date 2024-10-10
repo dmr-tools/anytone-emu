@@ -19,6 +19,7 @@ SET(anytone-emu-gui_SOURCES
   patternselectionwidget.cc patternselectionwidget.ui
   newpatterndialog.cc newpatterndialog.ui
   splitfieldpatterndialog.cc splitfieldpatterndialog.ui
+  splitfieldpatternwizard.cc splitfieldpatternwizard.ui
 )
 
 SET(anytone-emu-gui_HEADERS
@@ -40,7 +41,8 @@ SET(anytone-emu-gui_HEADERS
   aboutdialog.hh
   patternselectionwidget.hh
   newpatterndialog.hh
-  splitfieldpatterndialog.hh)
+  splitfieldpatterndialog.hh
+  splitfieldpatternwizard.hh)
 
 
 qt_add_executable(anytone-emu-gui WIN32

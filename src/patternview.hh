@@ -31,6 +31,9 @@ public slots:
   void save();
 
 protected:
+  bool _editPattern(AbstractPattern *pattern);
+
+protected:
   AbstractPattern *selectedPattern() const;
   void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 

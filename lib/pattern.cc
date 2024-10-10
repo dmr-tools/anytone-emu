@@ -131,7 +131,7 @@ AbstractPattern::meta() {
 
 bool
 AbstractPattern::hasImplicitAddress() const {
-  return parent() && (nullptr==qobject_cast<CodeplugPattern *>(parent()));
+  return (nullptr == parent()) || (parent() && (nullptr==qobject_cast<CodeplugPattern *>(parent())));
 }
 bool
 AbstractPattern::hasAddress() const {
@@ -738,9 +738,9 @@ ElementPattern::insertChildPattern(FixedPattern *pattern, unsigned int idx) {
     return false;
   // Compute offset, where to put pattern
   Address addr = Address::zero();
-  if (idx == _content.size())
+  if (_content.size() && (idx == _content.size()))
     addr = _content.back()->address() + _content.back()->size();
-  else
+  else if (_content.size())
     addr = _content.at(idx)->address();
 
   // If a offset is set -> check it

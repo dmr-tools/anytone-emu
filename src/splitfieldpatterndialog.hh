@@ -2,8 +2,11 @@
 #define SPLITFIELDPATTERNDIALOG_HH
 
 #include <QDialog>
+#include "offset.hh"
+
 
 class FieldPattern;
+class FixedPattern;
 
 namespace Ui {
 class SplitFieldPatternDialog;
@@ -16,6 +19,9 @@ class SplitFieldPatternDialog : public QDialog
 public:
   explicit SplitFieldPatternDialog(FieldPattern *fieldPattern, QWidget *parent = nullptr);
   ~SplitFieldPatternDialog();
+
+  Address address() const;
+  FixedPattern *createPattern() const;
 
 public slots:
   void accept() override;

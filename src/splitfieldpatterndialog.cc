@@ -21,6 +21,16 @@ SplitFieldPatternDialog::~SplitFieldPatternDialog() {
   delete ui;
 }
 
+Address
+SplitFieldPatternDialog::address() const {
+  return Address::fromString(ui->address->text());
+}
+
+FixedPattern *
+SplitFieldPatternDialog::createPattern() const {
+  return ui->patternSelection->createPattern()->as<FixedPattern>();
+}
+
 
 void
 SplitFieldPatternDialog::accept() {
