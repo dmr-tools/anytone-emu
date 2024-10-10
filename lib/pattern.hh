@@ -189,6 +189,7 @@ public:
  *
  * Each sub-pattern must have an explicit or implicit position, as groups are considered to be
  * sparse.
+ *
  * @ingroup pattern */
 class GroupPattern: public AbstractPattern, public StructuredPattern
 {
@@ -413,6 +414,9 @@ public:
   bool serialize(QXmlStreamWriter &writer) const;
 
   bool addChildPattern(AbstractPattern *pattern);
+  /** Insert the given pattern at the specified index.
+   * Also updates all addresses. */
+  bool insertChildPattern(FixedPattern *pattern, unsigned int idx);
   unsigned int numChildPattern() const;
   AbstractPattern *childPattern(unsigned int n) const;
   int indexOf(const AbstractPattern *pattern) const;

@@ -245,44 +245,14 @@
     <property name="title">
      <string>Pattern</string>
     </property>
-    <widget class="QMenu" name="menuAdd_repeat">
-     <property name="title">
-      <string>Add repeat</string>
-     </property>
-     <addaction name="actionAdd_sparse_repeat"/>
-     <addaction name="actionAdd_block_repeat"/>
-     <addaction name="actionAdd_fixed_repeat"/>
-    </widget>
-    <widget class="QMenu" name="menuAdd_integer">
-     <property name="title">
-      <string>Add integer</string>
-     </property>
-     <property name="icon">
-      <iconset theme="pattern-integer">
-       <normaloff>.</normaloff>.</iconset>
-     </property>
-     <addaction name="actionAdd_bit"/>
-     <addaction name="actionAdd_uint8"/>
-     <addaction name="actionAdd_int8"/>
-     <addaction name="actionAdd_uint16"/>
-     <addaction name="actionAdd_int16"/>
-     <addaction name="actionAdd_uint32"/>
-     <addaction name="actionAdd_int32"/>
-     <addaction name="actionAdd_BCD8"/>
-    </widget>
+    <addaction name="actionSave_pattern"/>
     <addaction name="actionEdit_pattern"/>
     <addaction name="separator"/>
-    <addaction name="menuAdd_repeat"/>
-    <addaction name="actionAdd_element"/>
-    <addaction name="menuAdd_integer"/>
-    <addaction name="actionAdd_enum"/>
-    <addaction name="actionAdd_string"/>
-    <addaction name="actionAdd_unknown"/>
-    <addaction name="actionAdd_unused"/>
+    <addaction name="actionAppend_pattern"/>
+    <addaction name="actionInsert_above"/>
+    <addaction name="actionInsert_below"/>
     <addaction name="separator"/>
     <addaction name="actionDelete_pattern"/>
-    <addaction name="separator"/>
-    <addaction name="actionSave_pattern"/>
    </widget>
    <addaction name="menuSession"/>
    <addaction name="menuView"/>
@@ -425,165 +395,6 @@
     <string>Manual</string>
    </property>
   </action>
-  <action name="actionAdd_element">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset theme="list-add">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add element</string>
-   </property>
-  </action>
-  <action name="actionAdd_enum">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset theme="pattern-enum">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add enum</string>
-   </property>
-  </action>
-  <action name="actionAdd_unknown">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset theme="pattern-unknown">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add unknown</string>
-   </property>
-  </action>
-  <action name="actionAdd_unused">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset theme="pattern-unused">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add unused</string>
-   </property>
-  </action>
-  <action name="actionDelete_pattern">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset theme="edit-delete">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Delete pattern</string>
-   </property>
-  </action>
-  <action name="actionAdd_sparse_repeat">
-   <property name="icon">
-    <iconset theme="pattern-sparserepeat">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add sparse repeat</string>
-   </property>
-  </action>
-  <action name="actionAdd_block_repeat">
-   <property name="icon">
-    <iconset theme="pattern-blockrepeat">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add block repeat</string>
-   </property>
-  </action>
-  <action name="actionAdd_fixed_repeat">
-   <property name="icon">
-    <iconset theme="pattern-fixedrepeat">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add fixed repeat</string>
-   </property>
-  </action>
-  <action name="actionAdd_bit">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add bit</string>
-   </property>
-  </action>
-  <action name="actionAdd_uint8">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add uint8</string>
-   </property>
-  </action>
-  <action name="actionAdd_int8">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add int8</string>
-   </property>
-  </action>
-  <action name="actionAdd_uint16">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add uint16</string>
-   </property>
-  </action>
-  <action name="actionAdd_int16">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add int16</string>
-   </property>
-  </action>
-  <action name="actionAdd_uint32">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add uint32</string>
-   </property>
-  </action>
-  <action name="actionAdd_int32">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add int32</string>
-   </property>
-  </action>
-  <action name="actionAdd_BCD8">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add BCD8</string>
-   </property>
-  </action>
   <action name="actionEdit_pattern">
    <property name="icon">
     <iconset theme="edit">
@@ -591,15 +402,6 @@
    </property>
    <property name="text">
     <string>Edit pattern</string>
-   </property>
-  </action>
-  <action name="actionAdd_string">
-   <property name="icon">
-    <iconset theme="pattern-stringfield">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add string</string>
    </property>
   </action>
   <action name="actionSave_pattern">
@@ -612,6 +414,39 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionInsert_above">
+   <property name="text">
+    <string>Insert new above</string>
+   </property>
+   <property name="toolTip">
+    <string>Inserts a pattern above the selected one</string>
+   </property>
+  </action>
+  <action name="actionInsert_below">
+   <property name="text">
+    <string>Insert new below</string>
+   </property>
+   <property name="toolTip">
+    <string>Inserts a pattern below the selected one.</string>
+   </property>
+  </action>
+  <action name="actionAppend_pattern">
+   <property name="text">
+    <string>Append pattern</string>
+   </property>
+   <property name="toolTip">
+    <string>Appends a pattern to the selected one.</string>
+   </property>
+  </action>
+  <action name="actionDelete_pattern">
+   <property name="icon">
+    <iconset theme="edit-delete">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Delete pattern</string>
    </property>
   </action>
  </widget>

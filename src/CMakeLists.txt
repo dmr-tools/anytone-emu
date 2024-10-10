@@ -16,6 +16,8 @@ SET(anytone-emu-gui_SOURCES
   logmessagelist.cc
   mainwindow.cc mainwindow.ui
   aboutdialog.cc aboutdialog.ui
+  patternselectionwidget.cc patternselectionwidget.ui
+  newpatterndialog.cc newpatterndialog.ui
 )
 
 SET(anytone-emu-gui_HEADERS
@@ -34,11 +36,14 @@ SET(anytone-emu-gui_HEADERS
   heximagedocument.hh heximagedumpdocument.hh hexelementdumpdocument.hh heximagediffdocument.hh
   logmessagelist.hh
   mainwindow.hh
-  aboutdialog.hh)
+  aboutdialog.hh
+  patternselectionwidget.hh
+  newpatterndialog.hh)
 
 
 qt_add_executable(anytone-emu-gui WIN32
-  ${anytone-emu-gui_SOURCES})
+  ${anytone-emu-gui_SOURCES}
+  newpatterndialog.hh newpatterndialog.cc newpatterndialog.ui)
 
 qt_add_resources(anytone-emu-gui "codeplugs"
   PREFIX "/codeplugs"
