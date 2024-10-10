@@ -3,7 +3,6 @@
 #include "device.hh"
 #include "application.hh"
 #include "patternwrapper.hh"
-#include "logger.hh"
 
 #include <QAction>
 #include <QMenu>
@@ -18,7 +17,7 @@
 #include "stringfielddialog.hh"
 #include "unusedfielddialog.hh"
 #include "newpatterndialog.hh"
-
+#include "splitfieldpatterndialog.hh"
 
 
 PatternView::PatternView(QWidget *parent)
@@ -51,56 +50,63 @@ PatternView::editPattern() {
     return;
   }
 
+  _editPattern(pattern);
+}
+
+
+bool
+PatternView::_editPattern(AbstractPattern *pattern) {
   if (pattern->is<RepeatPattern>()) {
     SparseRepeatDialog dialog;
     dialog.setPattern(pattern->as<RepeatPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<BlockRepeatPattern>()) {
+  if (pattern->is<BlockRepeatPattern>()) {
     BlockRepeatDialog dialog;
     dialog.setPattern(pattern->as<BlockRepeatPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<FixedRepeatPattern>()) {
+  if (pattern->is<FixedRepeatPattern>()) {
     FixedRepeatDialog dialog;
     dialog.setPattern(pattern->as<FixedRepeatPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<ElementPattern>()) {
+  if (pattern->is<ElementPattern>()) {
     ElementDialog dialog;
     dialog.setPattern(pattern->as<ElementPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<IntegerFieldPattern>()) {
+  if (pattern->is<IntegerFieldPattern>()) {
     IntegerFieldDialog dialog;
     dialog.setPattern(pattern->as<IntegerFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<EnumFieldPattern>()) {
+  if (pattern->is<EnumFieldPattern>()) {
     EnumFieldDialog dialog;
     dialog.setPattern(pattern->as<EnumFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<StringFieldPattern>()) {
+  if (pattern->is<StringFieldPattern>()) {
     StringFieldDialog dialog;
     dialog.setPattern(pattern->as<StringFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<UnusedFieldPattern>()) {
+  if (pattern->is<UnusedFieldPattern>()) {
     UnusedFieldDialog dialog;
     dialog.setPattern(pattern->as<UnusedFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
-
-    }
+    return QDialog::Accepted == dialog.exec();
   }
+
+  return false;
 }
+
 
 void
 PatternView::appendPattern() {
@@ -232,6 +238,68 @@ PatternView::insertPatternBelow() {
 }
 
 
+void
+PatternView::splitFieldPattern() {
+  AbstractPattern *replaced = selectedPattern();
+
+  if ((nullptr == replaced) || (! replaced->is<UnknownFieldPattern>())) {
+    QMessageBox::information(nullptr, tr("Select an unknown field first."),
+                             tr("To split an unknown field, select one first."));
+    return;
+  }
+
+  AbstractPattern *parent = qobject_cast<AbstractPattern *>(replaced->parent());
+  if ((nullptr == parent) || (! parent->is<ElementPattern>())) {
+    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
+                             tr("The parent of the selected pattern must be an element pattern."));
+    return;
+  }
+
+  ElementPattern *parentElement = parent->as<ElementPattern>();
+  Address startAddress = replaced->address();
+  Offset originalSize = replaced->as<FieldPattern>()->size();
+  unsigned int insertionIndex = parentElement->indexOf(replaced);
+
+  SplitFieldPatternDialog dialog(replaced->as<UnknownFieldPattern>());
+  if (QDialog::Accepted != dialog.exec())
+    return;
+
+  Address insertionAddr = dialog.address();
+  FixedPattern *inserted = dialog.createPattern();
+
+  if (! _editPattern(inserted)) {
+    inserted->deleteLater();
+    return;
+  }
+
+  Offset headFieldSize = insertionAddr - startAddress;
+
+  if (originalSize < (headFieldSize + inserted->size())) {
+    inserted->deleteLater();
+    return;
+  }
+
+  // Clear address
+  inserted->setAddress(Address());
+
+  Offset tailFieldSize = Offset::fromBits(
+        originalSize.bits() - headFieldSize.bits() - inserted->size().bits());
+
+  parentElement->deleteChild(insertionIndex);
+
+  if (headFieldSize.bits()) {
+    auto head = new UnknownFieldPattern(); head->setWidth(headFieldSize);
+    parentElement->insertChildPattern(head, insertionIndex++);
+  }
+
+  parentElement->insertChildPattern(inserted, insertionIndex++);
+
+  if (tailFieldSize.bits()) {
+    auto tail = new UnknownFieldPattern(); tail->setWidth(tailFieldSize);
+    parentElement->insertChildPattern(tail, insertionIndex++);
+  }
+}
+
 
 void
 PatternView::removeSelected() {
@@ -254,6 +322,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canEdit(false);
     emit canAppendPattern(false);
     emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
     return;
@@ -265,6 +334,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canEdit(false);
     emit canAppendPattern(false);
     emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
     return;
@@ -275,6 +345,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
   if (pattern->is<CodeplugPattern>()) {
     emit canAppendPattern(true);
     emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
     return;
@@ -284,6 +355,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
   if (nullptr == parent) {
     emit canAppendPattern(false);
     emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
     return;
@@ -293,8 +365,10 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
 
   if (pattern->is<RepeatPattern>() || pattern->is<BlockRepeatPattern>() || pattern->is<FixedRepeatPattern>()) {
     emit canAppendPattern(0 == pattern->as<StructuredPattern>()->numChildPattern());
+    emit canSplitFieldPattern(false);
   } else if (pattern->is<ElementPattern>()) {
     emit canAppendPattern(true);
+    emit canSplitFieldPattern(false);
   } else {
     emit canAppendPattern(false);
   }
@@ -302,9 +376,14 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
   if (parent->is<ElementPattern>()) {
     emit canInsertPatternAbove(true);
     emit canInsertPatternBelow(true);
+    if (pattern->is<UnknownFieldPattern>())
+      emit canSplitFieldPattern(true);
+    else
+      emit canSplitFieldPattern(false);
   } else {
     emit canInsertPatternAbove(false);
     emit canInsertPatternBelow(false);
+    emit canSplitFieldPattern(false);
   }
 }
 
@@ -317,6 +396,7 @@ PatternView::onShowContextMenu(const QPoint &point) {
   contextMenu.addSeparator();
   contextMenu.addAction(app->findObject<QAction>("actionAppend_pattern"));
   contextMenu.addAction(app->findObject<QAction>("actionInsert_above"));
+  contextMenu.addAction(app->findObject<QAction>("actionSplitUnknownField"));
   contextMenu.addAction(app->findObject<QAction>("actionInsert_below"));
   contextMenu.addSeparator();
   contextMenu.addAction(app->findObject<QAction>("actionDelete_pattern"));

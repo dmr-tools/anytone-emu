@@ -166,7 +166,10 @@ QVariant
 PatternWrapper::getAddress(const AbstractPattern *pattern) const {
   if (pattern->hasImplicitAddress() && !pattern->hasAddress())
     return tr("variable");
-  if (pattern->hasAddress() && 7 == pattern->address().bit())
+  if ( pattern->hasAddress() && (7 == pattern->address().bit()) &&
+      ((! pattern->is<FixedPattern>())
+       || (! pattern->as<FixedPattern>()->hasSize())
+       || (0 == (pattern->as<FixedPattern>()->size().bits() % 8))) )
     return QString("%1  ").arg(pattern->address().byte(), 0, 16);
   if (pattern->hasAddress())
     return QString("%1:%2").arg(pattern->address().byte(), 0, 16).arg(pattern->address().bit());
