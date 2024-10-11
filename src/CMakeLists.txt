@@ -3,6 +3,7 @@ SET(anytone-emu-gui_SOURCES
   setupdialog.cc setupdialog.ui
   application.cc
   patternwrapper.cc patternview.cc patternmetaeditor.cc patternmetaeditor.ui
+  codeplugdialog.cc codeplugdialog.ui
   sparserepeatdialog.cc sparserepeatdialog.ui
   blockrepeatdialog.cc blockrepeatdialog.ui
   fixedrepeatdialog.cc fixedrepeatdialog.ui
@@ -11,6 +12,7 @@ SET(anytone-emu-gui_SOURCES
   enumfielddialog.cc enumfielddialog.ui enumfieldpatternwrapper.cc
   stringfielddialog.cc stringfielddialog.ui
   unusedfielddialog.cc unusedfielddialog.ui
+  unknownpatterndialog.cc unknownpatterndialog.ui
   imagecollectionadapter.cc imagecollectionwrapper.cc
   heximagedocument.cc heximagedumpdocument.cc hexelementdumpdocument.cc heximagediffdocument.cc
   logmessagelist.cc
@@ -26,6 +28,7 @@ SET(anytone-emu-gui_HEADERS
   setupdialog.hh
   application.hh
   patternwrapper.hh patternview.hh patternmetaeditor.hh
+  codeplugdialog.hh
   sparserepeatdialog.hh
   blockrepeatdialog.hh
   fixedrepeatdialog.hh
@@ -34,6 +37,7 @@ SET(anytone-emu-gui_HEADERS
   enumfielddialog.hh enumfieldpatternwrapper.hh
   stringfielddialog.hh
   unusedfielddialog.hh
+  unknownpatterndialog.hh
   imagecollectionadapter.hh imagecollectionwrapper.hh
   heximagedocument.hh heximagedumpdocument.hh hexelementdumpdocument.hh heximagediffdocument.hh
   logmessagelist.hh
@@ -48,7 +52,9 @@ SET(anytone-emu-gui_HEADERS
 qt_add_executable(anytone-emu-gui WIN32
   ${anytone-emu-gui_SOURCES}
   newpatterndialog.hh newpatterndialog.cc newpatterndialog.ui
-  splitfieldpatterndialog.hh splitfieldpatterndialog.cc splitfieldpatterndialog.ui)
+  splitfieldpatterndialog.hh splitfieldpatterndialog.cc splitfieldpatterndialog.ui
+  codeplugdialog.hh codeplugdialog.cc codeplugdialog.ui
+  unknownpatterndialog.hh unknownpatterndialog.cc unknownpatterndialog.ui)
 
 qt_add_resources(anytone-emu-gui "codeplugs"
   PREFIX "/codeplugs"

@@ -8,6 +8,7 @@
 #include <QMenu>
 #include <QMessageBox>
 
+#include "codeplugdialog.hh"
 #include "sparserepeatdialog.hh"
 #include "blockrepeatdialog.hh"
 #include "fixedrepeatdialog.hh"
@@ -16,6 +17,7 @@
 #include "enumfielddialog.hh"
 #include "stringfielddialog.hh"
 #include "unusedfielddialog.hh"
+#include "unknownpatterndialog.hh"
 #include "newpatterndialog.hh"
 #include "splitfieldpatterndialog.hh"
 
@@ -56,6 +58,12 @@ PatternView::editPattern() {
 
 bool
 PatternView::_editPattern(AbstractPattern *pattern) {
+  if (pattern->is<CodeplugPattern>()) {
+    CodeplugDialog dialog;
+    dialog.setPattern(pattern->as<CodeplugPattern>());
+    return QDialog::Accepted == dialog.exec();
+  }
+
   if (pattern->is<RepeatPattern>()) {
     SparseRepeatDialog dialog;
     dialog.setPattern(pattern->as<RepeatPattern>());
@@ -101,6 +109,12 @@ PatternView::_editPattern(AbstractPattern *pattern) {
   if (pattern->is<UnusedFieldPattern>()) {
     UnusedFieldDialog dialog;
     dialog.setPattern(pattern->as<UnusedFieldPattern>());
+    return QDialog::Accepted == dialog.exec();
+  }
+
+  if (pattern->is<UnknownFieldPattern>()) {
+    UnknownPatternDialog dialog;
+    dialog.setPattern(pattern->as<UnknownFieldPattern>());
     return QDialog::Accepted == dialog.exec();
   }
 
