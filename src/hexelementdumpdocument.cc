@@ -8,8 +8,6 @@
 HexElementDumpDocument::HexElementDumpDocument(bool darkMode, const HexElement &element, QObject *parent)
   : HexDocument{darkMode, parent}
 {
-  _keepValueFormat.setForeground(Qt::black);
-
   QTextCursor cursor = this->rootFrame()->firstCursorPosition();
   putElement(element, cursor);
 }

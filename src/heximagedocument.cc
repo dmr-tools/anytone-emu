@@ -58,7 +58,7 @@ void
 HexDocument::enableDarkMode(bool enable) {
   if (enable) {
     _elementTitleFormat.setForeground(QColor(Qt::lightGray));
-    _addressFormat.setForeground(QColor(Qt::darkMagenta));
+    _addressFormat.setForeground(QColor(Qt::magenta));
     _keepValueFormat.setForeground(QColor(Qt::lightGray));
     _addValueFormat.setForeground(QColor(Qt::green));
     _remValueFormat.setForeground(QColor(Qt::red));

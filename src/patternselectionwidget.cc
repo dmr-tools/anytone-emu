@@ -100,20 +100,6 @@ PatternSelectionWidget::createPattern() const {
     return new UnusedFieldPattern();
   }
 
-  QRegularExpression regexp("(u|)int([0-9]{1,3})(le|be|)");
-  QRegularExpressionMatch match = regexp.match(type);
-  if (match.isValid()) {
-    auto pattern = new IntegerFieldPattern();
-    pattern->setFormat(("u" == match.captured(1))
-                       ? IntegerFieldPattern::Format::Unsigned
-                       : IntegerFieldPattern::Format::Signed);
-    pattern->setWidth(Offset::fromBits(match.captured(2).toUInt()));
-    pattern->setEndian( ("be" == match.captured(1))
-                        ? IntegerFieldPattern::Endian::Big
-                        : IntegerFieldPattern::Endian::Little );
-    return pattern;
-  }
-
   if ("element" == type) {
     return new ElementPattern();
   }
@@ -128,6 +114,20 @@ PatternSelectionWidget::createPattern() const {
 
   if ("repeat" == type) {
     return new RepeatPattern();
+  }
+
+  QRegularExpression regexp("(u|)int([0-9]{1,3})(le|be|)");
+  QRegularExpressionMatch match = regexp.match(type);
+  if (match.isValid()) {
+    auto pattern = new IntegerFieldPattern();
+    pattern->setFormat(("u" == match.captured(1))
+                       ? IntegerFieldPattern::Format::Unsigned
+                       : IntegerFieldPattern::Format::Signed);
+    pattern->setWidth(Offset::fromBits(match.captured(2).toUInt()));
+    pattern->setEndian( ("be" == match.captured(1))
+                        ? IntegerFieldPattern::Endian::Big
+                        : IntegerFieldPattern::Endian::Little );
+    return pattern;
   }
 
   return nullptr;

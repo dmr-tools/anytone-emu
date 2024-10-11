@@ -752,7 +752,7 @@ ElementPattern::insertChildPattern(FixedPattern *pattern, unsigned int idx) {
 
   // add to content
   pattern->setParent(this);
-  _content.append(pattern->as<FixedPattern>());
+  _content.insert(idx, pattern->as<FixedPattern>());
   connect(pattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
   connect(pattern, &AbstractPattern::added, this, &AbstractPattern::added);
   connect(pattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
