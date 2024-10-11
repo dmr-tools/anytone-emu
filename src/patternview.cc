@@ -240,75 +240,91 @@ PatternView::insertPatternBelow() {
 
 void
 PatternView::splitFieldPattern() {
+  // Get pattern to be replaced ...
   AbstractPattern *replaced = selectedPattern();
-
+  // ... and check its type.
   if ((nullptr == replaced) || (! replaced->is<UnknownFieldPattern>())) {
     QMessageBox::information(nullptr, tr("Select an unknown field first."),
                              tr("To split an unknown field, select one first."));
     return;
   }
 
+  // Check type of parent pattern
   AbstractPattern *parent = qobject_cast<AbstractPattern *>(replaced->parent());
   if ((nullptr == parent) || (! parent->is<ElementPattern>())) {
     QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
                              tr("The parent of the selected pattern must be an element pattern."));
     return;
   }
-
   ElementPattern *parentElement = parent->as<ElementPattern>();
+
+  // Get address, size and location of replaced field pattern
   Address startAddress = replaced->address();
   Offset originalSize = replaced->as<FieldPattern>()->size();
   unsigned int insertionIndex = parentElement->indexOf(replaced);
 
+  // Get type and address of inserted pattern
   SplitFieldPatternDialog dialog(replaced->as<UnknownFieldPattern>());
   if (QDialog::Accepted != dialog.exec())
     return;
-
   Address insertionAddr = dialog.address();
   FixedPattern *inserted = dialog.createPattern();
 
+  // Allow user to configure pattern
   if (! _editPattern(inserted)) {
     inserted->deleteLater();
     return;
   }
 
+  // compute size of head and tail unknown fields:
   Offset headFieldSize = insertionAddr - startAddress;
-
+  // check size of inserted field
   if (originalSize < (headFieldSize + inserted->size())) {
+    QMessageBox::information(
+          nullptr, tr("Inserted field too large."),
+          tr("The size inserted field and its offset extends beyond the split field."));
     inserted->deleteLater();
     return;
-  }
-
-  // Clear address
-  inserted->setAddress(Address());
-
+  }  
   Offset tailFieldSize = Offset::fromBits(
         originalSize.bits() - headFieldSize.bits() - inserted->size().bits());
 
+  // Remove "old" unknown field
   parentElement->deleteChild(insertionIndex);
-
+  // Insert an unknown field, if needed
   if (headFieldSize.bits()) {
     auto head = new UnknownFieldPattern(); head->setWidth(headFieldSize);
     parentElement->insertChildPattern(head, insertionIndex++);
   }
 
+  // Insert the replacement
+  inserted->setAddress(Address());
   parentElement->insertChildPattern(inserted, insertionIndex++);
 
+  // Insert a tail field, if needed
   if (tailFieldSize.bits()) {
     auto tail = new UnknownFieldPattern(); tail->setWidth(tailFieldSize);
     parentElement->insertChildPattern(tail, insertionIndex++);
   }
+
+  // done
 }
 
 
 void
 PatternView::removeSelected() {
-  if (nullptr == selectedPattern())
+  if (nullptr == selectedPattern()) {
+    QMessageBox::information(nullptr, tr("Select a pattern first"),
+                             tr("Select the pattern to remove."));
     return;
+  }
 
   StructuredPattern *parent = dynamic_cast<StructuredPattern *>(selectedPattern()->parent());
-  if (nullptr == parent)
+  if (nullptr == parent) {
+    QMessageBox::information(nullptr, tr("Cannot remove pattern"),
+                             tr("The parent of the selected pattern is not a structured pattern."));
     return;
+  }
 
   parent->deleteChild(parent->indexOf(selectedPattern()));
 }
