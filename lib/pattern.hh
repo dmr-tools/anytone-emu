@@ -12,6 +12,7 @@ class Image;
 class Element;
 class QXmlStreamWriter;
 class QFileInfo;
+class CodeplugPattern;
 
 
 /** Holds some meta information about the pattern.
@@ -120,6 +121,9 @@ public:
   /** Returns the meta information. */
   PatternMeta &meta();
 
+  /** Returns the codeplug, this pattern is part of. */
+  virtual const CodeplugPattern *codeplug() const;
+
   /** Returns @c true if the pattern can be casted to the template argument. */
   template <class T>
   bool is() const {
@@ -222,6 +226,8 @@ public:
   bool addChildPattern(AbstractPattern *pattern);
   AbstractPattern *childPattern(unsigned int n) const;
   bool deleteChild(unsigned int n);
+
+  const CodeplugPattern *codeplug() const;
 
   /** Retruns @c true if the codeplug was modified since the last save. */
   bool isModified() const;

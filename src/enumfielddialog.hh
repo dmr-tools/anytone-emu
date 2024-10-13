@@ -3,6 +3,8 @@
 
 #include <QDialog>
 class EnumFieldPattern;
+class CodeplugPattern;
+
 
 namespace Ui {
   class EnumFieldDialog;
@@ -18,7 +20,7 @@ public:
   ~EnumFieldDialog();
 
 public slots:
-  void setPattern(EnumFieldPattern *pattern);
+  void setPattern(EnumFieldPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
   void done(int res);
 

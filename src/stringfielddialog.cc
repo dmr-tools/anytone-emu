@@ -17,7 +17,7 @@ StringFieldDialog::~StringFieldDialog()
 }
 
 void
-StringFieldDialog::setPattern(StringFieldPattern *pattern) {
+StringFieldDialog::setPattern(StringFieldPattern *pattern, const CodeplugPattern *codeplug) {
   _pattern = pattern;
   if (pattern->hasImplicitAddress() && !pattern->hasAddress()) {
     ui->address->setText("implicit");
@@ -38,7 +38,7 @@ StringFieldDialog::setPattern(StringFieldPattern *pattern) {
   }
   ui->padValue->setText(QString::number(_pattern->padValue(), 16));
 
-  ui->metaEdit->setPatternMeta(&pattern->meta());
+  ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
 
