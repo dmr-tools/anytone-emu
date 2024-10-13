@@ -3,6 +3,7 @@
 
 #include <QWidget>
 class PatternMeta;
+class CodeplugPattern;
 
 namespace Ui {
   class PatternMetaEditor;
@@ -18,7 +19,7 @@ public:
   ~PatternMetaEditor();
 
 public slots:
-  void setPatternMeta(PatternMeta *meta);
+  void setPatternMeta(PatternMeta *meta, const CodeplugPattern *codeplug);
   void apply();
 
 private:

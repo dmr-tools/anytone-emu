@@ -3,6 +3,7 @@
 
 #include <QDialog>
 class StringFieldPattern;
+class CodeplugPattern;
 
 namespace Ui {
   class StringFieldDialog;
@@ -18,7 +19,7 @@ public:
   ~StringFieldDialog();
 
 public slots:
-  void setPattern(StringFieldPattern *pattern);
+  void setPattern(StringFieldPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
 
 private:

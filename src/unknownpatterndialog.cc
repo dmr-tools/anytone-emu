@@ -1,23 +1,22 @@
-#include "fixedrepeatdialog.hh"
-#include "ui_fixedrepeatdialog.h"
-#include "pattern.hh"
+#include "unknownpatterndialog.hh"
+#include "ui_unknownpatterndialog.h"
 #include <QMessageBox>
+#include "pattern.hh"
 
 
-FixedRepeatDialog::FixedRepeatDialog(QWidget *parent) :
-  QDialog(parent), ui(new Ui::FixedRepeatDialog), _pattern(nullptr)
+UnknownPatternDialog::UnknownPatternDialog(QWidget *parent)
+  : QDialog(parent), ui(new Ui::UnknownPatternDialog)
 {
   ui->setupUi(this);
-  ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-fixedrepeat").pixmap(QSize(64,64)));
+  ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-unknown").pixmap(QSize(64,64)));
 }
 
-FixedRepeatDialog::~FixedRepeatDialog()
-{
+UnknownPatternDialog::~UnknownPatternDialog() {
   delete ui;
 }
 
 void
-FixedRepeatDialog::setPattern(FixedRepeatPattern *pattern, const CodeplugPattern *codeplug) {
+UnknownPatternDialog::setPattern(UnknownFieldPattern *pattern, const CodeplugPattern *codeplug) {
   _pattern = pattern;
   if (pattern->hasImplicitAddress() && !pattern->hasAddress()) {
     ui->address->setText("implicit");
@@ -29,13 +28,13 @@ FixedRepeatDialog::setPattern(FixedRepeatPattern *pattern, const CodeplugPattern
     ui->address->setText(pattern->address().toString());
   }
 
-  ui->repetitions->setValue(pattern->repetition());
+  ui->size->setText(_pattern->size().toString());
   ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
 
 void
-FixedRepeatDialog::accept() {
+UnknownPatternDialog::accept() {
   if (! _pattern->hasImplicitAddress()) {
     Address addr = Address::fromString(ui->address->text());
     if (! addr.isValid()) {
@@ -46,9 +45,15 @@ FixedRepeatDialog::accept() {
     _pattern->setAddress(addr);
   }
 
-  _pattern->setRepetition(ui->repetitions->value());
+  Size size = Size::fromString(ui->size->text().simplified());
+  if (! size.isValid()) {
+    QMessageBox::critical(nullptr, tr("Invalid size format."),
+                          tr("Invalid size format '%1'.").arg(ui->address->text()));
+  }
+  _pattern->setWidth(size);
 
   ui->metaEdit->apply();
 
   QDialog::accept();
 }
+

@@ -4,6 +4,7 @@
 #include <QDialog>
 
 class BlockRepeatPattern;
+class CodeplugPattern;
 
 namespace Ui {
   class BlockRepeatDialog;
@@ -19,7 +20,7 @@ public:
   ~BlockRepeatDialog();
 
 public slots:
-  void setPattern(BlockRepeatPattern *pattern);
+  void setPattern(BlockRepeatPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
 
 private:

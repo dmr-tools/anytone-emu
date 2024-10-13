@@ -4,6 +4,7 @@
 #include <QDialog>
 
 class FixedRepeatPattern;
+class CodeplugPattern;
 
 namespace Ui {
   class FixedRepeatDialog;
@@ -19,7 +20,7 @@ public:
   ~FixedRepeatDialog();
 
 public slots:
-  void setPattern(FixedRepeatPattern *pattern);
+  void setPattern(FixedRepeatPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
 
 private:

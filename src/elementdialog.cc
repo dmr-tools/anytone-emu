@@ -18,7 +18,7 @@ ElementDialog::~ElementDialog()
 }
 
 void
-ElementDialog::setPattern(ElementPattern *pattern) {
+ElementDialog::setPattern(ElementPattern *pattern, const CodeplugPattern *codeplug) {
   _pattern = pattern;
   if (pattern->hasImplicitAddress() && !pattern->hasAddress()) {
     ui->address->setText("implicit");
@@ -29,7 +29,7 @@ ElementDialog::setPattern(ElementPattern *pattern) {
   } else {
     ui->address->setText(pattern->address().toString());
   }
-  ui->metaEdit->setPatternMeta(&pattern->meta());
+  ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
 

@@ -129,6 +129,13 @@ AbstractPattern::meta() {
   return _meta;
 }
 
+const CodeplugPattern *
+AbstractPattern::codeplug() const {
+  if (parent() && qobject_cast<AbstractPattern *>(parent()))
+    return qobject_cast<AbstractPattern *>(parent())->codeplug();
+  return nullptr;
+}
+
 bool
 AbstractPattern::hasImplicitAddress() const {
   return (nullptr == parent()) || (parent() && (nullptr==qobject_cast<CodeplugPattern *>(parent())));
@@ -270,6 +277,11 @@ CodeplugPattern::deleteChild(unsigned int n) {
 
   pattern->deleteLater();
   return true;
+}
+
+const CodeplugPattern *
+CodeplugPattern::codeplug() const {
+  return this;
 }
 
 bool

@@ -13,7 +13,7 @@ SparseRepeatDialog::SparseRepeatDialog(QWidget *parent) :
 
 
 void
-SparseRepeatDialog::setPattern(RepeatPattern *pattern) {
+SparseRepeatDialog::setPattern(RepeatPattern *pattern, const CodeplugPattern *codeplug) {
   _pattern = pattern;
   ui->address->setText(pattern->address().toString());
   ui->offset->setText(pattern->step().toString());
@@ -23,7 +23,7 @@ SparseRepeatDialog::setPattern(RepeatPattern *pattern) {
   ui->maxRepetitionUnset->setChecked(! pattern->hasMaxRepetition());
   if (pattern->hasMaxRepetition())
     ui->maxRepetition->setValue(pattern->maxRepetition());
-  ui->metaEdit->setPatternMeta(&pattern->meta());
+  ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
 

@@ -17,7 +17,7 @@ BlockRepeatDialog::~BlockRepeatDialog()
 }
 
 void
-BlockRepeatDialog::setPattern(BlockRepeatPattern *pattern) {
+BlockRepeatDialog::setPattern(BlockRepeatPattern *pattern, const CodeplugPattern *codeplug) {
   _pattern = pattern;
   if (pattern->hasImplicitAddress() && !pattern->hasAddress()) {
     ui->address->setText("implicit");
@@ -35,7 +35,7 @@ BlockRepeatDialog::setPattern(BlockRepeatPattern *pattern) {
   ui->maxRepetitionUnset->setChecked(! pattern->hasMaxRepetition());
   if (pattern->hasMaxRepetition())
     ui->maxRepetition->setValue(pattern->maxRepetition());
-  ui->metaEdit->setPatternMeta(&pattern->meta());
+  ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
 

@@ -3,6 +3,8 @@
 
 #include <QDialog>
 class IntegerFieldPattern;
+class CodeplugPattern;
+
 
 namespace Ui {
   class IntegerFieldDialog;
@@ -18,7 +20,7 @@ public:
   ~IntegerFieldDialog();
 
 public slots:
-  void setPattern(IntegerFieldPattern *pattern);
+  void setPattern(IntegerFieldPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
 
 private:

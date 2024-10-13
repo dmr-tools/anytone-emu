@@ -31,7 +31,7 @@ public slots:
   void save();
 
 protected:
-  bool _editPattern(AbstractPattern *pattern);
+  bool _editPattern(AbstractPattern *pattern, const CodeplugPattern *codeplug=nullptr);
 
 protected:
   AbstractPattern *selectedPattern() const;
