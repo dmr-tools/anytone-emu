@@ -19,7 +19,7 @@ CodeplugDialog::~CodeplugDialog() {
 void
 CodeplugDialog::setPattern(CodeplugPattern *pattern) {
   _codeplug = pattern;
-  ui->metaEdit->setPatternMeta(&pattern->meta());
+  ui->metaEdit->setPatternMeta(&pattern->meta(), pattern);
 }
 
 void

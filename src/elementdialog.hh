@@ -4,6 +4,8 @@
 #include <QDialog>
 
 class ElementPattern;
+class CodeplugPattern;
+
 
 namespace Ui {
   class ElementDialog;
@@ -19,7 +21,7 @@ public:
   ~ElementDialog();
 
 public slots:
-  void setPattern(ElementPattern *pattern);
+  void setPattern(ElementPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
 
 private:

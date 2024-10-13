@@ -16,11 +16,14 @@ PatternMetaEditor::~PatternMetaEditor()
 }
 
 void
-PatternMetaEditor::setPatternMeta(PatternMeta *meta) {
+PatternMetaEditor::setPatternMeta(PatternMeta *meta, const CodeplugPattern *codeplug) {
   _meta = meta;
   ui->name->setText(meta->name());
   ui->description->setText(meta->description());
-  ui->version->setText(meta->firmwareVersion());
+  if (meta->firmwareVersion().isEmpty() && (nullptr != codeplug) && (! codeplug->meta().firmwareVersion().isEmpty()))
+    ui->version->setText(codeplug->meta().firmwareVersion());
+  else if (! meta->firmwareVersion().isEmpty())
+    ui->version->setText(meta->firmwareVersion());
 }
 
 void

@@ -69,7 +69,11 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="address"/>
+       <widget class="QLineEdit" name="address">
+        <property name="placeholderText">
+         <string>variable</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_4">
@@ -132,20 +136,6 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <widget class="QLineEdit" name="defaultValue"/>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="defaultValueSet">
-          <property name="text">
-           <string>set</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
       <item row="1" column="1">
        <widget class="QSpinBox" name="width">
         <property name="suffix">
@@ -156,6 +146,13 @@
         </property>
         <property name="maximum">
          <number>128</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="defaultValue">
+        <property name="placeholderText">
+         <string>unspecified</string>
         </property>
        </widget>
       </item>

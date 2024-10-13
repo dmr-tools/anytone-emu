@@ -57,7 +57,7 @@ PatternView::editPattern() {
 
 
 bool
-PatternView::_editPattern(AbstractPattern *pattern) {
+PatternView::_editPattern(AbstractPattern *pattern, const CodeplugPattern *codeplug) {
   if (pattern->is<CodeplugPattern>()) {
     CodeplugDialog dialog;
     dialog.setPattern(pattern->as<CodeplugPattern>());
@@ -66,55 +66,55 @@ PatternView::_editPattern(AbstractPattern *pattern) {
 
   if (pattern->is<RepeatPattern>()) {
     SparseRepeatDialog dialog;
-    dialog.setPattern(pattern->as<RepeatPattern>());
+    dialog.setPattern(pattern->as<RepeatPattern>(), codeplug);
     return QDialog::Accepted == dialog.exec();
   }
 
   if (pattern->is<BlockRepeatPattern>()) {
     BlockRepeatDialog dialog;
-    dialog.setPattern(pattern->as<BlockRepeatPattern>());
+    dialog.setPattern(pattern->as<BlockRepeatPattern>(), codeplug);
     return QDialog::Accepted == dialog.exec();
   }
 
   if (pattern->is<FixedRepeatPattern>()) {
     FixedRepeatDialog dialog;
-    dialog.setPattern(pattern->as<FixedRepeatPattern>());
+    dialog.setPattern(pattern->as<FixedRepeatPattern>(), codeplug);
     return QDialog::Accepted == dialog.exec();
   }
 
   if (pattern->is<ElementPattern>()) {
     ElementDialog dialog;
-    dialog.setPattern(pattern->as<ElementPattern>());
+    dialog.setPattern(pattern->as<ElementPattern>(), codeplug);
     return QDialog::Accepted == dialog.exec();
   }
 
   if (pattern->is<IntegerFieldPattern>()) {
     IntegerFieldDialog dialog;
-    dialog.setPattern(pattern->as<IntegerFieldPattern>());
+    dialog.setPattern(pattern->as<IntegerFieldPattern>(), codeplug);
     return QDialog::Accepted == dialog.exec();
   }
 
   if (pattern->is<EnumFieldPattern>()) {
     EnumFieldDialog dialog;
-    dialog.setPattern(pattern->as<EnumFieldPattern>());
+    dialog.setPattern(pattern->as<EnumFieldPattern>(), codeplug);
     return QDialog::Accepted == dialog.exec();
   }
 
   if (pattern->is<StringFieldPattern>()) {
     StringFieldDialog dialog;
-    dialog.setPattern(pattern->as<StringFieldPattern>());
+    dialog.setPattern(pattern->as<StringFieldPattern>(), codeplug);
     return QDialog::Accepted == dialog.exec();
   }
 
   if (pattern->is<UnusedFieldPattern>()) {
     UnusedFieldDialog dialog;
-    dialog.setPattern(pattern->as<UnusedFieldPattern>());
+    dialog.setPattern(pattern->as<UnusedFieldPattern>(), codeplug);
     return QDialog::Accepted == dialog.exec();
   }
 
   if (pattern->is<UnknownFieldPattern>()) {
     UnknownPatternDialog dialog;
-    dialog.setPattern(pattern->as<UnknownFieldPattern>());
+    dialog.setPattern(pattern->as<UnknownFieldPattern>(), codeplug);
     return QDialog::Accepted == dialog.exec();
   }
 
@@ -146,6 +146,12 @@ PatternView::appendPattern() {
     return;
 
   AbstractPattern *newPattern = dialog.create();
+
+  if (! _editPattern(newPattern, parent->codeplug())) {
+    newPattern->deleteLater();
+    return;
+  }
+
   if (! structure->addChildPattern(newPattern)) {
     QMessageBox::information(nullptr, tr("Cannot append pattern."),
                              tr("Cannot append pattern to {}.").arg(parent->meta().name()));
@@ -189,6 +195,11 @@ PatternView::insertPatternAbove() {
   if (! newPattern->is<FixedPattern>()) {
     QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
                              tr("Can onyl add fixed-sized patterns to an element pattern."));
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! _editPattern(newPattern, parent->codeplug())) {
     newPattern->deleteLater();
     return;
   }
@@ -243,6 +254,12 @@ PatternView::insertPatternBelow() {
     return;
   }
 
+  if (! _editPattern(newPattern, parent->codeplug())) {
+    newPattern->deleteLater();
+    return;
+  }
+
+
   if (! parent->as<ElementPattern>()->insertChildPattern(newPattern->as<FixedPattern>(), insertionIndex)) {
     QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
                              tr("Element pattern rejected child."));
@@ -285,7 +302,7 @@ PatternView::splitFieldPattern() {
   FixedPattern *inserted = dialog.createPattern();
 
   // Allow user to configure pattern
-  if (! _editPattern(inserted)) {
+  if (! _editPattern(inserted, parent->codeplug())) {
     inserted->deleteLater();
     return;
   }
@@ -433,6 +450,7 @@ PatternView::onShowContextMenu(const QPoint &point) {
 
   contextMenu.exec(mapToGlobal(point));
 }
+
 
 void
 PatternView::save() {

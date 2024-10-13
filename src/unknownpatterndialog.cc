@@ -16,7 +16,7 @@ UnknownPatternDialog::~UnknownPatternDialog() {
 }
 
 void
-UnknownPatternDialog::setPattern(UnknownFieldPattern *pattern) {
+UnknownPatternDialog::setPattern(UnknownFieldPattern *pattern, const CodeplugPattern *codeplug) {
   _pattern = pattern;
   if (pattern->hasImplicitAddress() && !pattern->hasAddress()) {
     ui->address->setText("implicit");
@@ -29,7 +29,7 @@ UnknownPatternDialog::setPattern(UnknownFieldPattern *pattern) {
   }
 
   ui->size->setText(_pattern->size().toString());
-  ui->metaEdit->setPatternMeta(&pattern->meta());
+  ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
 

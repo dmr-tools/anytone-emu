@@ -17,7 +17,7 @@ FixedRepeatDialog::~FixedRepeatDialog()
 }
 
 void
-FixedRepeatDialog::setPattern(FixedRepeatPattern *pattern) {
+FixedRepeatDialog::setPattern(FixedRepeatPattern *pattern, const CodeplugPattern *codeplug) {
   _pattern = pattern;
   if (pattern->hasImplicitAddress() && !pattern->hasAddress()) {
     ui->address->setText("implicit");
@@ -30,7 +30,7 @@ FixedRepeatDialog::setPattern(FixedRepeatPattern *pattern) {
   }
 
   ui->repetitions->setValue(pattern->repetition());
-  ui->metaEdit->setPatternMeta(&pattern->meta());
+  ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
 

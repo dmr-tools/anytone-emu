@@ -4,6 +4,8 @@
 #include <QDialog>
 
 class UnknownFieldPattern;
+class CodeplugPattern;
+
 
 namespace Ui {
 class UnknownPatternDialog;
@@ -20,7 +22,7 @@ public:
   ~UnknownPatternDialog();
 
 public slots:
-  void setPattern(UnknownFieldPattern *pattern);
+  void setPattern(UnknownFieldPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
 
 private:
