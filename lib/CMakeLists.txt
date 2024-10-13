@@ -12,14 +12,16 @@ set(libanytone-emu_SOURCES
     d868uv.cc d868uve.cc d878uv.cc d878uv2.cc d578uv.cc d578uv2.cc
     dmr6x2uv.cc dmr6x2uv2.cc
     djmd5.cc djmd5x.cc
-    pattern.cc patternparser.cc annotation.cc errorstack.cc)
+    pattern.cc patternparser.cc codeplugpatternparser.cc
+    annotation.cc errorstack.cc)
 set(libanytone-emu_HEADERS pseudoterminal.hh
     request.hh response.hh hexdump.hh xmlparser.hh offset.hh
     device.hh ${PTY_HEADER} logger.hh model.hh image.hh
     d868uv.hh d868uve.hh d878uv.hh d878uv2.hh d578uv.hh d578uv2.hh
     dmr6x2uv.hh dmr6x2uv2.hh
     djmd5.hh djmd5x.hh
-    pattern.hh patternparser.hh annotation.hh errorstack.hh)
+    pattern.hh patternparser.hh codeplugpatternparser.hh
+    annotation.hh errorstack.hh)
 
 set_property(SOURCE pseudoterminal.hh PROPERTY SKIP_AUTOGEN ON)
 set_property(SOURCE request.hh PROPERTY SKIP_AUTOGEN ON)

@@ -1,7 +1,7 @@
 #include "annotation_test.hh"
 
 #include <QXmlStreamReader>
-#include "patternparser.hh"
+#include "codeplugpatternparser.hh"
 #include "pattern.hh"
 #include "annotation.hh"
 #include "image.hh"

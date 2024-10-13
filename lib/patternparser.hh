@@ -1,13 +1,13 @@
-#ifndef CODEPLUGPATTERNPARSER_HH
-#define CODEPLUGPATTERNPARSER_HH
+#ifndef PATTERNPARSER_HH
+#define PATTERNPARSER_HH
 
 #include "xmlparser.hh"
 #include <QObject>
 
 class AbstractPattern;
 
-/** Parser for XML codeplug pattern definitions. */
-class CodeplugPatternParser: public XmlParser
+/** Base class of all parser for XML codeplug pattern definitions. */
+class PatternParser: public XmlParser
 {
   Q_OBJECT
 
@@ -20,10 +20,11 @@ protected:
     MetaFWVersion    ///< Parse meta information firmware version.
   };
 
-public:
-  /** Default constructor. */
-  explicit CodeplugPatternParser(QObject *parent = nullptr);
+protected:
+  /** Hidden constructor. */
+  explicit PatternParser(QObject *parent = nullptr);
 
+public:
   /** Tests if the top element on the stack can be casted to the template argument. */
   template<class T>
   bool topIs() const {
@@ -60,7 +61,6 @@ public:
   }
 
 protected:
-  bool endDocument();
   bool processText(const QStringView &content);
 
 protected slots:
@@ -92,11 +92,6 @@ protected slots:
   bool beginIncompleteElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of incomplete element. */
   bool endIncompleteElement();
-
-  /** Handler for start of codeplug element. */
-  bool beginCodeplugElement(const QXmlStreamAttributes &attributes);
-  /** Handler for end of codeplug element. */
-  bool endCodeplugElement();
 
   /** Handler for start of repeat element. */
   bool beginRepeatElement(const QXmlStreamAttributes &attributes);
@@ -207,4 +202,4 @@ protected:
   QList<QObject *> _stack;
 };
 
-#endif // CODEPLUGPATTERNPARSER_HH
+#endif // PATTERNPARSER_HH

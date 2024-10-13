@@ -1,7 +1,7 @@
 #include "pattern.hh"
 #include "logger.hh"
 #include "image.hh"
-#include "patternparser.hh"
+#include "codeplugpatternparser.hh"
 
 #include <QVariant>
 #include <QtEndian>
