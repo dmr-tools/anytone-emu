@@ -27,6 +27,7 @@ private slots:
   void onImageReceived(unsigned int idx);
   void onAnnotate();
   void onShowAboutDialog();
+  void onViewPattern();
   void onClipboardDataChanged();
 
 private:

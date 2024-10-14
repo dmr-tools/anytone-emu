@@ -546,6 +546,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
+    emit canView(false);
     return;
   }
 
@@ -558,6 +559,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
+    emit canView(false);
     return;
   }
 
@@ -569,6 +571,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
+    emit canView(false);
     return;
   }
 
@@ -590,6 +593,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
   } else if (pattern->is<ElementPattern>()) {
     emit canAppendPattern(true);
     emit canSplitFieldPattern(false);
+    emit canView(true);
   } else {
     emit canAppendPattern(false);
   }
@@ -614,6 +618,7 @@ PatternView::onShowContextMenu(const QPoint &point) {
 
   QMenu contextMenu(this);
   contextMenu.addAction(app->findObject<QAction>("actionEdit_pattern"));
+  contextMenu.addAction(app->findObject<QAction>("actionViewPattern"));
   contextMenu.addSeparator();
   contextMenu.addAction(app->findObject<QAction>("actionAppendNewPattern"));
   contextMenu.addAction(app->findObject<QAction>("actionInsert_above"));

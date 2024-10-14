@@ -14,9 +14,11 @@
 #include <QActionGroup>
 #include <QSettings>
 #include <QTextBrowser>
+#include <QScrollArea>
 #include <QStyleHints>
 #include <QClipboard>
 #include "aboutdialog.hh"
+#include "elementpatternview.hh"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -53,6 +55,8 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->patterns->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(ui->patterns, &PatternView::canEdit, ui->actionEdit_pattern, &QAction::setVisible);
   connect(ui->actionEdit_pattern, &QAction::triggered, ui->patterns, &PatternView::editPattern);
+  connect(ui->patterns, &PatternView::canView, ui->actionViewPattern, &QAction::setVisible);
+  connect(ui->actionViewPattern, &QAction::triggered, this, &MainWindow::onViewPattern);
 
   connect(ui->patterns, &PatternView::canAppendPattern, ui->actionAppendNewPattern, &QAction::setVisible);
   connect(ui->actionAppendNewPattern, &QAction::triggered, ui->patterns, &PatternView::appendNewPattern);
@@ -303,4 +307,16 @@ void
 MainWindow::onShowAboutDialog() {
   AboutDialog about;
   about.exec();
+}
+
+void
+MainWindow::onViewPattern() {
+  AbstractPattern *pattern = ui->patterns->selectedPattern();
+  if ((nullptr == pattern) || (! pattern->is<ElementPattern>()))
+    return;
+
+  ElementPattern *element = pattern->as<ElementPattern>();
+  auto view = new ElementPatternView(); view->setPattern(element);
+  auto frame = new QScrollArea(); frame->setWidget(view);
+  ui->tabs->addTab(frame, element->meta().name());
 }

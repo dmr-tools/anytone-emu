@@ -246,6 +246,7 @@
      <string>Pattern</string>
     </property>
     <addaction name="actionSave_pattern"/>
+    <addaction name="actionViewPattern"/>
     <addaction name="actionEdit_pattern"/>
     <addaction name="separator"/>
     <addaction name="actionAppendNewPattern"/>
@@ -462,6 +463,14 @@
    </property>
    <property name="toolTip">
     <string>Splits this unknown field and inserts a new field.</string>
+   </property>
+  </action>
+  <action name="actionViewPattern">
+   <property name="icon">
+    <iconset theme="edit-find"/>
+   </property>
+   <property name="text">
+    <string>View pattern</string>
    </property>
   </action>
   <action name="actionCopyPattern">
