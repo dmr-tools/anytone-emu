@@ -1,5 +1,5 @@
 #include "pattern_parser_test.hh"
-#include "patternparser.hh"
+#include "codeplugpatternparser.hh"
 #include <QXmlStreamReader>
 #include "pattern.hh"
 #include <QBuffer>

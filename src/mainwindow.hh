@@ -28,6 +28,7 @@ private slots:
   void onAnnotate();
   void onShowAboutDialog();
   void onViewPattern();
+  void onClipboardDataChanged();
 
 private:
   Ui::MainWindow *ui;

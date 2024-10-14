@@ -7,6 +7,7 @@
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
+#include <QClipboard>
 
 #include "codeplugdialog.hh"
 #include "sparserepeatdialog.hh"
@@ -20,6 +21,7 @@
 #include "unknownpatterndialog.hh"
 #include "newpatterndialog.hh"
 #include "splitfieldpatterndialog.hh"
+#include "patternmimedata.hh"
 
 
 PatternView::PatternView(QWidget *parent)
@@ -123,7 +125,7 @@ PatternView::_editPattern(AbstractPattern *pattern, const CodeplugPattern *codep
 
 
 void
-PatternView::appendPattern() {
+PatternView::appendNewPattern() {
   AbstractPattern *parent = selectedPattern();
   if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
     QMessageBox::information(nullptr, tr("Select a structured pattern first."),
@@ -161,7 +163,7 @@ PatternView::appendPattern() {
 }
 
 void
-PatternView::insertPatternAbove() {
+PatternView::insertNewPatternAbove() {
   AbstractPattern *nextSibling = selectedPattern();
 
   if (nullptr == nextSibling) {
@@ -214,7 +216,7 @@ PatternView::insertPatternAbove() {
 
 
 void
-PatternView::insertPatternBelow() {
+PatternView::insertNewPatternBelow() {
   AbstractPattern *nextSibling = selectedPattern();
 
   if (nullptr == nextSibling) {
@@ -343,6 +345,178 @@ PatternView::splitFieldPattern() {
 
 
 void
+PatternView::copySelected() {
+  if ((nullptr == selectedPattern()) || (selectedPattern()->is<CodeplugPattern>())) {
+    QMessageBox::information(nullptr, tr("Select a pattern first"),
+                             tr("Select the pattern to copy."));
+    return;
+  }
+
+  QGuiApplication::clipboard()->setMimeData(new PatternMimeData(selectedPattern()->clone()));
+}
+
+
+void
+PatternView::cutSelected() {
+  if ((nullptr == selectedPattern()) || (selectedPattern()->is<CodeplugPattern>())) {
+    QMessageBox::information(nullptr, tr("Select a pattern first"),
+                             tr("Select the pattern to copy."));
+    return;
+  }
+
+  StructuredPattern *parent = dynamic_cast<StructuredPattern *>(selectedPattern()->parent());
+  if (nullptr == parent) {
+    QMessageBox::information(nullptr, tr("Cannot remove pattern"),
+                             tr("The parent of the selected pattern is not a structured pattern."));
+    return;
+  }
+
+  auto pattern = parent->takeChild(parent->indexOf(selectedPattern()));
+  QGuiApplication::clipboard()->setMimeData(new PatternMimeData(pattern));
+}
+
+
+void
+PatternView::pastePatternAsChild() {
+  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
+  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
+    return;
+
+  AbstractPattern *parent = selectedPattern();
+  if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
+    QMessageBox::information(nullptr, tr("Select a structured pattern first."),
+                             tr("To append a child pattern, select a structured pattern first."));
+    return;
+  }
+
+  StructuredPattern *structure = parent->as<StructuredPattern>();
+
+  Address insertionAddress;
+  if (structure->numChildPattern()) {
+    AbstractPattern *pred = structure->childPattern(structure->numChildPattern()-1);
+    insertionAddress = pred->address();
+    if (FixedPattern *fixed = pred->as<FixedPattern>())
+      insertionAddress += fixed->size();
+  }
+
+  if (! _editPattern(mimeData->pattern(), parent->codeplug())) {
+    return;
+  }
+
+  if (! structure->addChildPattern(mimeData->pattern())) {
+    QMessageBox::information(nullptr, tr("Cannot append pattern."),
+                             tr("Cannot append pattern to {}.").arg(parent->meta().name()));
+    return;
+  }
+
+  QGuiApplication::clipboard()->clear();
+}
+
+
+void
+PatternView::pastePatternAbove() {
+  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
+  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
+    return;
+
+  AbstractPattern *nextSibling = selectedPattern();
+  if (nullptr == nextSibling) {
+    QMessageBox::information(nullptr, tr("Select a sibling first."),
+                             tr("To insert a pattern above another pattern, select a pattern first."));
+    return;
+  }
+
+  AbstractPattern *parent = qobject_cast<AbstractPattern *>(nextSibling->parent());
+  if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
+    QMessageBox::information(nullptr, tr("Parent must be structured pattern."),
+                             tr("The parent of the selected pattern must be a structured pattern."));
+    return;
+  }
+
+  Address insertionAddress = nextSibling->address();
+
+  StructuredPattern *structure = parent->as<StructuredPattern>();
+  unsigned int insertionIndex = structure->indexOf(nextSibling);
+  if (! parent->is<ElementPattern>()) {
+    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
+                             tr("The parent of the selected pattern must be an element pattern."));
+    return;
+  }
+
+  if (! mimeData->pattern()->is<FixedPattern>()) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Can onyl add fixed-sized patterns to an element pattern."));
+    return;
+  }
+
+  if (! _editPattern(mimeData->pattern(), parent->codeplug())) {
+    return;
+  }
+
+  if (! parent->as<ElementPattern>()->insertChildPattern(mimeData->pattern()->as<FixedPattern>(), insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    return;
+  }
+
+  QGuiApplication::clipboard()->clear();
+}
+
+
+void
+PatternView::pastePatternBelow() {
+  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
+  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
+    return;
+
+  AbstractPattern *nextSibling = selectedPattern();
+  if (nullptr == nextSibling) {
+    QMessageBox::information(nullptr, tr("Select a sibling first."),
+                             tr("To insert a pattern below another pattern, select a pattern first."));
+    return;
+  }
+
+  AbstractPattern *parent = qobject_cast<AbstractPattern *>(nextSibling->parent());
+  if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
+    QMessageBox::information(nullptr, tr("Parent must be structured pattern."),
+                             tr("The parent of the selected pattern must be a structured pattern."));
+    return;
+  }
+
+  Address insertionAddress = nextSibling->address();
+  if (FixedPattern *fixed = nextSibling->as<FixedPattern>())
+    insertionAddress += fixed->size();
+
+  StructuredPattern *structure = parent->as<StructuredPattern>();
+  unsigned int insertionIndex = structure->indexOf(nextSibling) + 1;
+  if (! parent->is<ElementPattern>()) {
+    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
+                             tr("The parent of the selected pattern must be an element pattern."));
+    return;
+  }
+
+  if (! mimeData->pattern()->is<FixedPattern>()) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Can onyl add fixed-sized patterns to an element pattern."));
+    return;
+  }
+
+  if (! _editPattern(mimeData->pattern(), parent->codeplug())) {
+    return;
+  }
+
+
+  if (! parent->as<ElementPattern>()->insertChildPattern(mimeData->pattern()->as<FixedPattern>(), insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    return;
+  }
+
+  QGuiApplication::clipboard()->clear();
+}
+
+
+void
 PatternView::removeSelected() {
   if (nullptr == selectedPattern()) {
     QMessageBox::information(nullptr, tr("Select a pattern first"),
@@ -446,10 +620,16 @@ PatternView::onShowContextMenu(const QPoint &point) {
   contextMenu.addAction(app->findObject<QAction>("actionEdit_pattern"));
   contextMenu.addAction(app->findObject<QAction>("actionViewPattern"));
   contextMenu.addSeparator();
-  contextMenu.addAction(app->findObject<QAction>("actionAppend_pattern"));
+  contextMenu.addAction(app->findObject<QAction>("actionAppendNewPattern"));
   contextMenu.addAction(app->findObject<QAction>("actionInsert_above"));
   contextMenu.addAction(app->findObject<QAction>("actionSplitUnknownField"));
   contextMenu.addAction(app->findObject<QAction>("actionInsert_below"));
+  contextMenu.addSeparator();
+  contextMenu.addAction(app->findObject<QAction>("actionCopyPattern"));
+  contextMenu.addAction(app->findObject<QAction>("actionCutPattern"));
+  contextMenu.addAction(app->findObject<QAction>("actionPastPatternAsChild"));
+  contextMenu.addAction(app->findObject<QAction>("actionPastPatternAbove"));
+  contextMenu.addAction(app->findObject<QAction>("actionPastPatternBelow"));
   contextMenu.addSeparator();
   contextMenu.addAction(app->findObject<QAction>("actionDelete_pattern"));
 

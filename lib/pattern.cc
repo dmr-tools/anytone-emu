@@ -1,7 +1,7 @@
 #include "pattern.hh"
 #include "logger.hh"
 #include "image.hh"
-#include "patternparser.hh"
+#include "codeplugpatternparser.hh"
 
 #include <QVariant>
 #include <QtEndian>
@@ -119,6 +119,14 @@ AbstractPattern::AbstractPattern(QObject *parent)
   connect(&_meta, &PatternMeta::modified, this, &AbstractPattern::onMetaModified);
 }
 
+AbstractPattern *
+AbstractPattern::clone() const {
+  AbstractPattern *pattern = qobject_cast<AbstractPattern *>(this->metaObject()->newInstance());
+  pattern->_address = _address;
+  pattern->_meta = _meta;
+  return pattern;
+}
+
 const PatternMeta &
 AbstractPattern::meta() const {
   return _meta;
@@ -140,6 +148,7 @@ bool
 AbstractPattern::hasImplicitAddress() const {
   return (nullptr == parent()) || (parent() && (nullptr==qobject_cast<CodeplugPattern *>(parent())));
 }
+
 bool
 AbstractPattern::hasAddress() const {
   return _address.isValid();
@@ -173,6 +182,84 @@ StructuredPattern::~StructuredPattern() {
   // pass...
 }
 
+bool
+StructuredPattern::deleteChild(unsigned int n) {
+  auto pattern = this->takeChild(n);
+  if (nullptr == pattern)
+    return false;
+  delete pattern;
+  return true;
+}
+
+
+/* ********************************************************************************************* *
+ * Implementation of PatternFragment
+ * ********************************************************************************************* */
+PatternFragment::PatternFragment(QObject *parent)
+  : QObject{parent}, StructuredPattern(), _pattern(nullptr)
+{
+  // pass...
+}
+
+bool
+PatternFragment::serialize(QXmlStreamWriter &writer) const {
+  writer.writeStartDocument();
+  writer.writeStartElement("fragment");
+
+  if (_pattern && (! _pattern->serialize(writer)))
+    return false;
+
+  writer.writeEndElement();
+  writer.writeEndDocument();
+
+  return true;
+}
+
+int
+PatternFragment::indexOf(const AbstractPattern *pattern) const {
+  if (nullptr == pattern)
+    return -1;
+  if (_pattern == pattern)
+    return 0;
+  return -1;
+}
+
+unsigned int
+PatternFragment::numChildPattern() const {
+  return (nullptr == _pattern) ? 0 : 1;
+}
+
+bool
+PatternFragment::addChildPattern(AbstractPattern *pattern) {
+  if (nullptr != _pattern)
+    return false;
+
+  _pattern = pattern;
+
+  if (_pattern)
+    _pattern->setParent(this);
+
+  return true;
+}
+
+AbstractPattern *
+PatternFragment::childPattern(unsigned int n) const {
+  if (0 == n)
+    return _pattern;
+  return nullptr;
+}
+
+AbstractPattern *
+PatternFragment::takeChild(unsigned int n) {
+  if ((0 != n) || (nullptr ==_pattern))
+    return nullptr;
+
+  auto *ptr = _pattern;
+  ptr->setParent(nullptr);
+  _pattern = nullptr;
+
+  return ptr;
+}
 
 
 /* ********************************************************************************************* *
@@ -219,6 +306,18 @@ CodeplugPattern::serialize(QXmlStreamWriter &writer) const {
   return true;
 }
 
+AbstractPattern *
+CodeplugPattern::clone() const {
+  auto *pattern = GroupPattern::clone()->as<CodeplugPattern>();
+
+  pattern->_modified = _modified;
+  pattern->_source = _source;
+
+  foreach (AbstractPattern *child, _content)
+    pattern->addChildPattern(child->clone());
+
+  return pattern;
+}
 
 int
 CodeplugPattern::indexOf(const AbstractPattern *pattern) const {
@@ -264,19 +363,19 @@ CodeplugPattern::childPattern(unsigned int n) const {
   return _content[n];
 }
 
-bool
-CodeplugPattern::deleteChild(unsigned int n) {
+AbstractPattern *
+CodeplugPattern::takeChild(unsigned int n) {
   if (n >= _content.size())
-    return false;
+    return nullptr;
 
   AbstractPattern *pattern = _content[n];
+  pattern->setParent(nullptr);
 
   emit removing(this, n);
   _content.remove(n);
   emit removed(this, n);
 
-  pattern->deleteLater();
-  return true;
+  return pattern;
 }
 
 const CodeplugPattern *
@@ -414,6 +513,19 @@ RepeatPattern::serialize(QXmlStreamWriter &writer) const {
   return true;
 }
 
+AbstractPattern *
+RepeatPattern::clone() const {
+  auto pattern = GroupPattern::clone()->as<RepeatPattern>();
+
+  if (nullptr != _subpattern)
+    pattern->addChildPattern(_subpattern->clone());
+
+  pattern->setMinRepetition(_minRepetition);
+  pattern->setMaxRepetition(_maxRepetition);
+  pattern->setStep(_step);
+
+  return pattern;
+}
 
 bool
 RepeatPattern::hasMinRepetition() const {
@@ -482,18 +594,19 @@ RepeatPattern::childPattern(unsigned int n) const {
   return _subpattern;
 }
 
-bool
-RepeatPattern::deleteChild(unsigned int n) {
+AbstractPattern *
+RepeatPattern::takeChild(unsigned int n) {
   if ((0 != n) || (nullptr == _subpattern))
-    return false;
+    return nullptr;
 
   AbstractPattern *pattern = _subpattern;
+
   emit removing(this, 0);
   _subpattern = nullptr;
+  pattern->setParent(nullptr);
   emit removed(this, 0);
-  pattern->deleteLater();
 
-  return true;
+  return pattern;
 }
 
 const Offset &
@@ -553,6 +666,19 @@ BlockRepeatPattern::serialize(QXmlStreamWriter &writer) const {
 
   writer.writeEndElement();
   return true;
+}
+
+AbstractPattern *
+BlockRepeatPattern::clone() const {
+  auto pattern = BlockPattern::clone()->as<BlockRepeatPattern>();
+
+  if (nullptr != _subpattern)
+    pattern->addChildPattern(_subpattern->clone());
+
+  pattern->_minRepetition = _minRepetition;
+  pattern->_maxRepetition = _maxRepetition;
+
+  return pattern;
 }
 
 bool
@@ -622,19 +748,21 @@ BlockRepeatPattern::indexOf(const AbstractPattern *pattern) const {
   return (_subpattern == pattern) ? 0 : -1;
 }
 
-bool
-BlockRepeatPattern::deleteChild(unsigned int n) {
+AbstractPattern *
+BlockRepeatPattern::takeChild(unsigned int n) {
   if ((0 != n) || (nullptr == _subpattern))
-    return false;
+    return nullptr;
 
   AbstractPattern *pattern = _subpattern;
+
   emit removing(this, 0);
   _subpattern = nullptr;
+  pattern->setParent(nullptr);
   emit removed(this, 0);
-  pattern->deleteLater();
 
-  return true;
+  return pattern;
 }
+
 
 /* ********************************************************************************************* *
  * Implementation of FixedPattern
@@ -648,6 +776,15 @@ FixedPattern::FixedPattern(QObject *parent)
 bool
 FixedPattern::verify() const {
   return hasSize();
+}
+
+AbstractPattern *
+FixedPattern::clone() const {
+  auto *pattern = BlockPattern::clone()->as<FixedPattern>();
+
+  pattern->setSize(_size);
+
+  return pattern;
 }
 
 bool
@@ -704,6 +841,16 @@ ElementPattern::serialize(QXmlStreamWriter &writer) const {
 
   writer.writeEndElement();
   return true;
+}
+
+AbstractPattern *
+ElementPattern::clone() const {
+  auto pattern = FixedPattern::clone()->as<ElementPattern>();
+
+  foreach(FixedPattern *child, _content)
+    pattern->addChildPattern(child->clone());
+
+  return pattern;
 }
 
 bool
@@ -805,14 +952,15 @@ ElementPattern::indexOf(const AbstractPattern *pattern) const {
   return _content.indexOf(pattern);
 }
 
-bool
-ElementPattern::deleteChild(unsigned int n) {
+AbstractPattern *
+ElementPattern::takeChild(unsigned int n) {
   if (n >= _content.size())
-    return false;
+    return nullptr;
 
   FixedPattern *pattern = _content[n];
   emit removing(this, n);
   _content.remove(n);
+  pattern->setParent(nullptr);
   emit removed(this, n);
 
   Size mySize = size();
@@ -827,7 +975,7 @@ ElementPattern::deleteChild(unsigned int n) {
   }
 
   setSize(mySize);
-  return true;
+  return pattern;
 }
 
 void
@@ -882,6 +1030,17 @@ FixedRepeatPattern::serialize(QXmlStreamWriter &writer) const {
 
   writer.writeEndElement();
   return true;
+}
+
+AbstractPattern *
+FixedRepeatPattern::clone() const {
+  auto pattern = FixedPattern::clone()->as<FixedRepeatPattern>();
+
+  if (_subpattern)
+    pattern->addChildPattern(_subpattern->clone());
+  pattern->setRepetition(_repetition);
+
+  return pattern;
 }
 
 unsigned int
@@ -939,20 +1098,21 @@ FixedRepeatPattern::indexOf(const AbstractPattern *pattern) const {
   return (_subpattern == pattern) ? 0 : -1;
 }
 
-bool
-FixedRepeatPattern::deleteChild(unsigned int n) {
+AbstractPattern *
+FixedRepeatPattern::takeChild(unsigned int n) {
   if ((0 != n) || (nullptr == _subpattern))
-    return false;
+    return nullptr;
 
   FixedPattern *pattern = _subpattern;
+
   emit removing(this, 0);
   _subpattern = nullptr;
+  pattern->setParent(nullptr);
   emit removed(this, 0);
-  pattern->deleteLater();
 
   setSize(Size::zero());
 
-  return true;
+  return pattern;
 }
 
 void
@@ -1053,6 +1213,15 @@ UnusedFieldPattern::serialize(QXmlStreamWriter &writer) const {
   return true;
 }
 
+AbstractPattern *
+UnusedFieldPattern::clone() const {
+  auto pattern = FieldPattern::clone()->as<UnusedFieldPattern>();
+
+  pattern->setContent(_content);
+
+  return pattern;
+}
+
 const QByteArray &
 UnusedFieldPattern::content() const {
   return _content;
@@ -1139,6 +1308,19 @@ IntegerFieldPattern::serialize(QXmlStreamWriter &writer) const {
 
   writer.writeEndElement();
   return true;
+}
+
+AbstractPattern *
+IntegerFieldPattern::clone() const {
+  auto pattern = FieldPattern::clone()->as<IntegerFieldPattern>();
+
+  pattern->setFormat(_format);
+  pattern->setEndian(_endian);
+  pattern->setMinValue(_minValue);
+  pattern->setMaxValue(_maxValue);
+  pattern->setDefaultValue(_defaultValue);
+
+  return pattern;
 }
 
 void
@@ -1352,6 +1534,14 @@ EnumFieldPatternItem::serialize(QXmlStreamWriter &writer) const {
   return true;
 }
 
+EnumFieldPatternItem *
+EnumFieldPatternItem::clone() const {
+  auto item = new EnumFieldPatternItem();
+  (*item) = *this;
+  item->setValue(this->value());
+  return item;
+}
+
 bool
 EnumFieldPatternItem::hasValue() const {
   return std::numeric_limits<unsigned int>().max() != _value;
@@ -1406,6 +1596,16 @@ EnumFieldPattern::serialize(QXmlStreamWriter &writer) const {
 
   writer.writeEndElement();
   return true;
+}
+
+AbstractPattern *
+EnumFieldPattern::clone() const {
+  auto pattern = FieldPattern::clone()->as<EnumFieldPattern>();
+
+  foreach(auto item, _items)
+    pattern->addItem(item->clone());
+
+  return pattern;
 }
 
 void
@@ -1517,6 +1717,15 @@ StringFieldPattern::serialize(QXmlStreamWriter &writer) const {
 
   writer.writeEndElement();
   return true;
+}
+
+AbstractPattern *
+StringFieldPattern::clone() const {
+  auto pattern = FieldPattern::clone()->as<StringFieldPattern>();
+  pattern->setFormat(this->format());
+  pattern->setNumChars(this->numChars());
+  pattern->setPadValue(this->padValue());
+  return pattern;
 }
 
 QVariant

@@ -40,7 +40,7 @@
           <x>0</x>
           <y>0</y>
           <width>389</width>
-          <height>498</height>
+          <height>495</height>
          </rect>
         </property>
         <attribute name="label">
@@ -89,7 +89,7 @@
           <x>0</x>
           <y>0</y>
           <width>389</width>
-          <height>498</height>
+          <height>495</height>
          </rect>
         </property>
         <attribute name="label">
@@ -194,7 +194,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSession">
@@ -249,10 +249,16 @@
     <addaction name="actionViewPattern"/>
     <addaction name="actionEdit_pattern"/>
     <addaction name="separator"/>
-    <addaction name="actionAppend_pattern"/>
+    <addaction name="actionAppendNewPattern"/>
     <addaction name="actionInsert_above"/>
     <addaction name="actionSplitUnknownField"/>
     <addaction name="actionInsert_below"/>
+    <addaction name="separator"/>
+    <addaction name="actionCopyPattern"/>
+    <addaction name="actionCutPattern"/>
+    <addaction name="actionPastePatternAsChild"/>
+    <addaction name="actionPastePatternAbove"/>
+    <addaction name="actionPastePatternBelow"/>
     <addaction name="separator"/>
     <addaction name="actionDelete_pattern"/>
    </widget>
@@ -434,9 +440,9 @@
     <string>Inserts a pattern below the selected one.</string>
    </property>
   </action>
-  <action name="actionAppend_pattern">
+  <action name="actionAppendNewPattern">
    <property name="text">
-    <string>Append pattern</string>
+    <string>Append new pattern</string>
    </property>
    <property name="toolTip">
     <string>Appends a pattern to the selected one.</string>
@@ -465,6 +471,52 @@
    </property>
    <property name="text">
     <string>View pattern</string>
+   </property>
+  </action>
+  <action name="actionCopyPattern">
+   <property name="icon">
+    <iconset theme="edit-copy"/>
+   </property>
+   <property name="text">
+    <string>Copy pattern</string>
+   </property>
+   <property name="toolTip">
+    <string>Copies the selected pattern</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionCutPattern">
+   <property name="icon">
+    <iconset theme="edit-cut"/>
+   </property>
+   <property name="text">
+    <string>Cut pattern</string>
+   </property>
+   <property name="toolTip">
+    <string>Cuts the selected pattern to be inserted into the codeplug elsewhere.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+X</string>
+   </property>
+  </action>
+  <action name="actionPastePatternAsChild">
+   <property name="text">
+    <string>Paste pattern as child</string>
+   </property>
+   <property name="toolTip">
+    <string>Appends the copied or cut pattern.</string>
+   </property>
+  </action>
+  <action name="actionPastePatternAbove">
+   <property name="text">
+    <string>Paste pattern above</string>
+   </property>
+  </action>
+  <action name="actionPastePatternBelow">
+   <property name="text">
+    <string>Paste pattern below</string>
    </property>
   </action>
  </widget>
