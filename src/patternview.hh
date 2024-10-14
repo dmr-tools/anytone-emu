@@ -13,6 +13,8 @@ class PatternView : public QTreeView
 public:
   explicit PatternView(QWidget *parent = nullptr);
 
+  AbstractPattern *selectedPattern() const;
+
 signals:
   void canAppendPattern(bool enable);
   void canInsertPatternAbove(bool enable);
@@ -20,6 +22,7 @@ signals:
   void canInsertPatternBelow(bool enable);
   void canRemove(bool enable);
   void canEdit(bool enable);
+  void canView(bool enable);
 
 public slots:
   void editPattern();
@@ -34,7 +37,6 @@ protected:
   bool _editPattern(AbstractPattern *pattern, const CodeplugPattern *codeplug=nullptr);
 
 protected:
-  AbstractPattern *selectedPattern() const;
   void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
 private slots:

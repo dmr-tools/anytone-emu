@@ -86,6 +86,8 @@ public:
 protected:
   /** The address in bits. */
   uint64_t _value;
+
+  friend class Offset;
 };
 
 
@@ -102,6 +104,8 @@ public:
   Offset();
   /** Copy/cast constructor from size. */
   Offset(const Size &other);
+  /** Copy/cast constructor from address. */
+  Offset(const Address &other);
   /** Copy constructor. */
   inline Offset(const Offset &other): _value(other._value) {}
   /** Copying assignment operator. */

@@ -131,6 +131,12 @@ Offset::Offset(const Size &size)
   // pass...
 }
 
+Offset::Offset(const Address &addr)
+  : _value(addr._value)
+{
+  // pass...
+}
+
 bool
 Offset::isValid() const {
   return std::numeric_limits<int64_t>::max() != _value;
