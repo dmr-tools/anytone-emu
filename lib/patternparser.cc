@@ -102,9 +102,9 @@ PatternParser::endDescriptionElement() {
 }
 
 bool
-PatternParser::beginVersionElement(const QXmlStreamAttributes &attributes) {
+PatternParser::beginFirmwareElement(const QXmlStreamAttributes &attributes) {
   if (! topIs<PatternMeta>()) {
-    raiseError("Unexpected <version> tag.");
+    raiseError("Unexpected <firmware> tag.");
     return false;
   }
   _state = State::MetaFWVersion;
@@ -112,7 +112,7 @@ PatternParser::beginVersionElement(const QXmlStreamAttributes &attributes) {
 }
 
 bool
-PatternParser::endVersionElement() {
+PatternParser::endFirmwareElement() {
   _state = State::None;
   return true;
 }

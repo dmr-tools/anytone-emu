@@ -23,6 +23,9 @@ public:
    * use one of the factory methods @c fromByte() or @c zero(). */
   Address();
 
+  /** Constructor from (bit) offset. */
+  explicit Address(const Offset &offset);
+
   /** Copy constructor. */
   inline Address(const Address &other): _value(other._value) {}
   /** Copying assignment operator. */
