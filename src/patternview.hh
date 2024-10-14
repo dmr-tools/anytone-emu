@@ -22,13 +22,20 @@ signals:
   void canEdit(bool enable);
 
 public slots:
-  void editPattern();
-  void appendPattern();
-  void insertPatternAbove();
-  void splitFieldPattern();
-  void insertPatternBelow();
-  void removeSelected();
+  void editPattern();  
   void save();
+
+  void appendNewPattern();
+  void insertNewPatternAbove();
+  void splitFieldPattern();
+  void insertNewPatternBelow();
+
+  void copySelected();
+  void cutSelected();
+  void pastePatternAsChild();
+  void pastePatternAbove();
+  void pastePatternBelow();
+  void removeSelected();
 
 protected:
   bool _editPattern(AbstractPattern *pattern, const CodeplugPattern *codeplug=nullptr);
