@@ -10,16 +10,17 @@
 #include "imagecollectionwrapper.hh"
 #include "logger.hh"
 #include "logmessagelist.hh"
+#include "patternmimedata.hh"
 #include <QActionGroup>
 #include <QSettings>
 #include <QTextBrowser>
 #include <QStyleHints>
+#include <QClipboard>
 #include "aboutdialog.hh"
 
 
 MainWindow::MainWindow(QWidget *parent) :
-  QMainWindow(parent),
-  ui(new Ui::MainWindow)
+  QMainWindow(parent), ui(new Ui::MainWindow)
 {
   ui->setupUi(this);
   setWindowIcon(QIcon::fromTheme("application-anytone-emu"));
@@ -53,18 +54,31 @@ MainWindow::MainWindow(QWidget *parent) :
   connect(ui->patterns, &PatternView::canEdit, ui->actionEdit_pattern, &QAction::setVisible);
   connect(ui->actionEdit_pattern, &QAction::triggered, ui->patterns, &PatternView::editPattern);
 
-  connect(ui->patterns, &PatternView::canAppendPattern, ui->actionAppend_pattern, &QAction::setVisible);
-  connect(ui->actionAppend_pattern, &QAction::triggered, ui->patterns, &PatternView::appendPattern);
+  connect(ui->patterns, &PatternView::canAppendPattern, ui->actionAppendNewPattern, &QAction::setVisible);
+  connect(ui->actionAppendNewPattern, &QAction::triggered, ui->patterns, &PatternView::appendNewPattern);
+  connect(ui->patterns, &PatternView::canAppendPattern, ui->actionPastePatternAsChild, &QAction::setVisible);
+  connect(ui->actionPastePatternAsChild, &QAction::triggered, ui->patterns, &PatternView::pastePatternAsChild);
 
   connect(ui->patterns, &PatternView::canInsertPatternAbove, ui->actionInsert_above, &QAction::setVisible);
-  connect(ui->actionInsert_above, &QAction::triggered, ui->patterns, &PatternView::insertPatternAbove);
+  connect(ui->actionInsert_above, &QAction::triggered, ui->patterns, &PatternView::insertNewPatternAbove);
+  connect(ui->patterns, &PatternView::canInsertPatternAbove, ui->actionPastePatternAbove, &QAction::setVisible);
+  connect(ui->actionPastePatternAbove, &QAction::triggered, ui->patterns, &PatternView::pastePatternAbove);
+
   connect(ui->patterns, &PatternView::canSplitFieldPattern, ui->actionSplitUnknownField, &QAction::setVisible);
   connect(ui->actionSplitUnknownField, &QAction::triggered, ui->patterns, &PatternView::splitFieldPattern);
-  connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionInsert_below, &QAction::setVisible);
-  connect(ui->actionInsert_below, &QAction::triggered, ui->patterns, &PatternView::insertPatternBelow);
 
-  connect(ui->actionDelete_pattern, &QAction::triggered, ui->patterns, &PatternView::removeSelected);
+  connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionInsert_below, &QAction::setVisible);
+  connect(ui->actionInsert_below, &QAction::triggered, ui->patterns, &PatternView::insertNewPatternBelow);
+  connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionPastePatternBelow, &QAction::setVisible);
+  connect(ui->actionPastePatternBelow, &QAction::triggered, ui->patterns, &PatternView::pastePatternBelow);
+
   connect(ui->patterns, &PatternView::canRemove, ui->actionDelete_pattern, &QAction::setVisible);
+  connect(ui->actionDelete_pattern, &QAction::triggered, ui->patterns, &PatternView::removeSelected);
+
+  connect(ui->patterns, &PatternView::canRemove, ui->actionCopyPattern, &QAction::setVisible);
+  connect(ui->actionCopyPattern, &QAction::triggered, ui->patterns, &PatternView::copySelected);
+  connect(ui->patterns, &PatternView::canRemove, ui->actionCutPattern, &QAction::setVisible);
+  connect(ui->actionCutPattern, &QAction::triggered, ui->patterns, &PatternView::cutSelected);
 
   connect(ui->actionSave_pattern, &QAction::triggered, ui->patterns, &PatternView::save);
 
@@ -91,6 +105,8 @@ MainWindow::MainWindow(QWidget *parent) :
   connect(ui->tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::onCloseTab);
   connect(app->collection(), &Collection::imageAdded, this, &MainWindow::onImageReceived);
   connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onShowAboutDialog);
+
+  connect(QGuiApplication::clipboard(), &QClipboard::dataChanged, this, &MainWindow::onClipboardDataChanged);
 }
 
 MainWindow::~MainWindow()
@@ -266,6 +282,20 @@ MainWindow::onAnnotate() {
     if (! img->annotate(app->device()->pattern())) {
       logError() << "Annotation failed.";
     }
+  }
+}
+
+void
+MainWindow::onClipboardDataChanged() {
+  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
+  if (nullptr == mimeData) {
+    ui->actionPastePatternAsChild->setEnabled(false);
+    ui->actionPastePatternAbove->setEnabled(false);
+    ui->actionPastePatternBelow->setEnabled(false);
+  } else {
+    ui->actionPastePatternAsChild->setEnabled(true);
+    ui->actionPastePatternAbove->setEnabled(true);
+    ui->actionPastePatternBelow->setEnabled(true);
   }
 }
 

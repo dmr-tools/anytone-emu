@@ -20,7 +20,6 @@ protected slots:
   bool beginCodeplugElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of codeplug element. */
   bool endCodeplugElement();
-
 };
 
 #endif // CODEPLUGPATTERNPARSER_HH
