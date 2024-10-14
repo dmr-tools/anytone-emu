@@ -627,9 +627,9 @@ PatternView::onShowContextMenu(const QPoint &point) {
   contextMenu.addSeparator();
   contextMenu.addAction(app->findObject<QAction>("actionCopyPattern"));
   contextMenu.addAction(app->findObject<QAction>("actionCutPattern"));
-  contextMenu.addAction(app->findObject<QAction>("actionPastPatternAsChild"));
-  contextMenu.addAction(app->findObject<QAction>("actionPastPatternAbove"));
-  contextMenu.addAction(app->findObject<QAction>("actionPastPatternBelow"));
+  contextMenu.addAction(app->findObject<QAction>("actionPastePatternAsChild"));
+  contextMenu.addAction(app->findObject<QAction>("actionPastePatternAbove"));
+  contextMenu.addAction(app->findObject<QAction>("actionPastePatternBelow"));
   contextMenu.addSeparator();
   contextMenu.addAction(app->findObject<QAction>("actionDelete_pattern"));
 

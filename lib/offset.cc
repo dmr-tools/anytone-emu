@@ -17,6 +17,12 @@ Address::Address()
   // pass...
 }
 
+Address::Address(const Offset &offset)
+  : _value(offset.bits())
+{
+  // pass...
+}
+
 bool
 Address::isValid() const {
   return std::numeric_limits<uint64_t>().max() != _value;

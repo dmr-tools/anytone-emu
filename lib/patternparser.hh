@@ -77,9 +77,9 @@ protected slots:
   /** Handler for end of description element. */
   bool endDescriptionElement();
   /** Handler for start of version element. */
-  bool beginVersionElement(const QXmlStreamAttributes &attributes);
+  bool beginFirmwareElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of version element. */
-  bool endVersionElement();
+  bool endFirmwareElement();
   /** Handler for start of done element. */
   bool beginDoneElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of done element. */

@@ -318,5 +318,6 @@ MainWindow::onViewPattern() {
   ElementPattern *element = pattern->as<ElementPattern>();
   auto view = new ElementPatternView(); view->setPattern(element);
   auto frame = new QScrollArea(); frame->setWidget(view);
+  frame->setWidgetResizable(true);
   ui->tabs->addTab(frame, element->meta().name());
 }

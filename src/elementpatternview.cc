@@ -1,10 +1,15 @@
 #include "elementpatternview.hh"
 #include "pattern.hh"
 #include <QPainter>
+#include <QEvent>
+#include <QHelpEvent>
+#include <QToolTip>
+#include <algorithm>
 
 
 ElementPatternView::ElementPatternView(QWidget *parent)
-  : QWidget{parent}, _pattern(nullptr), _layout{QMargins(50, 30, 10, 10), 30, 30, 1, 3},
+  : QWidget{parent}, _pattern(nullptr), _selectedPattern(nullptr),
+    _layout{QMargins(60, 40, 10, 10), 40, 40, 1, 3, 10},
     _items()
 {
   setBackgroundRole(QPalette::Base);
@@ -79,7 +84,6 @@ ElementPatternView::paintEvent(QPaintEvent *event) {
   QFont addressFont = defaultFont; addressFont.setFamily("monospace");
 
   painter.setRenderHint(QPainter::Antialiasing, true);
-  painter.setPen(QPen(QPalette::HighlightedText));
 
   painter.setPen(QPen(palette().text().color()));
   painter.setBrush(palette().text());
@@ -98,10 +102,10 @@ ElementPatternView::paintEvent(QPaintEvent *event) {
     while (width) {
       unsigned int consume = std::min((32u-col), width); width -= consume;
       bool isEnd = (0 == width);
-      int left = _layout.margins.left() + _layout.colWidth*col,
-          right = _layout.margins.left() + _layout.colWidth*(col + consume),
-          top = _layout.margins.top() + _layout.rowHight*row,
-          bottom = _layout.margins.top() + _layout.rowHight*(row+1);
+      int left = _layout.margins.left() + _layout.colWidth*col + _layout.lineWidth/2,
+          right = _layout.margins.left() + _layout.colWidth*(col + consume) - _layout.lineWidth/2,
+          top = _layout.margins.top() + _layout.rowHight*row + _layout.lineWidth/2,
+          bottom = _layout.margins.top() + _layout.rowHight*(row+1) - _layout.lineWidth/2;
       QRect rect = QRect(left, top, right-left, bottom-top);
 
       if (0 == col) {
@@ -117,16 +121,41 @@ ElementPatternView::paintEvent(QPaintEvent *event) {
       }
 
       painter.setPen(Qt::transparent);
-      painter.setBrush(palette().alternateBase());
+      if (item.pattern == _selectedPattern)
+        painter.setBrush(palette().highlight());
+      else
+        painter.setBrush(palette().alternateBase());
       painter.drawRect(rect);
 
-      painter.setPen(QPen(palette().text(), _layout.lineWidth));
-      painter.setBrush(QBrush(Qt::transparent));
-      if (! continuation) painter.drawLine(left, bottom, left, top);
-      painter.drawLine(left, top, right, top);
-      if (isEnd) painter.drawLine(right, top, right, bottom);
-      painter.drawLine(right, bottom, left, bottom);
 
+      if (item.pattern == _selectedPattern)
+        painter.setPen(QPen(palette().highlightedText(), _layout.lineWidth));
+      else
+        painter.setPen(QPen(palette().text(), _layout.lineWidth));
+      painter.setBrush(QBrush(Qt::transparent));
+      if (! continuation) {
+        painter.drawArc(left, top, _layout.radius, _layout.radius,
+                        16*90, 90*16);
+        painter.drawArc(left, bottom-_layout.radius, _layout.radius, _layout.radius,
+                        16*180, 90*16);
+        painter.drawLine(left, bottom-_layout.radius+_layout.lineWidth, left, top+_layout.radius-_layout.lineWidth);
+      }
+      if (isEnd) {
+        painter.drawLine(right, top+_layout.radius-_layout.lineWidth, right, bottom-_layout.radius+_layout.lineWidth);
+        painter.drawArc(right-_layout.radius, top, _layout.radius, _layout.radius,
+                        0, 90*16);
+        painter.drawArc(right-_layout.radius, bottom-_layout.radius, _layout.radius, _layout.radius,
+                        16*270, 90*16);
+      }
+      painter.drawLine(left+_layout.radius-_layout.lineWidth, top,
+                       right-_layout.radius+_layout.lineWidth, top);
+      painter.drawLine(right-_layout.radius+_layout.lineWidth, bottom,
+                       left+_layout.radius-_layout.lineWidth, bottom);
+
+      if (item.pattern == _selectedPattern)
+        painter.setPen(QPen(palette().highlightedText(), _layout.lineWidth));
+      else
+        painter.setPen(QPen(palette().text(), _layout.lineWidth));
       painter.setPen(QPen(palette().text().color()));
       painter.setBrush(palette().text());
       painter.setFont(defaultFont);
@@ -149,6 +178,197 @@ ElementPatternView::paintEvent(QPaintEvent *event) {
 }
 
 
+bool
+ElementPatternView::event(QEvent *event) {
+  if (QEvent::ToolTip == event->type()) {
+    QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
+    FixedPattern *pattern = findPatternAt(helpEvent->pos());
+    if (nullptr == pattern) {
+      QToolTip::hideText();
+      event->ignore();
+    } else {
+      QToolTip::showText(
+            helpEvent->globalPos(),
+            formatTooltip(pattern));
+    }
+  }
+
+  return QWidget::event(event);
+}
 
 
+void
+ElementPatternView::mousePressEvent(QMouseEvent *event) {
+  QWidget::mousePressEvent(event);
+}
 
+
+void
+ElementPatternView::mouseReleaseEvent(QMouseEvent *event) {
+  if (auto pattern = findPatternAt(event->position().toPoint())) {
+    event->accept();
+    if (pattern != _selectedPattern) {
+      _selectedPattern = pattern;
+      update();
+    }
+  } else {
+    event->ignore();
+    if (nullptr != _selectedPattern) {
+      _selectedPattern = nullptr;
+      update();
+    }
+  }
+
+  QWidget::mouseReleaseEvent(event);
+}
+
+
+int
+ElementPatternView::findItemAt(const QPoint &pos) const {
+  if ((pos.x() < _layout.margins.left()) || (pos.y() < _layout.margins.top()))
+      return -1;
+
+  int x = std::max(0, pos.x()-_layout.margins.left()),
+      y = std::max(0, pos.y()-_layout.margins.right());
+  int col = x/_layout.colWidth, row = y/_layout.rowHight;
+  int bit = 32*row + col;
+
+  for (int i=0; i<_items.size(); i++) {
+    Address a = _items.at(i).pattern->address(), b = a + _items.at(i).pattern->size(),
+        c = Address(Offset::fromBits(bit));
+    if ((a <= c) && ((a+b) > c))
+      return i;
+  }
+
+  return -1;
+}
+
+FixedPattern *
+ElementPatternView::findPatternAt(const QPoint &pos) const {
+  int idx = findItemAt(pos);
+  if (0 > idx)
+    return nullptr;
+  return _items.at(idx).pattern;
+}
+
+
+QString
+ElementPatternView::formatTooltip(const FixedPattern *pattern) const {
+  QString res;
+  // Dispatch by type:
+  if (pattern->is<ElementPattern>())
+    res = formatTooltipElement(pattern->as<ElementPattern>());
+  else if (pattern->is<FixedRepeatPattern>())
+    res = formatTooltipFixedRepeat(pattern->as<FixedRepeatPattern>());
+  else if (pattern->is<UnknownFieldPattern>())
+    res = formatTooltipUnknownField(pattern->as<UnknownFieldPattern>());
+  else if (pattern->is<UnusedFieldPattern>())
+    res = formatTooltipUnusedField(pattern->as<UnusedFieldPattern>());
+  else if (pattern->is<EnumFieldPattern>())
+    res = formatTooltipEnumField(pattern->as<EnumFieldPattern>());
+  else if (pattern->is<StringFieldPattern>())
+    res = formatTooltipStringField(pattern->as<StringFieldPattern>());
+  else if (pattern->is<IntegerFieldPattern>())
+    res = formatTooltipIntegerField(pattern->as<IntegerFieldPattern>());
+  else
+    res = tr("<h3>Unknown Pattern <i>%1</i> at <tt>%2</tt></h3>")
+        .arg(pattern->meta().name())
+        .arg(pattern->address().toString());
+  if (pattern->meta().hasFirmwareVersion())
+    res.append(tr("<h5>Firmware version %1</h5>").arg(pattern->meta().firmwareVersion()));
+
+  if (pattern->meta().hasDescription())
+    res.append(tr("<p>%1</p>").arg(pattern->meta().description()));
+
+  return res;
+}
+
+
+QString
+ElementPatternView::formatTooltipElement(const ElementPattern *pattern) const {
+  return tr("<h3>Element <i>%1</i> at <tt>%2</tt></h3>"
+            "<h5>Size <tt>%3</tt></h5>")
+      .arg(pattern->meta().name())
+      .arg(pattern->address().toString())
+      .arg(pattern->size().toString());
+}
+
+QString
+ElementPatternView::formatTooltipFixedRepeat(const FixedRepeatPattern *pattern) const {
+  return tr("<h3>Repetition <i>%1</i> at <tt>%2</tt></h3>"
+            "<h5>Size <tt>%3</tt></h5>")
+      .arg(pattern->meta().name())
+      .arg(pattern->address().toString())
+      .arg(pattern->size().toString());
+}
+
+QString
+ElementPatternView::formatTooltipUnknownField(const UnknownFieldPattern *pattern) const {
+  return tr("<h3>Unknown data at <tt>%1</tt></h3>"
+            "<h5>Size <tt>%3</tt></h5>")
+      .arg(pattern->address().toString())
+      .arg(pattern->size().toString());
+}
+
+QString
+ElementPatternView::formatTooltipUnusedField(const UnusedFieldPattern *pattern) const {
+  return tr("<h3>Unused data at <tt>%1</tt></h3>"
+            "<h5>Size <tt>%3</tt></h5>")
+      .arg(pattern->address().toString())
+      .arg(pattern->size().toString());
+}
+
+QString
+ElementPatternView::formatTooltipEnumField(const EnumFieldPattern *pattern) const {
+  QString res = tr("<h3>Enum <i>%1</i> at <tt>%2</tt></h3>"
+                   "<h5>Size <tt>%3</tt></h5>")
+      .arg(pattern->meta().name())
+      .arg(pattern->address().toString())
+      .arg(pattern->size().toString());
+  if (pattern->numItems()) {
+    res += tr("<h5>Items</h5>") + "<ul>";
+    for (unsigned int i=0; i<pattern->numItems(); i++) {
+      res += tr("<li><tt>%1</tt> &mdash; %2</li>")
+          .arg(pattern->item(i)->value())
+          .arg(pattern->item(i)->name());
+    }
+    res += "</ul>";
+  }
+  return res;
+}
+
+QString
+ElementPatternView::formatTooltipStringField(const StringFieldPattern *pattern) const {
+  return tr("<h3>%1 String <i>%2</i> at <tt>%3</tt></h3>"
+            "<h5>Size <tt>%4</tt></h5>")
+      .arg(StringFieldPattern::Format::ASCII == pattern->format() ? "ASCII" : "Unicode")
+      .arg(pattern->meta().name())
+      .arg(pattern->address().toString())
+      .arg(pattern->size().toString());
+}
+
+QString
+ElementPatternView::formatTooltipIntegerField(const IntegerFieldPattern *pattern) const {
+  QString format;
+  if (1 == pattern->size().bits())
+    format = tr("Bit");
+  else if (8 >= pattern->size().bits()) {
+    format = tr("%1int%2 Integer")
+        .arg(IntegerFieldPattern::Format::Unsigned == pattern->format() ? "u" : "")
+        .arg(pattern->size().bits());
+  } else if (IntegerFieldPattern::Format::BCD == pattern->format()) {
+    format = tr("bcd%1%2 Integer")
+        .arg(pattern->size().bits()/4)
+        .arg(IntegerFieldPattern::Endian::Little == pattern->endian() ? "le" : "be");
+  } else {
+    format = tr("%1int%2%3 Integer")
+        .arg(IntegerFieldPattern::Format::Unsigned == pattern->format() ? "u" : "")
+        .arg(pattern->size().bits()/4)
+        .arg(IntegerFieldPattern::Endian::Little == pattern->endian() ? "le" : "be");
+  }
+
+  return tr("<h3>%1 <i>%2</i> at <tt>%3</tt></h3>")
+      .arg(format)
+      .arg(pattern->meta().name())
+      .arg(pattern->address().toString());
+}
