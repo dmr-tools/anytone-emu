@@ -1,9 +1,10 @@
-#include "elementview.hh"
+#include "elementpatternview.hh"
 #include "pattern.hh"
 #include <QPainter>
 
+
 ElementPatternView::ElementPatternView(QWidget *parent)
-  : QWidget{parent}, _pattern(nullptr), _layout{QMargins(50, 30, 10, 10), 30, 30},
+  : QWidget{parent}, _pattern(nullptr), _layout{QMargins(50, 30, 10, 10), 30, 30, 1, 3},
     _items()
 {
   setBackgroundRole(QPalette::Base);
@@ -74,9 +75,21 @@ ElementPatternView::minimumSizeHint() const {
 void
 ElementPatternView::paintEvent(QPaintEvent *event) {
   QPainter painter(this);
+  QFont defaultFont = painter.font();
+  QFont addressFont = defaultFont; addressFont.setFamily("monospace");
 
   painter.setRenderHint(QPainter::Antialiasing, true);
   painter.setPen(QPen(QPalette::HighlightedText));
+
+  painter.setPen(QPen(palette().text().color()));
+  painter.setBrush(palette().text());
+  for (int i=0; i<32; i++) {
+    QRect r(_layout.margins.left() + i*_layout.colWidth, 0, _layout.colWidth, _layout.rowHight);
+    r.adjust(_layout.padding, _layout.padding, -_layout.padding, -_layout.padding);
+    painter.setFont(addressFont);
+    painter.drawText(r, QString::number(7 - (i%8)),
+                     QTextOption(Qt::AlignHCenter | Qt::AlignBottom));
+  }
 
   foreach(Item item, _items) {
     unsigned int row=item.startBit/32, col=item.startBit%32, width=item.width;
@@ -89,22 +102,48 @@ ElementPatternView::paintEvent(QPaintEvent *event) {
           right = _layout.margins.left() + _layout.colWidth*(col + consume),
           top = _layout.margins.top() + _layout.rowHight*row,
           bottom = _layout.margins.top() + _layout.rowHight*(row+1);
-      //painter.setBrush(QBrush(QPalette::AlternateBase));
       QRect rect = QRect(left, top, right-left, bottom-top);
-      painter.drawRect(rect);
-      //painter.setBrush(QBrush());
 
-      painter.setPen(QPen(QPalette::HighlightedText));
+      if (0 == col) {
+        painter.setPen(QPen(palette().text().color()));
+        painter.setBrush(palette().text());
+        QRect r = QRect(0, _layout.margins.top() + row*_layout.rowHight,
+                        _layout.margins.left(), _layout.rowHight);
+        r.adjust(_layout.padding, _layout.padding, -_layout.padding, -_layout.padding);
+        painter.setFont(addressFont);
+        painter.drawText(
+              r, QString("%1h").arg(4*row, 4, 16),
+              QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
+      }
+
+      painter.setPen(Qt::transparent);
+      painter.setBrush(palette().alternateBase());
+      painter.drawRect(rect);
+
+      painter.setPen(QPen(palette().text(), _layout.lineWidth));
+      painter.setBrush(QBrush(Qt::transparent));
       if (! continuation) painter.drawLine(left, bottom, left, top);
-      painter.drawLine(left, bottom, left, top);
+      painter.drawLine(left, top, right, top);
       if (isEnd) painter.drawLine(right, top, right, bottom);
       painter.drawLine(right, bottom, left, bottom);
 
-      painter.setPen(QPen(QPalette::Text));
-      if (! continuation)
-        painter.drawText(rect, item.pattern->meta().name());
-      else
-        painter.drawText(rect, "...");
+      painter.setPen(QPen(palette().text().color()));
+      painter.setBrush(palette().text());
+      painter.setFont(defaultFont);
+      if (! continuation) {
+        painter.drawText(rect.adjusted(_layout.padding, _layout.padding,
+                                       -_layout.padding, -_layout.padding),
+                         item.pattern->meta().name(),
+                         QTextOption(Qt::AlignLeft|Qt::AlignVCenter));
+      } else {
+        painter.drawText(rect.adjusted(_layout.padding, _layout.padding,
+                                       -_layout.padding, -_layout.padding),
+                         "...",
+                         QTextOption(Qt::AlignHCenter|Qt::AlignVCenter));
+      }
+
+      col += consume; row += col/32; col = col % 32;
+      continuation = true;
     }
   }
 }

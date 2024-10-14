@@ -55,7 +55,7 @@ qt_add_executable(anytone-emu-gui WIN32
   splitfieldpatterndialog.hh splitfieldpatterndialog.cc splitfieldpatterndialog.ui
   codeplugdialog.hh codeplugdialog.cc codeplugdialog.ui
   unknownpatterndialog.hh unknownpatterndialog.cc unknownpatterndialog.ui
-  elementview.hh elementpatternview.cc)
+  elementpatternview.hh elementpatternview.cc)
 
 qt_add_resources(anytone-emu-gui "codeplugs"
   PREFIX "/codeplugs"

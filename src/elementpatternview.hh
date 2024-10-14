@@ -1,5 +1,5 @@
-#ifndef ELEMENTVIEW_HH
-#define ELEMENTVIEW_HH
+#ifndef ELEMENTPATTERNVIEW_HH
+#define ELEMENTPATTERNVIEW_HH
 
 class FixedPattern;
 class ElementPattern;
@@ -21,7 +21,7 @@ protected:
 
   struct Layout {
     QMargins margins;
-    unsigned int rowHight, colWidth;
+    unsigned int rowHight, colWidth, lineWidth, padding;
   };
 
 public:
@@ -45,4 +45,4 @@ protected:
   QVector<Item> _items;
 };
 
-#endif // ELEMENTVIEW_HH
+#endif // ELEMENTPATTERNVIEW_HH

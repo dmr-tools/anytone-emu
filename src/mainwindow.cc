@@ -16,7 +16,7 @@
 #include <QScrollArea>
 #include <QStyleHints>
 #include "aboutdialog.hh"
-#include "elementview.hh"
+#include "elementpatternview.hh"
 
 
 MainWindow::MainWindow(QWidget *parent) :
