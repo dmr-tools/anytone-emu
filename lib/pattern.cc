@@ -278,7 +278,8 @@ GroupPattern::GroupPattern(QObject *parent)
 CodeplugPattern::CodeplugPattern(QObject *parent)
   : GroupPattern(parent), _modified(false), _source(), _content()
 {
-  //connect(this, &AbstractPattern::modified, this, &CodeplugPattern::onModified);
+  connect(this, &AbstractPattern::modified,
+          this, [this](const AbstractPattern *pattern){ this->_modified = true; });
 }
 
 bool
@@ -352,6 +353,7 @@ CodeplugPattern::addChildPattern(AbstractPattern *pattern) {
   connect(pattern, &AbstractPattern::removed, this, &AbstractPattern::removed);
 
   emit added(this, idx);
+  emit modified(this);
 
   return true;
 }
@@ -374,6 +376,8 @@ CodeplugPattern::takeChild(unsigned int n) {
   emit removing(this, n);
   _content.remove(n);
   emit removed(this, n);
+
+  emit modified(this);
 
   return pattern;
 }
@@ -414,6 +418,7 @@ CodeplugPattern::load(const QString &filename) {
 
   CodeplugPattern *pattern = parser.popAs<CodeplugPattern>();
   pattern->setSource(filename);
+  pattern->_modified = false;
   return pattern;
 }
 
@@ -583,6 +588,7 @@ RepeatPattern::addChildPattern(AbstractPattern *subpattern) {
   connect(_subpattern, &AbstractPattern::removed, this, &AbstractPattern::removed);
 
   emit added(this, 0);
+  emit modified(this);
 
   return true;
 }
@@ -605,6 +611,7 @@ RepeatPattern::takeChild(unsigned int n) {
   _subpattern = nullptr;
   pattern->setParent(nullptr);
   emit removed(this, 0);
+  emit modified(this);
 
   return pattern;
 }
@@ -727,6 +734,7 @@ BlockRepeatPattern::addChildPattern(AbstractPattern *subpattern) {
   connect(_subpattern, &AbstractPattern::removed, this, &AbstractPattern::removed);
 
   emit added(this, 0);
+  emit modified(this);
 
   return true;
 }
@@ -759,6 +767,7 @@ BlockRepeatPattern::takeChild(unsigned int n) {
   _subpattern = nullptr;
   pattern->setParent(nullptr);
   emit removed(this, 0);
+  emit modified(this);
 
   return pattern;
 }
@@ -801,6 +810,7 @@ void
 FixedPattern::setSize(const Size &size) {
   _size = size;
   emit resized(this, _size);
+  emit modified(this);
 }
 
 
@@ -887,6 +897,7 @@ ElementPattern::addChildPattern(AbstractPattern *pattern) {
     setSize(pattern->as<FixedPattern>()->size());
 
   emit added(this, idx);
+  emit modified(this);
 
   return true;
 }
@@ -926,6 +937,7 @@ ElementPattern::insertChildPattern(FixedPattern *pattern, unsigned int idx) {
     setSize(pattern->size());
 
   emit added(this, idx);
+  emit modified(this);
 
   // Update addresses of all subsequent patterns:
   for (idx++; idx < _content.size(); idx++) {
@@ -975,6 +987,9 @@ ElementPattern::takeChild(unsigned int n) {
   }
 
   setSize(mySize);
+
+  emit modified(this);
+
   return pattern;
 }
 

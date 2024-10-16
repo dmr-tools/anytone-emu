@@ -18,11 +18,13 @@
 #include <QStyleHints>
 #include <QClipboard>
 #include "aboutdialog.hh"
-#include "elementpatternview.hh"
+#include "elementpatterneditor.hh"
+#include "questiondialog.hh"
+#include <QCloseEvent>
 
 
-MainWindow::MainWindow(QWidget *parent) :
-  QMainWindow(parent), ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent)
+  : QMainWindow(parent), ui(new Ui::MainWindow)
 {
   ui->setupUi(this);
   setWindowIcon(QIcon::fromTheme("application-anytone-emu"));
@@ -81,8 +83,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
   connect(ui->patterns, &PatternView::canRemove, ui->actionCopyPattern, &QAction::setVisible);
   connect(ui->actionCopyPattern, &QAction::triggered, ui->patterns, &PatternView::copySelected);
-  connect(ui->patterns, &PatternView::canRemove, ui->actionCutPattern, &QAction::setVisible);
-  connect(ui->actionCutPattern, &QAction::triggered, ui->patterns, &PatternView::cutSelected);
 
   connect(ui->actionSave_pattern, &QAction::triggered, ui->patterns, &PatternView::save);
 
@@ -120,6 +120,17 @@ MainWindow::~MainWindow()
 
 void
 MainWindow::closeEvent(QCloseEvent *event) {
+  if (qobject_cast<Application*>(QApplication::instance())->device()->pattern()->isModified()) {
+    auto res = QuestionDialog::ask(
+          "closeOnUnsavedPattern", tr("Discard changes?"),
+          tr("Some changes to the codeplug pattern are not saved yet. Do you want to close the "
+             "application and discard these changes?"));
+    if (QMessageBox::Yes != res) {
+      event->ignore();
+      return;
+    }
+  }
+
   QSettings settings;
   settings.setValue("layout/mainWindowSize", saveGeometry());
   settings.setValue("layout/mainWindowState", saveState());
@@ -137,6 +148,9 @@ MainWindow::closeEvent(QCloseEvent *event) {
     settings.setValue("action/autoShow", "first");
   if (ui->actionAutoViewHexDiffPrev->isChecked())
     settings.setValue("action/autoShow", "prev");
+
+  event->accept();
+
   QMainWindow::closeEvent(event);
 }
 
@@ -316,8 +330,6 @@ MainWindow::onViewPattern() {
     return;
 
   ElementPattern *element = pattern->as<ElementPattern>();
-  auto view = new ElementPatternView(); view->setPattern(element);
-  auto frame = new QScrollArea(); frame->setWidget(view);
-  frame->setWidgetResizable(true);
-  ui->tabs->addTab(frame, element->meta().name());
+  auto view = new ElementPatternEditor(); view->setPattern(element);
+  ui->tabs->addTab(view, element->meta().name());
 }

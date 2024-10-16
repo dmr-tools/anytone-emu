@@ -255,7 +255,6 @@
     <addaction name="actionInsert_below"/>
     <addaction name="separator"/>
     <addaction name="actionCopyPattern"/>
-    <addaction name="actionCutPattern"/>
     <addaction name="actionPastePatternAsChild"/>
     <addaction name="actionPastePatternAbove"/>
     <addaction name="actionPastePatternBelow"/>
@@ -467,7 +466,8 @@
   </action>
   <action name="actionViewPattern">
    <property name="icon">
-    <iconset theme="edit-find"/>
+    <iconset theme="edit-find">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>View pattern</string>
@@ -475,7 +475,8 @@
   </action>
   <action name="actionCopyPattern">
    <property name="icon">
-    <iconset theme="edit-copy"/>
+    <iconset theme="edit-copy">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Copy pattern</string>
@@ -485,20 +486,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
-   </property>
-  </action>
-  <action name="actionCutPattern">
-   <property name="icon">
-    <iconset theme="edit-cut"/>
-   </property>
-   <property name="text">
-    <string>Cut pattern</string>
-   </property>
-   <property name="toolTip">
-    <string>Cuts the selected pattern to be inserted into the codeplug elsewhere.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+X</string>
    </property>
   </action>
   <action name="actionPastePatternAsChild">

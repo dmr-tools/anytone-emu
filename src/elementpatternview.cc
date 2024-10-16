@@ -2,15 +2,15 @@
 #include "pattern.hh"
 #include <QPainter>
 #include <QEvent>
+#include <QMenu>
 #include <QHelpEvent>
 #include <QToolTip>
 #include <algorithm>
 
 
 ElementPatternView::ElementPatternView(QWidget *parent)
-  : QWidget{parent}, _pattern(nullptr), _selectedPattern(nullptr),
-    _layout{QMargins(60, 40, 10, 10), 40, 40, 1, 3, 10},
-    _items()
+  : QWidget{parent}, _pattern(), _selectedPattern(),
+    _layout{QMargins(60, 40, 10, 10), 40, 40, 1, 3, 10}
 {
   setBackgroundRole(QPalette::Base);
   setAutoFillBackground(true);
@@ -31,27 +31,28 @@ ElementPatternView::setLayout(const Layout &layout) {
 
 const ElementPattern *
 ElementPatternView::pattern() const {
-  return _pattern;
+  return _pattern.data();
 }
 
 void
 ElementPatternView::setPattern(ElementPattern *pattern) {
-  _items.clear();
+  if (! _pattern.isNull())
+    disconnect(_pattern, nullptr, this, nullptr);
+
   _pattern = pattern;
+  update();
 
-  if (nullptr == _pattern) {
-    update();
+  if (_pattern.isNull())
     return;
-  }
 
-  connect(_pattern, &QObject::destroyed, this, [this](QObject *obj){this->update();});
-  connect(_pattern, &AbstractPattern::modified, this, [this](const AbstractPattern *pattern){this->update();});
+  connect(_pattern, &AbstractPattern::modified,
+          this, [this](const AbstractPattern *pattern){this->update();});
+}
 
-  for (unsigned int n=0; n<_pattern->numChildPattern(); n++) {
-    auto child = _pattern->childPattern(n)->as<FixedPattern>();
-    _items.append({(unsigned int)((Offset)child->address()).bits(),
-                   (unsigned int)child->size().bits(), QPointer<FixedPattern>(child)});
-  }
+
+FixedPattern *
+ElementPatternView::selectedPattern() const {
+  return _selectedPattern;
 }
 
 
@@ -65,13 +66,14 @@ ElementPatternView::minimumSizeHint() const {
   unsigned int width = _layout.margins.left() + _layout.margins.right(),
       height = _layout.margins.top() + _layout.margins.bottom();
 
-  if (! _items.empty()) {
-    unsigned int numBits = _items.back().startBit + _items.back().width;
-    unsigned int rows = (numBits / 32) + (numBits%32 ? 1 : 0),
-        cols = (rows > 1) ? 32 : numBits;
-    width += cols*_layout.colWidth;
-    height += rows*_layout.rowHight;
-  }
+  if (_pattern.isNull() || (0 == _pattern->numChildPattern()))
+    return QSize(width, height);
+
+  unsigned int numBits = _pattern->size().bits();
+  unsigned int rows = (numBits / 32) + (numBits%32 ? 1 : 0),
+      cols = (rows > 1) ? 32 : numBits;
+  width += cols*_layout.colWidth;
+  height += rows*_layout.rowHight;
 
   return QSize(width, height);
 }
@@ -95,8 +97,14 @@ ElementPatternView::paintEvent(QPaintEvent *event) {
                      QTextOption(Qt::AlignHCenter | Qt::AlignBottom));
   }
 
-  foreach(Item item, _items) {
-    unsigned int row=item.startBit/32, col=item.startBit%32, width=item.width;
+  if (_pattern.isNull())
+    return;
+
+  for (unsigned int idx=0; idx < _pattern->numChildPattern(); idx++) {
+    FixedPattern *pattern = _pattern->childPattern(idx)->as<FixedPattern>();
+    unsigned int row = Offset(pattern->address()).bits()/32,
+        col=Offset(pattern->address()).bits()%32,
+        width=pattern->size().bits();
     bool continuation = false;
 
     while (width) {
@@ -120,60 +128,76 @@ ElementPatternView::paintEvent(QPaintEvent *event) {
               QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
       }
 
-      painter.setPen(Qt::transparent);
-      if (item.pattern == _selectedPattern)
-        painter.setBrush(palette().highlight());
-      else
-        painter.setBrush(palette().alternateBase());
-      painter.drawRect(rect);
-
-
-      if (item.pattern == _selectedPattern)
-        painter.setPen(QPen(palette().highlightedText(), _layout.lineWidth));
-      else
-        painter.setPen(QPen(palette().text(), _layout.lineWidth));
-      painter.setBrush(QBrush(Qt::transparent));
-      if (! continuation) {
-        painter.drawArc(left, top, _layout.radius, _layout.radius,
-                        16*90, 90*16);
-        painter.drawArc(left, bottom-_layout.radius, _layout.radius, _layout.radius,
-                        16*180, 90*16);
-        painter.drawLine(left, bottom-_layout.radius+_layout.lineWidth, left, top+_layout.radius-_layout.lineWidth);
-      }
-      if (isEnd) {
-        painter.drawLine(right, top+_layout.radius-_layout.lineWidth, right, bottom-_layout.radius+_layout.lineWidth);
-        painter.drawArc(right-_layout.radius, top, _layout.radius, _layout.radius,
-                        0, 90*16);
-        painter.drawArc(right-_layout.radius, bottom-_layout.radius, _layout.radius, _layout.radius,
-                        16*270, 90*16);
-      }
-      painter.drawLine(left+_layout.radius-_layout.lineWidth, top,
-                       right-_layout.radius+_layout.lineWidth, top);
-      painter.drawLine(right-_layout.radius+_layout.lineWidth, bottom,
-                       left+_layout.radius-_layout.lineWidth, bottom);
-
-      if (item.pattern == _selectedPattern)
-        painter.setPen(QPen(palette().highlightedText(), _layout.lineWidth));
-      else
-        painter.setPen(QPen(palette().text(), _layout.lineWidth));
-      painter.setPen(QPen(palette().text().color()));
-      painter.setBrush(palette().text());
-      painter.setFont(defaultFont);
-      if (! continuation) {
-        painter.drawText(rect.adjusted(_layout.padding, _layout.padding,
-                                       -_layout.padding, -_layout.padding),
-                         item.pattern->meta().name(),
-                         QTextOption(Qt::AlignLeft|Qt::AlignVCenter));
-      } else {
-        painter.drawText(rect.adjusted(_layout.padding, _layout.padding,
-                                       -_layout.padding, -_layout.padding),
-                         "...",
-                         QTextOption(Qt::AlignHCenter|Qt::AlignVCenter));
-      }
+      renderBlock(painter, pattern, rect, continuation, isEnd);
 
       col += consume; row += col/32; col = col % 32;
       continuation = true;
     }
+  }
+}
+
+
+void
+ElementPatternView::renderBlock(
+    QPainter &painter, FixedPattern *pattern, const QRect &rect, bool isContinuation, bool isEnd)
+{
+  QFont defaultFont = painter.font();
+  QFont addressFont = defaultFont; addressFont.setFamily("monospace");
+
+  painter.setPen(Qt::transparent);
+  if (pattern == _selectedPattern)
+    painter.setBrush(palette().highlight());
+  else
+    painter.setBrush(palette().alternateBase());
+  painter.drawRect(rect);
+
+
+  if (pattern == _selectedPattern)
+    painter.setPen(QPen(palette().highlightedText(), _layout.lineWidth));
+  else
+    painter.setPen(QPen(palette().text(), _layout.lineWidth));
+  painter.setBrush(QBrush(Qt::transparent));
+
+  if (! isContinuation) {
+    painter.drawArc(rect.left(), rect.top(), _layout.radius, _layout.radius,
+                    16*90, 90*16);
+    painter.drawArc(rect.left(), rect.bottom()-_layout.radius, _layout.radius, _layout.radius,
+                    16*180, 90*16);
+    painter.drawLine(rect.left(), rect.bottom()-_layout.radius+_layout.lineWidth,
+                     rect.left(), rect.top()+_layout.radius-_layout.lineWidth);
+  }
+
+  if (isEnd) {
+    painter.drawLine(rect.right(), rect.top()+_layout.radius-_layout.lineWidth,
+                     rect.right(), rect.bottom()-_layout.radius+_layout.lineWidth);
+    painter.drawArc(rect.right()-_layout.radius, rect.top(), _layout.radius, _layout.radius,
+                    0, 90*16);
+    painter.drawArc(rect.right()-_layout.radius, rect.bottom()-_layout.radius,
+                    _layout.radius, _layout.radius,
+                    16*270, 90*16);
+  }
+  painter.drawLine(rect.left()+_layout.radius-_layout.lineWidth, rect.top(),
+                   rect.right()-_layout.radius+_layout.lineWidth, rect.top());
+  painter.drawLine(rect.right()-_layout.radius+_layout.lineWidth, rect.bottom(),
+                   rect.left()+_layout.radius-_layout.lineWidth, rect.bottom());
+
+  if (pattern == _selectedPattern)
+    painter.setPen(QPen(palette().highlightedText(), _layout.lineWidth));
+  else
+    painter.setPen(QPen(palette().text(), _layout.lineWidth));
+  painter.setPen(QPen(palette().text().color()));
+  painter.setBrush(palette().text());
+  painter.setFont(defaultFont);
+  if (! isContinuation) {
+    painter.drawText(rect.adjusted(_layout.padding, _layout.padding,
+                                   -_layout.padding, -_layout.padding),
+                     pattern->meta().name(),
+                     QTextOption(Qt::AlignLeft|Qt::AlignVCenter));
+  } else {
+    painter.drawText(rect.adjusted(_layout.padding, _layout.padding,
+                                   -_layout.padding, -_layout.padding),
+                     "...",
+                     QTextOption(Qt::AlignHCenter|Qt::AlignVCenter));
   }
 }
 
@@ -204,17 +228,30 @@ ElementPatternView::mousePressEvent(QMouseEvent *event) {
 
 
 void
+ElementPatternView::mouseDoubleClickEvent(QMouseEvent *event) {
+  auto pattern = findPatternAt(event->position().toPoint());
+  if ((Qt::LeftButton & event->buttons()) && pattern) {
+    event->accept();
+    emit doubleClicked(pattern);
+  }
+
+  QWidget::mouseDoubleClickEvent(event);
+}
+
+
+void
 ElementPatternView::mouseReleaseEvent(QMouseEvent *event) {
   if (auto pattern = findPatternAt(event->position().toPoint())) {
-    event->accept();
     if (pattern != _selectedPattern) {
+      event->accept();
       _selectedPattern = pattern;
+      emit selectionChanged(_selectedPattern);
       update();
     }
   } else {
-    event->ignore();
     if (nullptr != _selectedPattern) {
       _selectedPattern = nullptr;
+      emit selectionChanged(_selectedPattern);
       update();
     }
   }
@@ -223,20 +260,38 @@ ElementPatternView::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 
+void
+ElementPatternView::contextMenuEvent(QContextMenuEvent *event) {
+  if (_selectedPattern) {
+    QMenu contextMenu;
+    contextMenu.setTitle(_selectedPattern->meta().name());
+    contextMenu.addActions(actions());
+    contextMenu.exec(event->globalPos());
+    event->accept();
+  }
+
+  QWidget::contextMenuEvent(event);
+}
+
 int
 ElementPatternView::findItemAt(const QPoint &pos) const {
-  if ((pos.x() < _layout.margins.left()) || (pos.y() < _layout.margins.top()))
-      return -1;
+  if (_pattern.isNull())
+    return -1;
 
-  int x = std::max(0, pos.x()-_layout.margins.left()),
-      y = std::max(0, pos.y()-_layout.margins.right());
+  QRect bb(_layout.margins.left(), _layout.margins.top(),
+           minimumSizeHint().width() - _layout.margins.left() - _layout.margins.right(),
+           minimumSizeHint().height() - _layout.margins.top() - _layout.margins.bottom());
+  if (! bb.contains(pos))
+    return -1;
+
+  int x = pos.x()-bb.left(), y = pos.y()-bb.top();
   int col = x/_layout.colWidth, row = y/_layout.rowHight;
-  int bit = 32*row + col;
+  Address bit = Address(Offset::fromBits(32*row + col));
 
-  for (int i=0; i<_items.size(); i++) {
-    Address a = _items.at(i).pattern->address(), b = a + _items.at(i).pattern->size(),
-        c = Address(Offset::fromBits(bit));
-    if ((a <= c) && ((a+b) > c))
+  for (unsigned int i=0; i<_pattern->numChildPattern(); i++) {
+    Address a = _pattern->childPattern(i)->address(),
+        b = a + _pattern->childPattern(i)->as<FixedPattern>()->size();
+    if ((a <= bit) && (b > bit))
       return i;
   }
 
@@ -248,7 +303,7 @@ ElementPatternView::findPatternAt(const QPoint &pos) const {
   int idx = findItemAt(pos);
   if (0 > idx)
     return nullptr;
-  return _items.at(idx).pattern;
+  return _pattern->childPattern(idx)->as<FixedPattern>();
 }
 
 

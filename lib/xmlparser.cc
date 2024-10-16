@@ -5,7 +5,7 @@
 XmlParser::XmlParser(QObject *parent)
   : QObject(parent)
 {
-  // pass...
+  pushHandler(this);
 }
 
 bool
@@ -63,6 +63,13 @@ XmlParser::processText(const QStringView &name) {
 
 bool
 XmlParser::parse(QXmlStreamReader &reader) {
+  if (_handler.isEmpty()) {
+    raiseError(QString("Near %1:%2: No handler given to process elements.")
+               .arg(reader.lineNumber())
+               .arg(reader.errorString()));
+    return false;
+  }
+
   while (! reader.atEnd()) {
     QXmlStreamReader::TokenType token = reader.readNext();
     switch(token) {
@@ -70,24 +77,24 @@ XmlParser::parse(QXmlStreamReader &reader) {
     case QXmlStreamReader::Invalid:
       continue;
     case QXmlStreamReader::StartDocument:
-      if (! this->beginDocument())
+      if (! this->_handler.back()->beginDocument())
         reader.raiseError(errorMessage());
       continue;
     case QXmlStreamReader::EndDocument:
-      if (! this->endDocument())
+      if (! this->_handler.back()->endDocument())
         reader.raiseError(errorMessage());
       continue;
     case QXmlStreamReader::StartElement:
-      if (! this->beginElement(reader.name(), reader.attributes()))
+      if (! this->_handler.back()->beginElement(reader.name(), reader.attributes()))
         reader.raiseError(errorMessage());
       continue;
     case QXmlStreamReader::EndElement:
-      if (! this->endElement(reader.name()))
+      if (! this->_handler.back()->endElement(reader.name()))
         reader.raiseError(errorMessage());
     case QXmlStreamReader::Characters:
-      if (reader.isCDATA() && ! this->processCDATA(reader.text()))
+      if (reader.isCDATA() && ! this->_handler.back()->processCDATA(reader.text()))
         reader.raiseError(errorMessage());
-      else if (! reader.isCDATA() && ! this->processText(reader.text()))
+      else if (! reader.isCDATA() && ! this->_handler.back()->processText(reader.text()))
         reader.raiseError(errorMessage());
       continue;
     }
@@ -110,4 +117,17 @@ XmlParser::errorMessage() const {
 void
 XmlParser::raiseError(const QString &message) {
   _errorMessage = message;
+}
+
+
+void
+XmlParser::pushHandler(XmlParser *parser) {
+  _handler.append(parser);
+}
+
+XmlParser *
+XmlParser::popHandler() {
+  if (_handler.isEmpty())
+    return nullptr;
+  return _handler.takeLast();
 }
