@@ -30,6 +30,11 @@ public:
   /** write data to the model. */
   virtual bool write(uint32_t address, const QByteArray &payload);
 
+  /** Read data from ROM. */
+  virtual bool readRom(uint32_t address, uint8_t length, QByteArray &payload) const;
+  /** write data to ROM. */
+  virtual bool writeRom(uint32_t address, const QByteArray &payload);
+
   /** Returns a weak reference to the codeplug pattern. */
   CodeplugPattern *pattern() const;
   /** Sets the codeplug pattern. The ownership is taken. */
@@ -44,6 +49,8 @@ public slots:
 protected:
   /** The codeplug pattern, or @c nullptr if none is set. */
   CodeplugPattern *_pattern;
+  /** Holds some portions of pre-defined memory (ROM). */
+  QVector<QPair<uint32_t, QByteArray>> _rom;
 };
 
 

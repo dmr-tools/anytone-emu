@@ -2,24 +2,17 @@
 #include <QXmlStreamReader>
 #include <QRegularExpression>
 
-XmlParser::XmlParser(QObject *parent)
+/* ********************************************************************************************* *
+ * Implementation of XmlElementHandler
+ * ********************************************************************************************* */
+XmlElementHandler::XmlElementHandler(QObject *parent)
   : QObject(parent)
 {
-  pushHandler(this);
+  // pass...
 }
 
 bool
-XmlParser::beginDocument() {
-  return true;
-}
-
-bool
-XmlParser::endDocument() {
-  return true;
-}
-
-bool
-XmlParser::beginElement(const QStringView &name, const QXmlStreamAttributes &attributes) {
+XmlElementHandler::beginElement(const QStringView &name, const QXmlStreamAttributes &attributes) {
   // Search for matching slot by name
   QStringList tagName = name.toString().split(QRegularExpression(R"([\-_.])"), Qt::SkipEmptyParts);
   for (int i=0; i<tagName.size(); i++)
@@ -37,7 +30,7 @@ XmlParser::beginElement(const QStringView &name, const QXmlStreamAttributes &att
 }
 
 bool
-XmlParser::endElement(const QStringView &name) {
+XmlElementHandler::endElement(const QStringView &name) {
   // Search for matching slot by name
   QString tagName = name.toString(); tagName[0] = tagName[0].toUpper();
   QString slotName = QString("end%1Element").arg(tagName);
@@ -52,12 +45,66 @@ XmlParser::endElement(const QStringView &name) {
 }
 
 bool
-XmlParser::processCDATA(const QStringView &name) {
+XmlElementHandler::processCDATA(const QStringView &name) {
   return true;
 }
 
 bool
-XmlParser::processText(const QStringView &name) {
+XmlElementHandler::processText(const QStringView &name) {
+  return true;
+}
+
+const QString &
+XmlElementHandler::errorMessage() const {
+  return _errorMessage;
+}
+
+void
+XmlElementHandler::raiseError(const QString &message) {
+  _errorMessage = message;
+}
+
+
+void
+XmlElementHandler::pushHandler(XmlElementHandler *parser) {
+  parser->setParent(this);
+  _handler.append(parser);
+}
+
+
+XmlElementHandler *
+XmlElementHandler::topHandler() const {
+  return _handler.back();
+}
+
+
+XmlElementHandler *
+XmlElementHandler::popHandler() {
+  if (_handler.isEmpty())
+    return nullptr;
+  XmlElementHandler *handler = _handler.takeLast();
+  handler->setParent(nullptr);
+  return handler;
+}
+
+
+
+/* ********************************************************************************************* *
+ * Implementation of XmlParser
+ * ********************************************************************************************* */
+XmlParser::XmlParser(QObject *parent)
+  : XmlElementHandler{parent}
+{
+  _handler.append(this);
+}
+
+bool
+XmlParser::beginDocument() {
+  return true;
+}
+
+bool
+XmlParser::endDocument() {
   return true;
 }
 
@@ -77,11 +124,11 @@ XmlParser::parse(QXmlStreamReader &reader) {
     case QXmlStreamReader::Invalid:
       continue;
     case QXmlStreamReader::StartDocument:
-      if (! this->_handler.back()->beginDocument())
+      if (! this->beginDocument())
         reader.raiseError(errorMessage());
       continue;
     case QXmlStreamReader::EndDocument:
-      if (! this->_handler.back()->endDocument())
+      if (! this->endDocument())
         reader.raiseError(errorMessage());
       continue;
     case QXmlStreamReader::StartElement:
@@ -109,25 +156,68 @@ XmlParser::parse(QXmlStreamReader &reader) {
   return !reader.hasError();
 }
 
+
+
+/* ********************************************************************************************* *
+ * Implementation of XmlTextHandler
+ * ********************************************************************************************* */
+XmlTextHandler::XmlTextHandler(XmlElementHandler *parent)
+  : XmlElementHandler{parent}, _content()
+{
+  // pass...
+}
+
 const QString &
-XmlParser::errorMessage() const {
-  return _errorMessage;
+XmlTextHandler::content() const {
+  return _content;
 }
 
-void
-XmlParser::raiseError(const QString &message) {
-  _errorMessage = message;
+bool
+XmlTextHandler::processText(const QStringView &content) {
+  _content.append(content);
+  return true;
 }
 
 
-void
-XmlParser::pushHandler(XmlParser *parser) {
-  _handler.append(parser);
+
+/* ********************************************************************************************* *
+ * Implementation of XmlUrlHandler
+ * ********************************************************************************************* */
+XmlUrlHandler::XmlUrlHandler(XmlElementHandler *parent)
+  : XmlElementHandler{parent}, _url()
+{
+  // pass...
 }
 
-XmlParser *
-XmlParser::popHandler() {
-  if (_handler.isEmpty())
-    return nullptr;
-  return _handler.takeLast();
+const QUrl &
+XmlUrlHandler::url() const {
+  return _url;
+}
+
+bool
+XmlUrlHandler::processText(const QStringView &content) {
+  _url = QUrl(content.toString());
+  return _url.isValid();
+}
+
+
+
+/* ********************************************************************************************* *
+ * Implementation of XmlHexDataHandler
+ * ********************************************************************************************* */
+XmlHexDataHandler::XmlHexDataHandler(XmlElementHandler *parent)
+  : XmlElementHandler{parent}, _data()
+{
+  // pass...
+}
+
+const QByteArray &
+XmlHexDataHandler::data() const {
+  return _data;
+}
+
+bool
+XmlHexDataHandler::processText(const QStringView &content) {
+  _data.append(QByteArray::fromHex(content.toLatin1()));
+  return true;
 }

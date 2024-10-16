@@ -16,8 +16,7 @@ Model::Model(CodeplugPattern *pattern, QObject *parent)
 
 bool
 Model::read(uint32_t address, uint8_t length, QByteArray &payload) {
-  Q_UNUSED(address); Q_UNUSED(length); Q_UNUSED(payload)
-  return false;
+  return readRom(address, length, payload);
 }
 
 bool
@@ -25,6 +24,41 @@ Model::write(uint32_t address, const QByteArray &payload) {
   Q_UNUSED(address); Q_UNUSED(payload)
   return false;
 }
+
+
+bool
+Model::readRom(uint32_t address, uint8_t length, QByteArray &payload) const {
+  // Search element containing segment entirely
+  foreach (auto element, _rom) {
+    if ((element.first<=address) && (address+length)<=(element.first+element.second.size())) {
+      payload = element.second.mid(address-element.first, length);
+      return true;
+    }
+  }
+  return false;
+}
+
+
+bool
+Model::writeRom(uint32_t address, const QByteArray &payload) {
+  // Check if we can append data to an element
+  foreach (auto element, _rom) {
+    if ((element.first + element.second.size()) == address) {
+      element.second.append(payload);
+      return true;
+    }
+  }
+
+  // Create new element
+  _rom.append({address, payload});
+  std::sort(_rom.begin(), _rom.end(),
+            [](const QPair<uint32_t,QByteArray> &a,const QPair<uint32_t,QByteArray> &b) -> bool {
+    return a.first < b.first;
+  });
+
+  return true;
+}
+
 
 CodeplugPattern *
 Model::pattern() const {
