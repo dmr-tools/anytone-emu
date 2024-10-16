@@ -25,7 +25,7 @@ signals:
   void canView(bool enable);
 
 public slots:
-  void editPattern();  
+  void editPattern();
   void save();
 
   void appendNewPattern();
@@ -34,14 +34,13 @@ public slots:
   void insertNewPatternBelow();
 
   void copySelected();
-  void cutSelected();
   void pastePatternAsChild();
   void pastePatternAbove();
   void pastePatternBelow();
   void removeSelected();
 
-protected:
-  bool _editPattern(AbstractPattern *pattern, const CodeplugPattern *codeplug=nullptr);
+public:
+  static bool showPatternEditor(AbstractPattern *pattern, const CodeplugPattern *codeplug=nullptr);
 
 protected:
   void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);

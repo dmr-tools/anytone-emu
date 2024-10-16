@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QObject>
+#include <QList>
 
 class QStringView;
 class QXmlStreamReader;
@@ -70,9 +71,17 @@ protected:
   /** Raises an error (not an exception). */
   void raiseError(const QString &message);
 
+  /** Puts the given handler on the top of the stack. */
+  void pushHandler(XmlParser *parser);
+  /** Pops the first handler from the stack. */
+  XmlParser *popHandler();
+
 protected:
   /** The current error Message. */
   QString _errorMessage;
+  /** The stack of handler.
+   * This stack at least contains an instance of itself. */
+  QList<XmlParser *> _handler;
 };
 
 #endif // XMLPARSER_HH
