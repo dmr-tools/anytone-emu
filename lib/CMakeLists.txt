@@ -13,8 +13,8 @@ set(libanytone-emu_SOURCES
     dmr6x2uv.cc dmr6x2uv2.cc
     djmd5.cc djmd5x.cc
     pattern.cc patternparser.cc codeplugpatternparser.cc patternfragmentparser.cc
-    patternmimedata.cc annotation.cc errorstack.cc
-    modeldefinition.cc anytonemodeldefinition.cc)
+    patternmimedata.cc annotation.cc errorstack.cc modelrom.cc
+    modeldefinition.cc modelparser.cc anytonemodeldefinition.cc anytonemodelparser.cc)
 set(libanytone-emu_HEADERS pseudoterminal.hh
     request.hh response.hh hexdump.hh xmlparser.hh offset.hh
     device.hh ${PTY_HEADER} logger.hh model.hh image.hh
@@ -22,8 +22,8 @@ set(libanytone-emu_HEADERS pseudoterminal.hh
     dmr6x2uv.hh dmr6x2uv2.hh
     djmd5.hh djmd5x.hh
     pattern.hh patternparser.hh codeplugpatternparser.hh patternfragmentparser.hh
-    patternmimedata.hh annotation.hh errorstack.hh
-    modeldefinition.hh anytonemodeldefinition.hh)
+    patternmimedata.hh annotation.hh errorstack.hh modelrom.hh
+    modeldefinition.hh modelparser.hh anytonemodeldefinition.hh anytonemodelparser.hh)
 
 set_property(SOURCE pseudoterminal.hh PROPERTY SKIP_AUTOGEN ON)
 set_property(SOURCE request.hh PROPERTY SKIP_AUTOGEN ON)
@@ -32,6 +32,7 @@ set_property(SOURCE hexdump.hh PROPERTY SKIP_AUTOGEN ON)
 set_property(SOURCE xmlparser.hh PROPERTY SKIP_AUTOGET ON)
 set_property(SOURCE offset.hh PROPERTY SKIP_AUTOGET ON)
 set_property(SOURCE errorstack.hh PROPERTY SKIP_AUTOGET ON)
+set_property(SOURCE modelrom.hh PROPERTY SKIP_AUTOGET ON)
 
 configure_file(config.hh.in ${PROJECT_BINARY_DIR}/lib/config.hh)
 

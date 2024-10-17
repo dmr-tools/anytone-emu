@@ -39,7 +39,7 @@ PatternParserTest::parseCodeplugMetaTest() {
       R"(  <meta>)"
       R"(    <name>Example Codeplug</name>)"
       R"(    <description>An Example Codeplug</description>)"
-      R"(    <version>1.0.0-1</version>)"
+      R"(    <firmware>1.0.0-1</firmware>)"
       R"(  </meta>)"
       R"(</codeplug>)";
 
