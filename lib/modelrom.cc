@@ -57,17 +57,23 @@ ModelRom::segmentCount() const {
 
 void
 ModelRom::write(uint32_t address, const QByteArray &data) {
-  auto next = std::lower_bound(begin(), end(), address);
+  auto left = std::lower_bound(begin(), end(), address);
+  // we use end() as an invalid iterator
+  auto prev = (begin() != left) ? left-1 : end(),
+      next = (end() != left) ? left+1 : end();
 
-  if ((end() == next) || (next->address > address)) {
-    _content.insert(next, {address, data});
-  } else if (next->contains(address, data.size())) {
-    uint32_t offset = address - next->address;
-    memcpy(next->content.data()+offset, data.data(), data.size());
-  } else if ((next->address+next->content.size()) == address) {
-    next->content.append(data);
+  if ((end() != prev) && ((prev->address + prev->content.size()) == address)) {
+    prev->content.append(data);
+  } else if ((end() != prev) && prev->contains(address, data.size())) {
+    uint32_t offset = address - prev->address;
+    memcpy(prev->content.data()+offset, data.data(), data.size());
+  } else if ((end() != left) && left->contains(address, data.size())) {
+    uint32_t offset = address - left->address;
+    memcpy(left->content.data()+offset, data.data(), data.size());
+  } else if ((end() == left) || ((address+data.size()) < left->address)) {
+    _content.insert(left, {address, data});
   } else {
-    _content.insert(++next, {address, data});
+    _content.insert(next, {address, data});
   }
 }
 

@@ -13,6 +13,8 @@ public:
 
 private slots:
   void testRomAppend();
+  void testRomOverride();
+  void testRomExtend();
   void testRomMerge();
 
 };
