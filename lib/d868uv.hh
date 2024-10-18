@@ -8,7 +8,7 @@ class CodeplugPattern;
 
 /** Implements a AnyTone AT-D868UV device emulator.
  * @ingroup device */
-class D868UV : public Device
+class D868UV : public AnyToneDevice
 {
   Q_OBJECT
 

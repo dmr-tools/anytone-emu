@@ -1,6 +1,8 @@
 #include "xmlparser.hh"
 #include <QXmlStreamReader>
 #include <QRegularExpression>
+#include <QMetaMethod>
+
 
 /* ********************************************************************************************* *
  * Implementation of XmlElementHandler
@@ -10,6 +12,18 @@ XmlElementHandler::XmlElementHandler(QObject *parent)
 {
   // pass...
 }
+
+bool
+XmlElementHandler::canBeginElement(const QStringView &name) const {
+  // Search for matching slot by name
+  QStringList tagName = name.toString().split(QRegularExpression(R"([\-_.])"), Qt::SkipEmptyParts);
+  for (int i=0; i<tagName.size(); i++)
+    tagName[i][0] = tagName[i][0].toUpper();
+  QByteArray slotName = QString("begin%1Element(QXmlStreamAttributes)").arg(tagName.join("")).toLocal8Bit();
+  return (-1 != this->metaObject()->indexOfMethod(slotName.constData())) ||
+      (-1 != this->metaObject()->indexOfSlot(slotName.constData()));
+}
+
 
 bool
 XmlElementHandler::beginElement(const QStringView &name, const QXmlStreamAttributes &attributes) {
@@ -28,6 +42,17 @@ XmlElementHandler::beginElement(const QStringView &name, const QXmlStreamAttribu
 
   raiseError(QString("Could not invoke method '%1'.").arg(slotName));
   return false;
+}
+
+bool
+XmlElementHandler::canEndElement(const QStringView &name) const {
+  // Search for matching slot by name
+  QStringList tagName = name.toString().split(QRegularExpression(R"([\-_.])"), Qt::SkipEmptyParts);
+  for (int i=0; i<tagName.size(); i++)
+    tagName[i][0] = tagName[i][0].toUpper();
+  QByteArray slotName = QString("end%1Element()").arg(tagName.join("")).toLocal8Bit();
+  return (-1 != this->metaObject()->indexOfMethod(slotName)) ||
+      (-1 != this->metaObject()->indexOfSlot(slotName));
 }
 
 bool
@@ -136,6 +161,53 @@ XmlParser::endDocument() {
   return true;
 }
 
+
+bool
+XmlParser::dispatchBeginElement(const QStringView &name, const QXmlStreamAttributes &attributes) {
+  if (this->_handler.isEmpty() || (! topHandler()->canBeginElement(name))) {
+    raiseError(
+          QString("Cannot handle start of element <%1>, no handler present or unable to handle element.")
+          .arg(name));
+    return false;
+  }
+
+  if (! this->_handler.back()->beginElement(name, attributes)) {
+    raiseError(this->_handler.back()->errorMessage());
+    return false;
+  }
+
+  return true;
+}
+
+bool
+XmlParser::dispatchEndElement(const QStringView &name) {
+  QList<XmlElementHandler*>::const_reverse_iterator handler = _handler.rbegin();
+  if (_handler.rend() == handler) {
+    raiseError(QString("Cannot handle end of element <%1>, no handler present.").arg(name));
+    return false;
+  }
+
+  if ((*handler)->canEndElement(name)) {
+    if ((*handler)->endElement(name))
+      return true;
+    raiseError((*handler)->errorMessage());
+    return false;
+  }
+
+  if ((_handler.rend() == (++handler)) || (! (*handler)->canEndElement(name))) {
+    raiseError(QString("Cannot handle end of element <%1>, handler is unable to handle element.").arg(name));
+    return false;
+  }
+
+  if (! (*handler)->endElement(name)) {
+    raiseError((*handler)->errorMessage());
+    return false;
+  }
+
+  return true;
+}
+
+
 bool
 XmlParser::parse(QXmlStreamReader &reader) {
   if (_handler.isEmpty()) {
@@ -160,11 +232,11 @@ XmlParser::parse(QXmlStreamReader &reader) {
         reader.raiseError(errorMessage());
       continue;
     case QXmlStreamReader::StartElement:
-      if (! this->_handler.back()->beginElement(reader.name(), reader.attributes()))
+      if (! this->dispatchBeginElement(reader.name(), reader.attributes()))
         reader.raiseError(errorMessage());
       continue;
     case QXmlStreamReader::EndElement:
-      if (! this->_handler.back()->endElement(reader.name()))
+      if (! this->dispatchEndElement(reader.name()))
         reader.raiseError(errorMessage());
       continue;
     case QXmlStreamReader::Characters:

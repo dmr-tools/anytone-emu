@@ -7,7 +7,7 @@
 #include "logger.hh"
 
 
-Device::Device(QIODevice *interface, Model* model, QObject *parent)
+AnyToneDevice::AnyToneDevice(QIODevice *interface, AnyToneModel* model, QObject *parent)
   : QObject{parent}, _state(State::Initial), _interface(interface), _model(model),
     _in_buffer(), _out_buffer()
 {
@@ -17,20 +17,20 @@ Device::Device(QIODevice *interface, Model* model, QObject *parent)
 
   if (! _interface->open(QIODevice::ReadWrite)) {
     logError() << "Cannot open interface: " << _interface->errorString();
-    disconnect(_interface, &QIODevice::readyRead, this, &Device::onBytesAvailable);
-    disconnect(_interface, &QIODevice::bytesWritten, this, &Device::onBytesWritten);
+    disconnect(_interface, &QIODevice::readyRead, this, &AnyToneDevice::onBytesAvailable);
+    disconnect(_interface, &QIODevice::bytesWritten, this, &AnyToneDevice::onBytesWritten);
   }
 
   if (nullptr != _model) {
     _model->setParent(this);
-    connect(this, &Device::startProgram, _model, &Model::startProgram);
-    connect(this, &Device::endProgram, _model, &Model::endProgram);
+    connect(this, &AnyToneDevice::startProgram, _model, &Model::startProgram);
+    connect(this, &AnyToneDevice::endProgram, _model, &Model::endProgram);
   }
 }
 
 
 void
-Device::onBytesAvailable() {
+AnyToneDevice::onBytesAvailable() {
   _in_buffer.append(_interface->readAll());
 
   while (Request *req = Request::fromBuffer(_in_buffer)) {
@@ -46,7 +46,7 @@ Device::onBytesAvailable() {
 
 
 void
-Device::onBytesWritten() {
+AnyToneDevice::onBytesWritten() {
   if (0 == _out_buffer.size())
     return;
 
@@ -56,7 +56,7 @@ Device::onBytesWritten() {
 
 
 Response *
-Device::handle(Request *request) {
+AnyToneDevice::handle(Request *request) {
   if (request->is<ProgramRequest>()) {
     if (State::Initial == _state)
       emit startProgram();
@@ -65,7 +65,7 @@ Device::handle(Request *request) {
     return new ProgramResponse();
   } else if ((State::Program == _state) && request->is<DeviceInfoRequest>()) {
     logDebug() << "Get device info.";
-    return new DeviceInfoResponse(this->model(), this->hwVersion());
+    return new DeviceInfoResponse(this->_model->model(), this->_model->revision());
   } else if ((State::Program == _state) && request->is<ReadRequest>()) {
     ReadRequest *rreq = request->as<ReadRequest>();
     logDebug() << "Read " << (int)rreq->length() << "b from " << Qt::hex << rreq->address() << "h.";
@@ -92,7 +92,7 @@ Device::handle(Request *request) {
 
 
 bool
-Device::read(uint32_t address, uint8_t len, QByteArray &buffer) {
+AnyToneDevice::read(uint32_t address, uint8_t len, QByteArray &buffer) {
   int n = std::min(16u, std::min((uint)len, (uint)buffer.capacity()));
 
   if (0x02fa0000 == address)
@@ -135,15 +135,19 @@ Device::read(uint32_t address, uint8_t len, QByteArray &buffer) {
   return true;
 }
 
+ImageCollector *
+AnyToneDevice::model() const {
+  return _model;
+}
 
 bool
-Device::write(uint32_t addr, const QByteArray &data) {
+AnyToneDevice::write(uint32_t addr, const QByteArray &data) {
   if (nullptr != _model)
     return _model->write(addr, data);
   return false;
 }
 
 CodeplugPattern *
-Device::pattern() const {
+AnyToneDevice::pattern() const {
   return _model->pattern();
 }

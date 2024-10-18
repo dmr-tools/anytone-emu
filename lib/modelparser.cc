@@ -6,28 +6,20 @@
 /* ********************************************************************************************** *
  * Implementation of ModelDefinitionParser
  * ********************************************************************************************** */
-ModelDefinitionParser::ModelDefinitionParser(QObject *parent)
-  : XmlParser(parent), _modelDefinition(nullptr)
+ModelDefinitionParser::ModelDefinitionParser(ModelCatalog* catalog, const QString& context, QObject *parent)
+  : XmlParser(parent), _context(context), _catalog(catalog)
 {
   // pass...
 }
 
-
-ModelDefinition *
-ModelDefinitionParser::definition() const {
-  return _modelDefinition;
+bool
+ModelDefinitionParser::beginCatalogElement(const QXmlStreamAttributes &attributes) {
+  return true;
 }
 
-ModelDefinition *
-ModelDefinitionParser::takeDefinition() {
-  if (nullptr == _modelDefinition)
-    return nullptr;
-
-  auto def = _modelDefinition;
-  def->setParent(nullptr);
-  _modelDefinition = nullptr;
-
-  return def;
+bool
+ModelDefinitionParser::endCatalogElement() {
+  return true;
 }
 
 
@@ -38,9 +30,16 @@ ModelDefinitionParser::beginModelElement(const QXmlStreamAttributes &attributes)
     return false;
   }
 
+  if ((! attributes.hasAttribute("id")) || (attributes.value("id").isEmpty())) {
+    raiseError("No model 'id' attribute specified.");
+    return false;
+  }
+
   QString modelClass(attributes.value("class").toString());
+  QString modelId(attributes.value("id").toString());
+
   if ("AnyTone" == modelClass) {
-    pushHandler(qobject_cast<ModelDefinitionHandler*>(new AnyToneModelDefinitionHandler(this)));
+    pushHandler(qobject_cast<ModelDefinitionHandler*>(new AnyToneModelDefinitionHandler(_context, modelId, this)));
   } else {
     raiseError(QString("Unknown model class '1'").arg(modelClass));
     return false;
@@ -60,15 +59,16 @@ ModelDefinitionParser::endModelElement() {
     return false;
   }
 
-  _modelDefinition = qobject_cast<ModelDefinitionHandler*>(modelHandler)->takeDefinition();
+  auto modelDefinition = qobject_cast<ModelDefinitionHandler*>(modelHandler)->takeDefinition();
   delete modelHandler;
 
-  if (nullptr == _modelDefinition) {
+  if (nullptr == modelDefinition) {
     raiseError("No definition obtained from model specific parser.");
     return false;
   }
 
-  _modelDefinition->setParent(this);
+  modelDefinition->setParent(this);
+  _catalog->addModel(modelDefinition);
 
   return true;
 }
@@ -77,8 +77,8 @@ ModelDefinitionParser::endModelElement() {
 /* ********************************************************************************************** *
  * Implementation of ModelDefinitionHandler
  * ********************************************************************************************** */
-ModelDefinitionHandler::ModelDefinitionHandler(ModelDefinitionParser *parent)
-  : XmlElementHandler{parent}
+ModelDefinitionHandler::ModelDefinitionHandler(const QString& context, const QString &id, ModelDefinitionParser *parent)
+  : XmlElementHandler{parent}, _context(context), _id(id)
 {
   // pass...
 }

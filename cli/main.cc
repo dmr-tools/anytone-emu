@@ -3,20 +3,14 @@
 #include <QDir>
 #include <QSerialPort>
 #include <QSerialPortInfo>
+#include <QXmlStreamReader>
 
 #include "pseudoterminal.hh"
-#include "d868uv.hh"
-#include "d868uve.hh"
-#include "d878uv.hh"
-#include "d878uv2.hh"
-#include "d578uv.hh"
-#include "d578uv2.hh"
-#include "dmr6x2uv.hh"
-#include "dmr6x2uv2.hh"
-#include "djmd5.hh"
-#include "djmd5x.hh"
 #include "logger.hh"
 #include "model.hh"
+#include "device.hh"
+#include "modeldefinition.hh"
+#include "modelparser.hh"
 #include "hexdump.hh"
 #include "config.hh"
 
@@ -77,8 +71,51 @@ main(int argc, char *argv[])
     parser.showHelp(-1);
 
   QTextStream stream(stdout);
+  ModelCatalog catalog;
+  ModelDefinitionParser modelParser(&catalog, ":/codeplug/");
+  QFile catalogFile(":/codeplug/catalog.xml");
+  if (! catalogFile.open(QIODevice::ReadOnly)) {
+    logError() << "Cannot parse catalog file '" << catalogFile.fileName()
+               << "': " << catalogFile.errorString() << ".";
+    return -1;
+  }
+  QXmlStreamReader reader(&catalogFile);
+  if (! modelParser.parse(reader)) {
+    logError() << "Cannot parse catalog file '" << catalogFile.fileName()
+               << "': " << modelParser.errorMessage() << ".";
+    return -1;
+  }
 
-  ImageCollector *model = new ImageCollector();
+  if (! catalog.hasModel(parser.value("device"))) {
+    logError() << "Cannot find model '" << parser.value("device")
+               << "' unknown device.";
+    return -1;
+  }
+  ModelDefinition *modelDef = catalog.model(parser.value("device"));
+  ModelFirmwareDefinition *modelFirmwareDef = modelDef->latestFirmware();
+  /// @todo Use optional argument to determine firmware version.
+
+  QString portFile = QDir::home().absoluteFilePath(".local/share/anytone-emu/anytoneport");
+  QIODevice *interface = nullptr;
+  if ("pty" == parser.value("interface")) {
+    interface = new PseudoTerminal(portFile);
+  } else {
+    QSerialPortInfo portInfo(parser.value("interface"));
+    if (portInfo.isNull()) {
+      QStringList names;
+      foreach (QSerialPortInfo port, QSerialPortInfo::availablePorts())
+        names.append(port.portName());
+      QString nameList = names.size() ? names.join(", ") : "[no ports found]";
+      logError() << "Cannot open serial port '" << parser.value("interface")
+                 << "', use one of the known ports: " << nameList << ".";
+      return -1;
+    }
+    logDebug() << "Use port '" << portInfo.portName() << "': " << portInfo.description() << ".";
+    interface = new QSerialPort(portInfo);
+  }
+
+  AnyToneDevice *dev = modelFirmwareDef->createDevice(interface);
+  ImageCollector *model = dev->model();
 
   if (parser.isSet("dump")) {
     if (parser.isSet("output"))
@@ -123,58 +160,6 @@ main(int argc, char *argv[])
       else
         logInfo() << "No differences found.";
     });
-  }
-
-  QString portFile = QDir::home().absoluteFilePath(".local/share/anytone-emu/anytoneport");
-  QIODevice *interface = nullptr;
-  if ("pty" == parser.value("interface")) {
-    interface = new PseudoTerminal(portFile);
-  } else {
-    QSerialPortInfo portInfo(parser.value("interface"));
-    if (portInfo.isNull()) {
-      QStringList names;
-      foreach (QSerialPortInfo port, QSerialPortInfo::availablePorts())
-        names.append(port.portName());
-      QString nameList = names.size() ? names.join(", ") : "[no ports found]";
-      logError() << "Cannot open serial port '" << parser.value("interface")
-                 << "', use one of the known ports: " << nameList << ".";
-      return -1;
-    }
-    logDebug() << "Use port '" << portInfo.portName() << "': " << portInfo.description() << ".";
-    interface = new QSerialPort(portInfo);
-  }
-
-  Device *dev = nullptr;
-  if ("d868uv" == parser.value("device")) {
-    dev = new D868UV(interface, model);
-  } else if ("d868uve" == parser.value("device")) {
-    dev = new D868UVE(interface, model);
-  } else if ("d878uv" == parser.value("device")) {
-    dev = new D878UV(interface, model);
-  } else if ("d878uv2" == parser.value("device")) {
-    dev = new D878UV2(interface, model);
-  } else if ("d578uv" == parser.value("device")) {
-    dev = new D578UV(interface, model);
-  } else if ("d578uv2" == parser.value("device")) {
-    dev = new D578UV2(interface, model);
-  } else if ("dmr6x2uv" == parser.value("device")) {
-    dev = new DMR6X2UV(interface, model);
-  } else if ("dmr6x2uv2" == parser.value("device")) {
-    dev = new DMR6X2UV2(interface, model);
-  } else if ("djmd5" == parser.value("device")) {
-    dev = new DJMD5(interface, model);
-  } else if ("djmd5x" == parser.value("device")) {
-    dev = new DJMD5X(interface, model);
-  } else {
-    logError() << "Unknown device '" << parser.value("device") << "'. Must be one of "
-               << "d868uv, d868uve, d878uv, d878uv2, d578uv, d578uv2, "
-               << "dmr6x2uv, dmr6x2uv2, "
-               << "djmd5, djmd5x.";
-  }
-
-  if (nullptr == dev) {
-    delete interface;
-    parser.showHelp(-1);
   }
 
   app.exec();

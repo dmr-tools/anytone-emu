@@ -24,9 +24,13 @@ public:
   const QString &errorMessage() const;
 
 protected:
+  /** Returns @c true, if the handler can process the start of this element. */
+  virtual bool canBeginElement(const QStringView &name) const;
   /** Handles the start of an element.
    * Dispatches to the corresponding slot based on the tag name. */
   virtual bool beginElement(const QStringView &name, const QXmlStreamAttributes &attributes);
+  /** Returns @c true, if the handler can process the end of this element. */
+  virtual bool canEndElement(const QStringView &name) const;
   /** Handles the end of an element.
    * Dispatches to the corresponding slot based on the tag name. */
   virtual bool endElement(const QStringView &name);
@@ -111,6 +115,13 @@ protected:
   virtual bool beginDocument();
   /** Handles the end of a document. */
   virtual bool endDocument();
+
+  /** Handles the start of an element.
+   * Dispatches to the corresponding slot based on the tag name of the current handler. */
+  virtual bool dispatchBeginElement(const QStringView &name, const QXmlStreamAttributes &attributes);
+  /** Handles the end of an element.
+   * Dispatches to the corresponding slot based on the tag name of the current handler. */
+  virtual bool dispatchEndElement(const QStringView &name);
 
   /** Puts the given handler on the top of the stack. */
   void pushHandler(XmlElementHandler *parser);

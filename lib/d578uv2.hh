@@ -5,7 +5,7 @@
 
 /** Implements a AnyTone AT-D578UV II device emulator.
  * @ingroup device */
-class D578UV2 : public Device
+class D578UV2 : public AnyToneDevice
 {
   Q_OBJECT
 

@@ -1,11 +1,17 @@
 #include "anytonemodeldefinition.hh"
 
+#include <QXmlStreamReader>
+#include "pattern.hh"
+#include "device.hh"
+#include "model.hh"
+#include "codeplugpatternparser.hh"
+
 
 /* ********************************************************************************************* *
  * Implementation of AnyToneModelDefinition
  * ********************************************************************************************* */
-AnyToneModelDefinition::AnyToneModelDefinition(QObject *parent)
-  : ModelDefinition{parent}, _modelId(), _revision()
+AnyToneModelDefinition::AnyToneModelDefinition(const QString &id, QObject *parent)
+  : ModelDefinition{id, parent}, _modelId(), _revision()
 {
   // pass...
 }
@@ -37,8 +43,8 @@ AnyToneModelDefinition::setRevision(const QByteArray &rev) {
 /* ********************************************************************************************* *
  * Implementation of AnyToneModelFirmwareDefinition
  * ********************************************************************************************* */
-AnyToneModelFirmwareDefinition::AnyToneModelFirmwareDefinition(AnyToneModelDefinition *parent)
-  : ModelFirmwareDefinition(parent), _modelId(), _revision()
+AnyToneModelFirmwareDefinition::AnyToneModelFirmwareDefinition(const QString& context, AnyToneModelDefinition *parent)
+  : ModelFirmwareDefinition{context, parent}, _modelId(), _revision()
 {
   // pass...
 }
@@ -67,6 +73,28 @@ void
 AnyToneModelFirmwareDefinition::setRevision(const QByteArray &rev) {
   _revision = rev;
 }
+
+
+AnyToneDevice *
+AnyToneModelFirmwareDefinition::createDevice(QIODevice *interface) const {
+  // First, parse codeplug
+  QFile codeplugFile(codeplug());
+  if (! codeplugFile.open(QIODevice::ReadOnly))
+    return nullptr;
+
+  QXmlStreamReader reader(&codeplugFile);
+  CodeplugPatternParser parser;
+  if (! parser.parse(reader))
+    return nullptr;
+
+  if (! parser.topIs<CodeplugPattern>())
+    return nullptr;
+
+  CodeplugPattern *codeplug = parser.popAs<CodeplugPattern>();
+
+  return new AnyToneDevice(interface, new AnyToneModel(codeplug, modelId(), revision()));
+}
+
 
 
 

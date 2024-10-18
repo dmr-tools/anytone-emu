@@ -13,7 +13,7 @@ class AnyToneModelDefinition : public ModelDefinition
   Q_PROPERTY(QByteArray revision READ revision WRITE setRevision)
 
 public:
-  explicit AnyToneModelDefinition(QObject *parent = nullptr);
+  explicit AnyToneModelDefinition(const QString &id, QObject *parent = nullptr);
 
   const QByteArray &modelId() const;
   void setModelId(const QByteArray &id);
@@ -36,13 +36,15 @@ class AnyToneModelFirmwareDefinition : public ModelFirmwareDefinition
   Q_PROPERTY(QByteArray revision READ revision WRITE setRevision)
 
 public:
-  explicit AnyToneModelFirmwareDefinition(AnyToneModelDefinition *parent);
+  explicit AnyToneModelFirmwareDefinition(const QString &context, AnyToneModelDefinition *parent);
 
   const QByteArray &modelId() const;
   void setModelId(const QByteArray &id);
 
   const QByteArray &revision() const;
   void setRevision(const QByteArray &rev);
+
+  AnyToneDevice *createDevice(QIODevice *interface) const;
 
 protected:
   QByteArray _modelId;

@@ -1,7 +1,7 @@
 #include "d878uv2.hh"
 
 D878UV2::D878UV2(QIODevice *interface, Model* model, QObject *parent)
-  : Device{interface, model, parent}
+  : AnyToneDevice{interface, model, parent}
 {
   // pass...
 }

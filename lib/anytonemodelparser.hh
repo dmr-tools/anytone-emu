@@ -10,13 +10,13 @@ class AnyToneModelDefinitionHandler: public ModelDefinitionHandler
   Q_OBJECT
 
 public:
-  Q_INVOKABLE explicit AnyToneModelDefinitionHandler(ModelDefinitionParser *parent);
+  Q_INVOKABLE explicit AnyToneModelDefinitionHandler(const QString &context, const QString& id, ModelDefinitionParser *parent);
 
 public:
   ModelDefinition *definition() const;
   ModelDefinition *takeDefinition();
 
-protected:
+protected slots:
   bool beginMemoryElement(const QXmlStreamAttributes &attributes);
   bool endMemoryElement();
 
@@ -40,8 +40,8 @@ public:
   const QByteArray &revision() const;
 
 protected slots:
-  virtual bool beginModelElement(const QXmlStreamAttributes &attributes);
-  virtual bool endModelElement();
+  virtual bool beginIdElement(const QXmlStreamAttributes &attributes);
+  virtual bool endIdElement();
 
   virtual bool beginRevisionElement(const QXmlStreamAttributes &attributes);
   virtual bool endRevisionElement();
@@ -59,7 +59,8 @@ class AnyToneModelFirmwareDefinitionHandler: public ModelFirmwareDefinitionHandl
 
 public:
   explicit AnyToneModelFirmwareDefinitionHandler(
-      const QString &name, const QDate &released, ModelDefinitionHandler *parent);
+      const QString& context, const QString &name, const QDate &released, const QString &codeplug,
+      ModelDefinitionHandler *parent);
 
   ~AnyToneModelFirmwareDefinitionHandler();
 

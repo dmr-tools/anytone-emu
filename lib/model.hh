@@ -2,6 +2,7 @@
 #define MODEL_HH
 
 #include <QObject>
+#include "modelrom.hh"
 
 class Image;
 class CodeplugPattern;
@@ -30,15 +31,13 @@ public:
   /** write data to the model. */
   virtual bool write(uint32_t address, const QByteArray &payload);
 
-  /** Read data from ROM. */
-  virtual bool readRom(uint32_t address, uint8_t length, QByteArray &payload) const;
-  /** write data to ROM. */
-  virtual bool writeRom(uint32_t address, const QByteArray &payload);
-
   /** Returns a weak reference to the codeplug pattern. */
   CodeplugPattern *pattern() const;
   /** Sets the codeplug pattern. The ownership is taken. */
   void setPattern(CodeplugPattern *pattern);
+
+  const ModelRom &rom() const;
+  ModelRom &rom();
 
 public slots:
   /** Gets called when the "radio programming" starts. */
@@ -50,7 +49,7 @@ protected:
   /** The codeplug pattern, or @c nullptr if none is set. */
   CodeplugPattern *_pattern;
   /** Holds some portions of pre-defined memory (ROM). */
-  QVector<QPair<uint32_t, QByteArray>> _rom;
+  ModelRom _rom;
 };
 
 
@@ -101,5 +100,28 @@ protected:
   QVector<Image *> _images;
 };
 
+
+class AnyToneModel: public ImageCollector
+{
+  Q_OBJECT
+
+public:
+  /** Default constructor.
+   * @param pattern Specifies the codeplug pattern to annotate received images.
+   *        If passed, the ownership is taken.
+   * @param parent A weak reference to the parent object. */
+  explicit AnyToneModel(CodeplugPattern *pattern,
+                        const QByteArray &model, const QByteArray &revision,
+                        QObject *parent = nullptr);
+
+  /** Returns the model code for this device. */
+  const QByteArray &model() const;
+  /** Returns the revision code for this device. */
+  const QByteArray &revision() const;
+
+protected:
+  QByteArray _model;
+  QByteArray _revision;
+};
 
 #endif // MODEL_HH

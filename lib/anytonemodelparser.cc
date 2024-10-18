@@ -1,12 +1,12 @@
 #include "anytonemodelparser.hh"
 #include <QXmlStreamAttributes>
-
+#include <QFileInfo>
 
 /* ********************************************************************************************* *
  * Implementation of AnyToneModelDefinitionHandler
  * ********************************************************************************************* */
-AnyToneModelDefinitionHandler::AnyToneModelDefinitionHandler(ModelDefinitionParser *parent)
-  : ModelDefinitionHandler{parent}, _definition(new AnyToneModelDefinition(this))
+AnyToneModelDefinitionHandler::AnyToneModelDefinitionHandler(const QString &context, const QString &id, ModelDefinitionParser *parent)
+  : ModelDefinitionHandler{context, id, parent}, _definition(new AnyToneModelDefinition(id, this))
 {
   // pass...
 }
@@ -53,22 +53,30 @@ AnyToneModelDefinitionHandler::endMemoryElement() {
 
 bool
 AnyToneModelDefinitionHandler::beginFirmwareElement(const QXmlStreamAttributes &attributes) {
-  if (nullptr == definition()) {
-    raiseError("Unexpected <firmware> element, no model definition created yet.");
-    return false;
-  }
-
   if (! attributes.hasAttribute("name")) {
     raiseError("No 'name' attribute given.");
     return false;
   }
   QString name(attributes.value("name").toString());
+
+  if (! attributes.hasAttribute("codeplug")) {
+    raiseError("No 'codeplug' attribute given.");
+    return false;
+  }
+
+  QString codeplug(attributes.value("codeplug").toString());
+  QFileInfo codeplugFileInfo(_context + "/" + codeplug);
+  if (!codeplugFileInfo.isFile() || !codeplugFileInfo.isReadable()) {
+    raiseError(QString("Cannot read codeplug file '%1'.").arg(codeplugFileInfo.filePath()));
+    return false;
+  }
+
   QDate released;
   if (attributes.hasAttribute("released")) {
     released = QDate::fromString(attributes.value("released"));
   }
 
-  pushHandler(new AnyToneModelFirmwareDefinitionHandler(name, released, this));
+  pushHandler(new AnyToneModelFirmwareDefinitionHandler(_context, name, released, codeplug, this));
 
   return true;
 }
@@ -104,13 +112,13 @@ AnyToneModelMemoryDefinitionHandler::revision() const {
 
 
 bool
-AnyToneModelMemoryDefinitionHandler::beginModelElement(const QXmlStreamAttributes &attributes) {
+AnyToneModelMemoryDefinitionHandler::beginIdElement(const QXmlStreamAttributes &attributes) {
   clearTextBuffer();
   return true;
 }
 
 bool
-AnyToneModelMemoryDefinitionHandler::endModelElement() {
+AnyToneModelMemoryDefinitionHandler::endIdElement() {
   _modelId = QByteArray::fromHex(textBuffer().toLocal8Bit());
   if (6 != _modelId.size()) {
     raiseError(QString("Model ID must be exactly 6 bytes long. Got %1.").arg(_modelId.size()));
@@ -142,11 +150,14 @@ AnyToneModelMemoryDefinitionHandler::endRevisionElement() {
  * Implementation of AnyToneModelFirmwareDefinitionHandler
  * ********************************************************************************************* */
 AnyToneModelFirmwareDefinitionHandler::AnyToneModelFirmwareDefinitionHandler(
-    const QString &name, const QDate &released, ModelDefinitionHandler *parent)
-  : ModelFirmwareDefinitionHandler{parent}, _definition(new AnyToneModelFirmwareDefinition(nullptr))
+    const QString &context, const QString &name, const QDate &released, const QString &codeplug,
+    ModelDefinitionHandler *parent)
+  : ModelFirmwareDefinitionHandler{parent},
+    _definition(new AnyToneModelFirmwareDefinition{context, nullptr})
 {
   _definition->setName(name);
   _definition->setReleased(released);
+  _definition->setCodeplug(codeplug);
 }
 
 AnyToneModelFirmwareDefinitionHandler::~AnyToneModelFirmwareDefinitionHandler() {

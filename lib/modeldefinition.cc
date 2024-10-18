@@ -2,12 +2,80 @@
 
 
 /* ********************************************************************************************** *
- * Implementation of ModelDefinition
+ * Implementation of ModelCatalog
  * ********************************************************************************************** */
-ModelDefinition::ModelDefinition(QObject *parent)
-  : QObject{parent}, _name(), _manufacturer(), _description(), _url(), _rom()
+ModelCatalog::ModelCatalog(QObject *parent)
+  : QObject{parent}, _models()
 {
   // pass...
+}
+
+unsigned int
+ModelCatalog::count() const {
+  return _models.count();
+}
+
+bool
+ModelCatalog::hasModel(const QString &id) const {
+  return _ids.contains(id);
+}
+
+ModelDefinition *
+ModelCatalog::model(const QString &id) const {
+  return _ids.value(id);
+}
+
+ModelDefinition *
+ModelCatalog::model(unsigned int idx) const {
+  return _models.at(idx);
+}
+
+void
+ModelCatalog::addModel(ModelDefinition *definition) {
+  if (nullptr == definition)
+    return;
+  definition->setParent(this);
+  connect(definition, &QObject::destroyed, this, &ModelCatalog::onModelDefinitionDeleted);
+  _models.append(definition);
+  _ids.insert(definition->id(), definition);
+}
+
+ModelCatalog::const_iterator
+ModelCatalog::begin() const {
+  return _models.begin();
+}
+
+ModelCatalog::const_iterator
+ModelCatalog::end() const {
+  return _models.end();
+}
+
+void
+ModelCatalog::onModelDefinitionDeleted(QObject *object) {
+  if (nullptr == object)
+    return;
+  if (ModelDefinition *model = qobject_cast<ModelDefinition *>(object)) {
+    _models.removeAll(model);
+    _ids.remove(model->id());
+    connect(model, &QObject::destroyed, this, &ModelCatalog::onModelDefinitionDeleted);
+  }
+}
+
+
+
+/* ********************************************************************************************** *
+ * Implementation of ModelDefinition
+ * ********************************************************************************************** */
+ModelDefinition::ModelDefinition(const QString& id, QObject *parent)
+  : QObject{parent}, _id(id), _name(), _manufacturer(), _description(), _url(), _rom()
+{
+  // pass...
+}
+
+
+const QString &
+ModelDefinition::id() const {
+  return _id;
 }
 
 
@@ -65,6 +133,17 @@ ModelDefinition::rom() const {
   return _rom;
 }
 
+ModelFirmwareDefinition *
+ModelDefinition::latestFirmware() const {
+  if (_firmwares.isEmpty())
+    return nullptr;
+  return _firmwares.back();
+}
+
+const QList<ModelFirmwareDefinition *> &
+ModelDefinition::firmwares() const {
+  return _firmwares;
+}
 
 void
 ModelDefinition::addFirmware(ModelFirmwareDefinition *firmware) {
@@ -76,8 +155,8 @@ ModelDefinition::addFirmware(ModelFirmwareDefinition *firmware) {
 /* ********************************************************************************************** *
  * Implementation of ModelFirmwareDefinition
  * ********************************************************************************************** */
-ModelFirmwareDefinition::ModelFirmwareDefinition(ModelDefinition *parent)
-  : QObject{parent}, _name(), _released(), _description(), _rom()
+ModelFirmwareDefinition::ModelFirmwareDefinition(const QString& context, ModelDefinition *parent)
+  : QObject{parent}, _context(context), _name(), _released(), _description(), _rom()
 {
   // pass...
 }
@@ -105,6 +184,16 @@ ModelFirmwareDefinition::setDescription(const QString &description) {
 }
 
 
+const QString &
+ModelFirmwareDefinition::codeplug() const {
+  return _codeplug;
+}
+
+void
+ModelFirmwareDefinition::setCodeplug(const QString &codeplug) {
+  _codeplug = _context + "/" + codeplug;
+}
+
 const QDate &
 ModelFirmwareDefinition::released() const {
   return _released;
@@ -125,6 +214,5 @@ ModelRom
 ModelFirmwareDefinition::rom() const {
   return qobject_cast<ModelDefinition*>(parent())->rom() + _rom;
 }
-
 
 

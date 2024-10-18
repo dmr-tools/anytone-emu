@@ -5,20 +5,22 @@
 #ifndef DEVICE_HH
 #define DEVICE_HH
 
+#include "model.hh"
 #include <QObject>
 #include <QHash>
 #include <QPair>
 
+class Model;
 class QIODevice;
 class Request;
 class Response;
-class Model;
+class AnyToneModel;
 class CodeplugPattern;
 
 
 /** Abstract base class for all emulated devices.
  * @ingroup device */
-class Device : public QObject
+class AnyToneDevice : public QObject
 {
   Q_OBJECT
 
@@ -30,22 +32,17 @@ protected:
     Error    ///< Captive error state.
   };
 
-protected:
+public:
   /** Constructs a new device for the specifies interface using the given memory model.
    * Takes ownership of @c interface and @c model. */
-  explicit Device(QIODevice *interface, Model *model =nullptr, QObject *parent = nullptr);
-
-public:
-  /** Returns the model code for this device. */
-  virtual QByteArray model() const = 0;
-  /** Returns the hardware version code for this device. */
-  virtual QByteArray hwVersion() const = 0;
+  explicit AnyToneDevice(QIODevice *interface, AnyToneModel *model, QObject *parent = nullptr);
 
   /** Reads some data from the device and stores it @c payload. */
   virtual bool read(uint32_t addr, uint8_t len, QByteArray &payload);
   /** Write some data. */
   virtual bool write(uint32_t addr, const QByteArray &data);
 
+  virtual ImageCollector *model() const;
   /** Returns the pattern associated with this device. */
   CodeplugPattern *pattern() const;
 
@@ -71,7 +68,7 @@ protected:
   /** Holds and owns the interface. */
   QIODevice *_interface;
   /** Holds and owns the model. */
-  Model *_model;
+  AnyToneModel *_model;
 
   /** Internal receive buffer. */
   QByteArray _in_buffer;

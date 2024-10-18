@@ -11,17 +11,18 @@ class ModelDefinitionParser: public XmlParser
   Q_OBJECT
 
 public:
-  explicit ModelDefinitionParser(QObject *parent=nullptr);
-
-  virtual ModelDefinition *definition() const;
-  virtual ModelDefinition *takeDefinition();
+  explicit ModelDefinitionParser(ModelCatalog *catalog, const QString &context, QObject *parent=nullptr);
 
 public slots:
+  virtual bool beginCatalogElement(const QXmlStreamAttributes &attributes);
+  virtual bool endCatalogElement();
+
   virtual bool beginModelElement(const QXmlStreamAttributes &attributes);
   virtual bool endModelElement();
 
 protected:
-  ModelDefinition *_modelDefinition;
+  QString _context;
+  ModelCatalog *_catalog;
 
 protected:
   static QHash<QString, const QMetaObject *> _modelHandler;
@@ -34,11 +35,13 @@ class ModelDefinitionHandler: public XmlElementHandler
   Q_OBJECT
 
 protected:
-  explicit ModelDefinitionHandler(ModelDefinitionParser *parent);
+  explicit ModelDefinitionHandler(const QString &context, const QString& id, ModelDefinitionParser *parent);
 
 public:
   virtual ModelDefinition *definition() const = 0;
   virtual ModelDefinition *takeDefinition() = 0;
+
+  const QString &id() const;
 
 public slots:
   virtual bool beginNameElement(const QXmlStreamAttributes &attributes);
@@ -55,6 +58,10 @@ public slots:
 
   virtual bool beginMemoryElement(const QXmlStreamAttributes &attributes);
   virtual bool endMemoryElement();
+
+protected:
+  QString _context;
+  QString _id;
 };
 
 
