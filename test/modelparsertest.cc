@@ -1,5 +1,7 @@
 #include "modelparsertest.hh"
-#include "modelrom.hh"
+#include "modelparser.hh"
+#include "anytonemodelparser.hh"
+#include <QXmlStreamReader>
 #include <QTest>
 
 
@@ -61,6 +63,31 @@ void
 ModelParserTest::testRomMerge() {
 
 }
+
+
+void
+ModelParserTest::testAnyToneModel() {
+  QString def = R"(<?xml version="1.0"?>)"
+R"(<model class="AnyTone">)"
+R"( <name>DMR6X2UV</name>)"
+R"( <manufacturer>DMR6X2UV</manufacturer>)"
+R"( <memory>)"
+R"(   <model>36 58 32 55 56 0</model>)"
+R"(   <map address="0100">61 62 63</map>)"
+R"( </memory>)"
+R"(</model>)";
+
+  QXmlStreamReader reader(def);
+  ModelDefinitionParser parser;
+  QVERIFY2(parser.parse(reader), parser.errorMessage().toLocal8Bit().constData());
+}
+
+
+void
+ModelParserTest::testAnyToneModelFirmware() {
+
+}
+
 
 
 QTEST_MAIN(ModelParserTest)

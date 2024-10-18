@@ -16,12 +16,15 @@ public:
   virtual ModelDefinition *definition() const;
   virtual ModelDefinition *takeDefinition();
 
-protected slots:
+public slots:
   virtual bool beginModelElement(const QXmlStreamAttributes &attributes);
   virtual bool endModelElement();
 
 protected:
   ModelDefinition *_modelDefinition;
+
+protected:
+  static QHash<QString, const QMetaObject *> _modelHandler;
 };
 
 
@@ -37,7 +40,7 @@ public:
   virtual ModelDefinition *definition() const = 0;
   virtual ModelDefinition *takeDefinition() = 0;
 
-protected:
+public slots:
   virtual bool beginNameElement(const QXmlStreamAttributes &attributes);
   virtual bool endNameElement();
 
@@ -64,7 +67,7 @@ public:
 
   const QList<ModelRom::Segment> &mappings() const;
 
-protected slots:
+public slots:
   bool beginMapElement(const QXmlStreamAttributes &attributes);
   bool endMapElement();
 
@@ -84,7 +87,7 @@ public:
   virtual ModelFirmwareDefinition *definition() const = 0;
   virtual ModelFirmwareDefinition *takeDefinition() = 0;
 
-protected:
+public slots:
   virtual bool beginDescriptionElement(const QXmlStreamAttributes &attributes);
   virtual bool endDescriptionElement();
 

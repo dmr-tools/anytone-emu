@@ -6,7 +6,7 @@
 #include <QList>
 #include <QUrl>
 
-
+class XmlParser;
 class QStringView;
 class QXmlStreamReader;
 class QXmlStreamAttributes;
@@ -32,26 +32,36 @@ protected:
   virtual bool endElement(const QStringView &name);
 
   /** Handles some character data. */
-  virtual bool processCDATA(const QStringView &name);
+  virtual bool processCDATA(const QStringView &content);
   /** Handles some text. */
-  virtual bool processText(const QStringView &name);
+  virtual bool processText(const QStringView &content);
 
   /** Raises an error (not an exception). */
   void raiseError(const QString &message);
 
+protected:
+  /** Resolves the root parser of the handler stack. */
+  XmlParser *parser();
+  const XmlParser *parser() const;
+
   /** Puts the given handler on the top of the stack. */
-  void pushHandler(XmlElementHandler *parser);
+  virtual void pushHandler(XmlElementHandler *parser);
   /** Returns the first handler from the stack. */
-  XmlElementHandler *topHandler() const;
+  virtual XmlElementHandler *topHandler() const;
   /** Pops the first handler from the stack. */
-  XmlElementHandler *popHandler();
+  virtual XmlElementHandler *popHandler();
+
+  /** Retruns the content of the curren text buffer. */
+  const QString &textBuffer() const;
+  /** Clears the current text buffer. */
+  void clearTextBuffer();
 
 protected:
   /** The current error Message. */
   QString _errorMessage;
-  /** The stack of handler.
-   * This stack at least contains an instance of itself. */
-  QList<XmlElementHandler *> _handler;
+
+  /** Holds the current text buffer, gets filled by processCDATA, processText. */
+  QString _textBuffer;
 
   friend class XmlParser;
 };
@@ -101,59 +111,22 @@ protected:
   virtual bool beginDocument();
   /** Handles the end of a document. */
   virtual bool endDocument();
+
+  /** Puts the given handler on the top of the stack. */
+  void pushHandler(XmlElementHandler *parser);
+  /** Returns the first handler from the stack. */
+  XmlElementHandler *topHandler() const;
+  /** Pops the first handler from the stack. */
+  XmlElementHandler *popHandler();
+
+  /** The stack of handler.
+   * This stack at least contains an instance of itself. */
+  QList<XmlElementHandler *> _handler;
+
+  friend class XmlElementHandler;
 };
 
 
-
-class XmlTextHandler: public XmlElementHandler
-{
-  Q_OBJECT
-
-public:
-  explicit XmlTextHandler(XmlElementHandler *parent);
-
-  const QString &content() const;
-
-protected:
-  bool processText(const QStringView &content);
-
-protected:
-  QString _content;
-};
-
-
-class XmlUrlHandler: public XmlElementHandler
-{
-  Q_OBJECT
-
-public:
-  explicit XmlUrlHandler(XmlElementHandler *parent);
-
-  const QUrl &url() const;
-
-protected:
-  bool processText(const QStringView &content);
-
-protected:
-  QUrl _url;
-};
-
-
-class XmlHexDataHandler: public XmlElementHandler
-{
-  Q_OBJECT
-
-public:
-  explicit XmlHexDataHandler(XmlElementHandler *parent);
-
-  const QByteArray &data() const;
-
-protected:
-  bool processText(const QStringView &content);
-
-protected:
-  QByteArray _data;
-};
 
 
 #endif // XMLPARSER_HH

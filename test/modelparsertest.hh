@@ -17,6 +17,8 @@ private slots:
   void testRomExtend();
   void testRomMerge();
 
+  void testAnyToneModel();
+  void testAnyToneModelFirmware();
 };
 
 #endif // MODELPARSERTEST_HH

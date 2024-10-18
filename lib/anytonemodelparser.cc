@@ -105,42 +105,34 @@ AnyToneModelMemoryDefinitionHandler::revision() const {
 
 bool
 AnyToneModelMemoryDefinitionHandler::beginModelElement(const QXmlStreamAttributes &attributes) {
-  pushHandler(new XmlHexDataHandler(this));
+  clearTextBuffer();
   return true;
 }
 
 bool
 AnyToneModelMemoryDefinitionHandler::endModelElement() {
-  auto handler = qobject_cast<XmlHexDataHandler *>(popHandler());
-  if (6 != handler->data().size()) {
-    raiseError(QString("Model ID must be exactly 6 bytes long. Got %1.").arg(handler->data().size()));
-    delete handler;
+  _modelId = QByteArray::fromHex(textBuffer().toLocal8Bit());
+  if (6 != _modelId.size()) {
+    raiseError(QString("Model ID must be exactly 6 bytes long. Got %1.").arg(_modelId.size()));
     return false;
   }
-
-  _modelId = handler->data();
-  delete handler;
   return true;
 }
 
 
 bool
 AnyToneModelMemoryDefinitionHandler::beginRevisionElement(const QXmlStreamAttributes &attributes) {
-  pushHandler(new XmlHexDataHandler(this));
+  clearTextBuffer();
   return true;
 }
 
 bool
 AnyToneModelMemoryDefinitionHandler::endRevisionElement() {
-  auto handler = qobject_cast<XmlHexDataHandler *>(popHandler());
-  if (6 != handler->data().size()) {
-    raiseError(QString("Revision ID must be exactly 6 bytes long. Got %1.").arg(handler->data().size()));
-    delete handler;
+  _revision = QByteArray::fromHex(textBuffer().toLocal8Bit());
+  if (6 != _revision.size()) {
+    raiseError(QString("Revision ID must be exactly 6 bytes long. Got %1.").arg(_revision.size()));
     return false;
   }
-
-  _revision = handler->data();
-  delete handler;
   return true;
 }
 

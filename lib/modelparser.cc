@@ -1,7 +1,7 @@
 #include "modelparser.hh"
 #include <QXmlStreamAttributes>
 
-
+#include "anytonemodelparser.hh"
 
 /* ********************************************************************************************** *
  * Implementation of ModelDefinitionParser
@@ -38,22 +38,13 @@ ModelDefinitionParser::beginModelElement(const QXmlStreamAttributes &attributes)
     return false;
   }
 
-  QString modelParserClass = QString("%1ModelDefinitionParser")
-      .arg(attributes.value("class"));
-
-  QMetaType typeId = QMetaType::fromName(modelParserClass.toLatin1());
-  if (! typeId.isValid()) {
-    raiseError(QString("Cannot find class specific parser '%1'.").arg(modelParserClass));
+  QString modelClass(attributes.value("class").toString());
+  if ("AnyTone" == modelClass) {
+    pushHandler(qobject_cast<ModelDefinitionHandler*>(new AnyToneModelDefinitionHandler(this)));
+  } else {
+    raiseError(QString("Unknown model class '1'").arg(modelClass));
     return false;
   }
-
-  QObject *instance = typeId.metaObject()->newInstance();
-  if ((nullptr == instance) || (nullptr == qobject_cast<ModelDefinitionParser*>(instance))) {
-    raiseError(QString("Cannot instantiate model specific parser '%1'.").arg(modelParserClass));
-    return false;
-  }
-
-  pushHandler(qobject_cast<ModelDefinitionParser*>(instance));
 
   return true;
 }
@@ -94,101 +85,59 @@ ModelDefinitionHandler::ModelDefinitionHandler(ModelDefinitionParser *parent)
 
 bool
 ModelDefinitionHandler::beginNameElement(const QXmlStreamAttributes &attributes) {
-  if (nullptr == definition()) {
-    raiseError("Unexpected <name> element, no model definition created yet.");
-    return false;
-  }
-
-  pushHandler(new XmlTextHandler(this));
-
+  clearTextBuffer();
   return true;
 }
 
 bool
 ModelDefinitionHandler::endNameElement() {
-  auto handler = qobject_cast<XmlTextHandler*>(popHandler());
-  qobject_cast<ModelDefinitionHandler*>(parent())
-      ->definition()->setName(handler->content());
-  delete handler;
+  definition()->setName(textBuffer().simplified());
   return true;
 }
 
 
 bool
 ModelDefinitionHandler::beginManufacturerElement(const QXmlStreamAttributes &attributes) {
-  if (nullptr == definition()) {
-    raiseError("Unexpected <manufacturer> element, no model definition created yet.");
-    return false;
-  }
-
-  pushHandler(new XmlTextHandler(this));
-
+  clearTextBuffer();
   return true;
 }
 
 bool
 ModelDefinitionHandler::endManufacturerElement() {
-  auto handler = qobject_cast<XmlTextHandler*>(popHandler());
-  qobject_cast<ModelDefinitionHandler*>(parent())
-      ->definition()->setManufacturer(handler->content());
-  delete handler;
+  definition()->setManufacturer(textBuffer().simplified());
   return true;
 }
 
 
 bool
 ModelDefinitionHandler::beginDescriptionElement(const QXmlStreamAttributes &attributes) {
-  if (nullptr == definition()) {
-    raiseError("Unexpected <description> element, no model definition created yet.");
-    return false;
-  }
-
-  pushHandler(new XmlTextHandler(this));
-
+  clearTextBuffer();
   return true;
 }
 
 bool
 ModelDefinitionHandler::endDescriptionElement() {
-  auto handler = qobject_cast<XmlTextHandler*>(popHandler());
-  qobject_cast<ModelDefinitionHandler*>(parent())
-      ->definition()->setDescription(handler->content());
-  delete handler;
+  definition()->setDescription(textBuffer().simplified());
   return true;
 }
 
 
 bool
 ModelDefinitionHandler::beginUrlElement(const QXmlStreamAttributes &attributes) {
-  if (nullptr == definition()) {
-    raiseError("Unexpected <url> element, no model definition created yet.");
-    return false;
-  }
-
-  pushHandler(new XmlUrlHandler(this));
-
+  clearTextBuffer();
   return true;
 }
 
 bool
 ModelDefinitionHandler::endUrlElement() {
-  auto handler = qobject_cast<XmlUrlHandler*>(popHandler());
-  qobject_cast<ModelDefinitionHandler*>(parent())
-      ->definition()->setUrl(handler->url());
-  delete handler;
+  definition()->setUrl(QUrl(textBuffer().simplified()));
   return true;
 }
 
 
 bool
 ModelDefinitionHandler::beginMemoryElement(const QXmlStreamAttributes &attributes) {
-  if (nullptr == definition()) {
-    raiseError("Unexpected <memory> element, no model definition created yet.");
-    return false;
-  }
-
   pushHandler(new ModelMemoryDefinitionHandler(this));
-
   return true;
 }
 
@@ -196,10 +145,11 @@ ModelDefinitionHandler::beginMemoryElement(const QXmlStreamAttributes &attribute
 bool
 ModelDefinitionHandler::endMemoryElement() {
   auto handler = qobject_cast<ModelMemoryDefinitionHandler*>(popHandler());
+
   foreach (auto mapping, handler->mappings()) {
-    qobject_cast<ModelDefinitionHandler*>(parent())
-        ->definition()->storeRom(mapping.address, mapping.content);
+    definition()->storeRom(mapping.address, mapping.content);
   }
+
   delete handler;
   return true;
 }
@@ -236,16 +186,13 @@ ModelMemoryDefinitionHandler::beginMapElement(const QXmlStreamAttributes &attrib
   }
 
   _mappings.append({address, ""});
-  pushHandler(new XmlHexDataHandler(this));
-
+  clearTextBuffer();
   return true;
 }
 
 bool
 ModelMemoryDefinitionHandler::endMapElement() {
-  auto mapParser = qobject_cast<XmlHexDataHandler*>(popHandler());
-  _mappings.back().content.append(mapParser->data());
-  delete mapParser;
+  _mappings.back().content.append(QByteArray::fromHex(textBuffer().toLocal8Bit()));
   return true;
 }
 
@@ -265,35 +212,20 @@ ModelFirmwareDefinitionHandler::ModelFirmwareDefinitionHandler(ModelDefinitionHa
 
 bool
 ModelFirmwareDefinitionHandler::beginDescriptionElement(const QXmlStreamAttributes &attributes) {
-  if (nullptr == definition()) {
-    raiseError("Unexpected <description> element, no firmware definition created yet.");
-    return false;
-  }
-
-  pushHandler(new XmlTextHandler(this));
-
+  clearTextBuffer();
   return true;
 }
 
 bool
 ModelFirmwareDefinitionHandler::endDescriptionElement() {
-  auto handler = qobject_cast<XmlTextHandler*>(popHandler());
-  qobject_cast<ModelFirmwareDefinitionHandler*>(parent())
-      ->definition()->setDescription(handler->content());
-  delete handler;
+  definition()->setDescription(textBuffer().simplified());
   return true;
 }
 
 
 bool
 ModelFirmwareDefinitionHandler::beginMemoryElement(const QXmlStreamAttributes &attributes) {
-  if (nullptr == definition()) {
-    raiseError("Unexpected <memory> element, no firmware definition created yet.");
-    return false;
-  }
-
   pushHandler(new ModelMemoryDefinitionHandler(this));
-
   return true;
 }
 
@@ -301,10 +233,11 @@ ModelFirmwareDefinitionHandler::beginMemoryElement(const QXmlStreamAttributes &a
 bool
 ModelFirmwareDefinitionHandler::endMemoryElement() {
   auto handler = qobject_cast<ModelMemoryDefinitionHandler*>(popHandler());
+
   foreach (auto mapping, handler->mappings()) {
-    qobject_cast<ModelFirmwareDefinitionHandler*>(parent())
-        ->definition()->storeRom(mapping.address, mapping.content);
+    definition()->storeRom(mapping.address, mapping.content);
   }
+
   delete handler;
   return true;
 }

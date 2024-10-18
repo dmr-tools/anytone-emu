@@ -9,7 +9,7 @@ class AnyToneModelDefinitionHandler: public ModelDefinitionHandler
 {
   Q_OBJECT
 
-protected:
+public:
   Q_INVOKABLE explicit AnyToneModelDefinitionHandler(ModelDefinitionParser *parent);
 
 public:
