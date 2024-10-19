@@ -2,7 +2,9 @@
 #define ANYTONEMODELDEFINITION_HH
 
 #include "modeldefinition.hh"
+#include "errorstack.hh"
 
+class Device;
 
 
 class AnyToneModelDefinition : public ModelDefinition
@@ -44,7 +46,7 @@ public:
   const QByteArray &revision() const;
   void setRevision(const QByteArray &rev);
 
-  AnyToneDevice *createDevice(QIODevice *interface) const;
+  Device *createDevice(QIODevice *interface, const ErrorStack &err=ErrorStack()) const;
 
 protected:
   QByteArray _modelId;

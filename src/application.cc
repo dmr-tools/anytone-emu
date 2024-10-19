@@ -20,7 +20,7 @@ Application::collection() {
 }
 
 void
-Application::setDevice(AnyToneDevice *device) {
+Application::setDevice(Device *device) {
   if (_device)
     _device->deleteLater();
   _device = device;
@@ -31,7 +31,7 @@ Application::setDevice(AnyToneDevice *device) {
   }
 }
 
-const AnyToneDevice *
+const Device *
 Application::device() const {
   return _device;
 }

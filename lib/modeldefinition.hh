@@ -4,8 +4,9 @@
 #include <QUrl>
 #include <QDate>
 #include "modelrom.hh"
+#include "errorstack.hh"
 
-class AnyToneDevice;
+class Device;
 class QIODevice;
 class ModelDefinition;
 class ModelFirmwareDefinition;
@@ -31,6 +32,9 @@ public:
   const_iterator begin() const;
   const_iterator end() const;
 
+  void clear();
+  bool load(const QString &catalogFile);
+
 protected slots:
   void onModelDefinitionDeleted(QObject *deleted);
 
@@ -51,6 +55,9 @@ class ModelDefinition : public QObject
   Q_PROPERTY(QString manufacturer READ manufacturer WRITE setManufacturer)
   Q_PROPERTY(QString description READ description WRITE setDescription)
   Q_PROPERTY(QUrl url READ url WRITE setUrl)
+
+public:
+  typedef QList<ModelFirmwareDefinition *>::const_iterator const_iterator;
 
 protected:
   /** Hidden constructor. */
@@ -77,6 +84,8 @@ public:
   virtual ModelFirmwareDefinition * latestFirmware() const;
   virtual const QList<ModelFirmwareDefinition *> &firmwares() const;
   virtual void addFirmware(ModelFirmwareDefinition *firmware);
+  const_iterator begin() const;
+  const_iterator end() const;
 
 protected:
   QString _id;
@@ -117,7 +126,7 @@ public:
   const QString &codeplug() const;
   void setCodeplug(const QString &path);
 
-  virtual AnyToneDevice *createDevice(QIODevice *interface) const = 0;
+  virtual Device *createDevice(QIODevice *interface, const ErrorStack &err=ErrorStack()) const = 0;
 
   void storeRom(uint32_t address, const QByteArray &data);
   ModelRom rom() const;

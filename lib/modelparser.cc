@@ -41,7 +41,7 @@ ModelDefinitionParser::beginModelElement(const QXmlStreamAttributes &attributes)
   if ("AnyTone" == modelClass) {
     pushHandler(qobject_cast<ModelDefinitionHandler*>(new AnyToneModelDefinitionHandler(_context, modelId, this)));
   } else {
-    raiseError(QString("Unknown model class '1'").arg(modelClass));
+    raiseError(QString("Unknown model class '%1'").arg(modelClass));
     return false;
   }
 

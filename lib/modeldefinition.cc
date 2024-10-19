@@ -1,4 +1,11 @@
 #include "modeldefinition.hh"
+#include <QFile>
+#include <QDir>
+#include <QFileInfo>
+#include <QXmlStreamReader>
+#include "modelparser.hh"
+#include "logger.hh"
+
 
 
 /* ********************************************************************************************** *
@@ -49,6 +56,33 @@ ModelCatalog::const_iterator
 ModelCatalog::end() const {
   return _models.end();
 }
+
+
+void
+ModelCatalog::clear() {
+  _ids.clear();
+  _models.clear();
+}
+
+bool
+ModelCatalog::load(const QString &catalogFile) {
+  QFile file(catalogFile);
+  QFileInfo fileInfo(catalogFile);
+  if (! file.open(QIODevice::ReadOnly)) {
+    logError() << "Cannot open catalog at '" << catalogFile << "': " << file.errorString() << ".";
+    return false;
+  }
+
+  QXmlStreamReader reader(&file);
+  ModelDefinitionParser parser(this, fileInfo.absolutePath());
+  if (! parser.parse(reader)) {
+    logError() << "Parse catalog '" << catalogFile << "': " << parser.errorMessage() << ".";
+    return false;
+  }
+
+  return true;
+}
+
 
 void
 ModelCatalog::onModelDefinitionDeleted(QObject *object) {
@@ -150,6 +184,18 @@ ModelDefinition::addFirmware(ModelFirmwareDefinition *firmware) {
   firmware->setParent(this);
   _firmwares.append(firmware);
 }
+
+
+ModelDefinition::const_iterator
+ModelDefinition::begin() const {
+  return _firmwares.begin();
+}
+
+ModelDefinition::const_iterator
+ModelDefinition::end() const {
+  return _firmwares.end();
+}
+
 
 
 /* ********************************************************************************************** *

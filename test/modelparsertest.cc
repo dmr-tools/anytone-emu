@@ -82,7 +82,7 @@ R"(</catalog>)";
 
   QXmlStreamReader reader(def);
   ModelCatalog catalog;
-  ModelDefinitionParser parser(&catalog);
+  ModelDefinitionParser parser(&catalog, "");
   QVERIFY2(parser.parse(reader), parser.errorMessage().toLocal8Bit().constData());
 
   QCOMPARE(catalog.count(), 1);
@@ -120,13 +120,13 @@ R"( <firmware name="2.11" release="2024-08-30">)"
 R"(   <memory>)"
 R"(     <revision>56 31 32 30 00 00</revision>)"
 R"(     <map address="0100">67 68 69</map>)"
-R"( </memory>)"
+R"(   </memory>)"
 R"( </firmware>)"
 R"(</model>)";
 
   QXmlStreamReader reader(def);
   ModelCatalog catalog;
-  ModelDefinitionParser parser(&catalog);
+  ModelDefinitionParser parser(&catalog, "");
   QVERIFY2(parser.parse(reader), parser.errorMessage().toLocal8Bit().constData());
 
   QCOMPARE(catalog.count(), 1);

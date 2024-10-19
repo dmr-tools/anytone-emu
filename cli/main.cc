@@ -114,16 +114,17 @@ main(int argc, char *argv[])
     interface = new QSerialPort(portInfo);
   }
 
-  AnyToneDevice *dev = modelFirmwareDef->createDevice(interface);
-  ImageCollector *model = dev->model();
+  Device *dev = modelFirmwareDef->createDevice(interface);
+  auto imageHandler = new ImageCollector();
+  dev->setHandler(imageHandler);
 
   if (parser.isSet("dump")) {
     if (parser.isSet("output"))
       logDebug() << "Use pattern '" << parser.value("output") << "' for dump files, e.g., "
                  << QString::asprintf(parser.value("output").toStdString().c_str(), 42) << ".";
-    QObject::connect(model, &ImageCollector::imageReceived, [&parser, &stream, model] {
+    QObject::connect(imageHandler, &ImageCollector::imageReceived, [&parser, &stream, imageHandler] {
       static unsigned int count = 0;
-      HexImage hex(model->last());
+      HexImage hex(imageHandler->last());
       if (! parser.isSet("output")) {
         hexdump(hex, stream);
       } else {
@@ -141,20 +142,20 @@ main(int argc, char *argv[])
       }
     });
   } else if ("first" == parser.value("diff")) {
-    QObject::connect(model, &ImageCollector::imageReceived, [&stream, model] {
-      if ((nullptr == model->first()) || (nullptr == model->last()))
+    QObject::connect(imageHandler, &ImageCollector::imageReceived, [&stream, imageHandler] {
+      if ((nullptr == imageHandler->first()) || (nullptr == imageHandler->last()))
         return;
-      HexImage hex(model->first(), model->last());
+      HexImage hex(imageHandler->first(), imageHandler->last());
       if (hex.hasDiff())
         hexdump(hex, stream);
       else
         logInfo() << "No differences found.";
     });
   } else if ("previous" == parser.value("diff")) {
-    QObject::connect(model, &ImageCollector::imageReceived, [&stream, model] {
-      if ((nullptr == model->previous()) || (nullptr == model->last()))
+    QObject::connect(imageHandler, &ImageCollector::imageReceived, [&stream, imageHandler] {
+      if ((nullptr == imageHandler->previous()) || (nullptr == imageHandler->last()))
         return;
-      HexImage hex(model->previous(), model->last());
+      HexImage hex(imageHandler->previous(), imageHandler->last());
       if (hex.hasDiff())
         hexdump(hex, stream);
       else

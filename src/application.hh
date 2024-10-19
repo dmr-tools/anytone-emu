@@ -4,7 +4,7 @@
 #include <QApplication>
 #include <QWidget>
 
-class AnyToneDevice;
+class Device;
 class Collection;
 
 class Application: public QApplication
@@ -16,8 +16,8 @@ public:
 
   Collection *collection();
 
-  void setDevice(AnyToneDevice *device);
-  const AnyToneDevice *device() const;
+  void setDevice(Device *device);
+  const Device *device() const;
 
   template <class T>
   T *findObject(const QString &name) const {
@@ -32,7 +32,7 @@ signals:
   void patternModified();
 
 protected:
-  AnyToneDevice *_device;
+  Device *_device;
   Collection *_collection;
 };
 

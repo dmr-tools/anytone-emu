@@ -1,5 +1,7 @@
 #include "setupdialog.hh"
 #include "ui_setupdialog.h"
+#include "pseudoterminal.hh"
+#include <QSerialPort>
 #include <QSettings>
 #include <QSerialPortInfo>
 #include <QFileDialog>
@@ -15,19 +17,26 @@ SetupDialog::SetupDialog(QWidget *parent) :
   ui->setupUi(this);
   setWindowIcon(QIcon::fromTheme("application-anytone-emu"));
   ui->iconLabel->setPixmap(QIcon::fromTheme("settings-interface").pixmap(QSize(64,64)));
-  ui->buttonBox->button(QDialogButtonBox::Abort)->setIcon(QIcon::fromTheme("dialog-cancel"));
 
-  ui->deviceSelection->addItem("AnyTone AT-D868UV", QVariant::fromValue(Device::D868UV));
-  ui->deviceSelection->addItem("AnyTone AT-D868UVE", QVariant::fromValue(Device::D868UVE));
-  ui->deviceSelection->addItem("AnyTone AT-D878UV", QVariant::fromValue(Device::D878UV));
-  ui->deviceSelection->addItem("AnyTone AT-D878UV II", QVariant::fromValue(Device::D878UV2));
-  ui->deviceSelection->addItem("AnyTone AT-D578UV", QVariant::fromValue(Device::D578UV));
-  ui->deviceSelection->addItem("AnyTone AT-D578UV II", QVariant::fromValue(Device::D578UV2));
-  ui->deviceSelection->addItem("BTECH DMR-6X2", QVariant::fromValue(Device::DMR6X2UV));
-  ui->deviceSelection->addItem("BTEXH DMR-6X2 Pro", QVariant::fromValue(Device::DMR6X2UV2));
-  ui->deviceSelection->addItem("Alinco DJ-MD5", QVariant::fromValue(Device::DJMD5));
-  ui->deviceSelection->addItem("Alinco DJ-MD5X", QVariant::fromValue(Device::DJMD5X));
+  if (settings.contains("catalogFile"))
+    ui->catalogFile->setText(settings.value("catalogFile").toString());
+  if (settings.contains("useBuildinPatterns"))
+    ui->useBuildin->setChecked(settings.value("useBuildinPattern").toBool());
+  connect(ui->useBuildin, &QCheckBox::toggled, this, &SetupDialog::onUseBuildinPatternToggled);
+  connect(ui->selectCatalogFile, &QPushButton::clicked, this, &SetupDialog::onSelectCatalogFile);
+
+  if (ui->useBuildin->isChecked()) {
+    _catalog.clear();
+    _catalog.load(":/codeplugs/catalog.xml");
+  } else {
+    _catalog.clear();
+    _catalog.load(ui->catalogFile->text().simplified());
+  }
+
   connect(ui->deviceSelection, &QComboBox::currentIndexChanged, this, &SetupDialog::onDeviceSelected);
+  for (ModelCatalog::const_iterator model=_catalog.begin(); model!=_catalog.end(); model++) {
+    ui->deviceSelection->addItem((*model)->name(), (*model)->id());
+  }
   ui->deviceSelection->setCurrentIndex(0);
 
   ui->interfaceSelection->addItem("Pseudo Terminal", QVariant::fromValue(Interface::PTY));
@@ -42,12 +51,6 @@ SetupDialog::SetupDialog(QWidget *parent) :
                                           "~/.local/share/anytone-emu/anytoneport").toString());
   ui->interfaceSettings->setCurrentIndex(0);
 
-  if (settings.contains("device")) {
-    int idx = ui->deviceSelection->findData(settings.value("device"));
-    if (idx >= 0)
-      ui->deviceSelection->setCurrentIndex(idx);
-  }
-
   if (settings.contains("interface")) {
     int idx = ui->interfaceSelection->findData(settings.value("interface"));
     if (idx >= 0)
@@ -60,12 +63,6 @@ SetupDialog::SetupDialog(QWidget *parent) :
       ui->portSelection->setCurrentIndex(idx);
   }
 
-  connect(ui->useBuildin, &QCheckBox::toggled, this, &SetupDialog::onUseBuildinPatternToggled);
-  connect(ui->selectPatternDir, &QPushButton::clicked, this, &SetupDialog::onSelectPatternDir);
-  if (settings.contains("useBuildinPatterns"))
-    ui->useBuildin->setChecked(settings.value("useBuildinPattern").toBool());
-  if (settings.contains("patternDirectory"))
-    ui->patternDir->setText(settings.value("patternDirectory").toString());
 }
 
 
@@ -74,37 +71,93 @@ SetupDialog::~SetupDialog()
   delete ui;
 }
 
-SetupDialog::Device
-SetupDialog::device() const {
-  return ui->deviceSelection->currentData().value<Device>();
+
+Device *
+SetupDialog::createDevice(const ErrorStack &err) {
+
+  QIODevice *interface = nullptr;
+  switch (ui->interfaceSelection->currentData().value<Interface>()) {
+  case Interface::PTY:
+    interface = new PseudoTerminal(ui->symlinkPath->text().simplified());
+  break;
+  case Interface::Serial:
+    interface = new QSerialPort(ui->portSelection->currentData().toString());
+  break;
+  }
+
+  ModelDefinition *model = _catalog.model(ui->deviceSelection->currentData().toString());
+  if (nullptr == model) {
+    delete interface;
+    return nullptr;
+  }
+
+  ModelFirmwareDefinition *firmware = model->firmwares().at(ui->firmwareSelection->currentIndex());
+  if (nullptr == firmware) {
+    delete interface;
+    return nullptr;
+  }
+
+  Device *dev = firmware->createDevice(interface, err);
+  if (nullptr == dev) {
+    delete interface;
+    return nullptr;
+  }
+
+  return dev;
 }
 
-SetupDialog::Interface
-SetupDialog::interface() const {
-  return ui->interfaceSelection->currentData().value<Interface>();
+
+void
+SetupDialog::onUseBuildinPatternToggled(bool enabled) {
+  ui->catalogFile->setEnabled(! enabled);
+  ui->selectCatalogFile->setEnabled(! enabled);
+  QSettings().setValue(
+        "useBuildinPatterns", ui->useBuildin->isChecked());
+
+  ui->firmwareSelection->clear();
+  ui->deviceSelection->clear();
+
+  if (enabled) {
+    _catalog.clear();
+    _catalog.load(":/codeplugs/catalog.xml");
+  } else {
+    _catalog.clear();
+    _catalog.load(ui->catalogFile->text().simplified());
+  }
+
+  for (ModelCatalog::const_iterator model=_catalog.begin(); model!=_catalog.end(); model++) {
+    ui->deviceSelection->addItem((*model)->name(), (*model)->id());
+  }
+
 }
 
-QString
-SetupDialog::ptySymlinkPath() const {
-  return ui->symlinkPath->text().simplified();
+
+void
+SetupDialog::onSelectCatalogFile() {
+  QString path = QFileDialog::getOpenFileName(
+        nullptr, tr("Select catalog file."), ui->catalogFile->text());
+  QFileInfo file(path);
+  if (file.isReadable()) {
+    ui->catalogFile->setText(file.absoluteFilePath());
+    QSettings().setValue("catalogFile", file.absoluteFilePath());
+  }
 }
 
-QString
-SetupDialog::serialPort() const {
-  return ui->portSelection->currentData().toString();
-}
-
-QString
-SetupDialog::patternDir() const {
-  if (ui->useBuildin->isChecked())
-    return ":/codeplugs";
-  return ui->patternDir->text();
-}
 
 void
 SetupDialog::onDeviceSelected(int idx) {
-  QSettings().setValue("device", ui->deviceSelection->currentData());
+  ui->firmwareSelection->clear();
+  QString modelId = ui->deviceSelection->currentData().toString();
+  if (! _catalog.hasModel(modelId))
+    return;
+
+  QSettings().setValue("device", modelId);
+  ModelDefinition *model = _catalog.model(modelId);
+  for (ModelDefinition::const_iterator firmware=model->begin(); firmware!=model->end(); firmware++) {
+    ui->firmwareSelection->addItem((*firmware)->name());
+  }
 }
+
 
 void
 SetupDialog::onInterfaceSelected(int idx) {
@@ -120,22 +173,3 @@ SetupDialog::onInterfaceSelected(int idx) {
   }
 }
 
-void
-SetupDialog::onUseBuildinPatternToggled(bool enabled) {
-  ui->patternDir->setEnabled(! enabled);
-  ui->selectPatternDir->setEnabled(! enabled);
-  QSettings().setValue(
-        "useBuildinPatterns", ui->useBuildin->isChecked());
-
-}
-
-void
-SetupDialog::onSelectPatternDir() {
-  QString path = QFileDialog::getExistingDirectory(
-        nullptr, tr("Select pattern directory"), ui->patternDir->text());
-  if (! path.isEmpty()) {
-    QDir dir(path);
-    ui->patternDir->setText(dir.absolutePath());
-    QSettings().setValue("patternDirectory", dir.absolutePath());
-  }
-}

@@ -2,6 +2,8 @@
 #include <QXmlStreamAttributes>
 #include <QFileInfo>
 
+
+
 /* ********************************************************************************************* *
  * Implementation of AnyToneModelDefinitionHandler
  * ********************************************************************************************* */
@@ -88,6 +90,7 @@ AnyToneModelDefinitionHandler::endFirmwareElement() {
   delete handler;
   return true;
 }
+
 
 
 /* ********************************************************************************************* *

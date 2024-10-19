@@ -3,7 +3,6 @@
 #include <QXmlStreamReader>
 #include "pattern.hh"
 #include "device.hh"
-#include "model.hh"
 #include "codeplugpatternparser.hh"
 
 
@@ -75,24 +74,32 @@ AnyToneModelFirmwareDefinition::setRevision(const QByteArray &rev) {
 }
 
 
-AnyToneDevice *
-AnyToneModelFirmwareDefinition::createDevice(QIODevice *interface) const {
+Device *
+AnyToneModelFirmwareDefinition::createDevice(QIODevice *interface, const ErrorStack &err) const {
   // First, parse codeplug
   QFile codeplugFile(codeplug());
-  if (! codeplugFile.open(QIODevice::ReadOnly))
+  if (! codeplugFile.open(QIODevice::ReadOnly)) {
+    errMsg(err) << "Cannot open codeplug file '" << codeplugFile.fileName()
+                << "': " << codeplugFile.errorString();
     return nullptr;
+  }
 
   QXmlStreamReader reader(&codeplugFile);
   CodeplugPatternParser parser;
-  if (! parser.parse(reader))
+  if (! parser.parse(reader)) {
+    errMsg(err) << "Cannot parse codeplug file '" << codeplugFile.fileName()
+                << "' :" << parser.errorMessage();
     return nullptr;
+  }
 
-  if (! parser.topIs<CodeplugPattern>())
+  if (! parser.topIs<CodeplugPattern>()) {
+    errMsg(err) << "Internal error, unexpected pattern type!";
     return nullptr;
+  }
 
   CodeplugPattern *codeplug = parser.popAs<CodeplugPattern>();
 
-  return new AnyToneDevice(interface, new AnyToneModel(codeplug, modelId(), revision()));
+  return new AnyToneDevice(interface, codeplug, nullptr, modelId(), revision());
 }
 
 

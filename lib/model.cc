@@ -3,76 +3,16 @@
 #include "logger.hh"
 #include "pattern.hh"
 
-/* ********************************************************************************************* *
- * Implementation of Model
- * ********************************************************************************************* */
-Model::Model(CodeplugPattern *pattern, QObject *parent)
-  : QObject{parent}, _pattern(pattern), _rom()
-{
-  if (_pattern)
-    _pattern->setParent(this);
-}
-
-
-bool
-Model::read(uint32_t address, uint8_t length, QByteArray &payload) {
-  return _rom.read(address, length, payload);
-}
-
-bool
-Model::write(uint32_t address, const QByteArray &payload) {
-  Q_UNUSED(address); Q_UNUSED(payload)
-  return false;
-}
-
-
-CodeplugPattern *
-Model::pattern() const {
-  return _pattern;
-}
-
-void
-Model::setPattern(CodeplugPattern *pattern) {
-  if (_pattern) {
-    delete _pattern;
-    _pattern = nullptr;
-  }
-  _pattern = pattern;
-  if (_pattern)
-    _pattern->setParent(this);
-}
-
-void
-Model::startProgram() {
-  // pass...
-}
-
-void
-Model::endProgram() {
-  // pass...
-}
-
-
-const ModelRom &
-Model::rom() const {
-  return _rom;
-}
-
-ModelRom &
-Model::rom() {
-  return _rom;
-}
-
-
 
 /* ********************************************************************************************* *
  * Implementation of ImageCollector
  * ********************************************************************************************* */
-ImageCollector::ImageCollector(CodeplugPattern *pattern, QObject *parent)
-  : Model(pattern, parent), _images()
+ImageCollector::ImageCollector(QObject *parent)
+  : QObject(parent), _images()
 {
   // pass...
 }
+
 
 unsigned int
 ImageCollector::count() const {
@@ -105,6 +45,13 @@ ImageCollector::previous() const {
   return _images.at(count()-2);
 }
 
+
+bool
+ImageCollector::read(uint32_t address, uint8_t length, QByteArray &payload) {
+  Q_UNUSED(address); Q_UNUSED(length); Q_UNUSED(payload)
+  return false;
+}
+
 bool
 ImageCollector::write(uint32_t address, const QByteArray &payload) {
   if (0 == count()) {
@@ -114,6 +61,7 @@ ImageCollector::write(uint32_t address, const QByteArray &payload) {
   _images.last()->append(address, payload);
   return true;
 }
+
 
 void
 ImageCollector::startProgram() {
@@ -132,26 +80,4 @@ ImageCollector::endProgram() {
     emit imageReceived();
   }
 }
-
-
-
-/* ********************************************************************************************* *
- * Implementation of AnyToneModel
- * ********************************************************************************************* */
-AnyToneModel::AnyToneModel(CodeplugPattern *pattern, const QByteArray &model, const QByteArray &revision, QObject *parent)
-  : ImageCollector{pattern, parent}, _model(model), _revision(revision)
-{
-  // pass...
-}
-
-const QByteArray &
-AnyToneModel::model() const {
-  return _model;
-}
-
-const QByteArray &
-AnyToneModel::revision() const {
-  return _revision;
-}
-
 
