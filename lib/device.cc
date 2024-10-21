@@ -1,15 +1,84 @@
 #include "device.hh"
 #include "request.hh"
 #include "response.hh"
+#include "pattern.hh"
+#include "pattern.hh"
 #include "model.hh"
 
 #include <QIODevice>
 #include "logger.hh"
 
 
-Device::Device(QIODevice *interface, Model* model, QObject *parent)
-  : QObject{parent}, _state(State::Initial), _interface(interface), _model(model),
-    _in_buffer(), _out_buffer()
+
+/* ********************************************************************************************* *
+ * Implementation of Device
+ * ********************************************************************************************* */
+Device::Device(CodeplugPattern *pattern, ImageCollector *handler, QObject *parent)
+  : QObject{parent}, _pattern(pattern), _handler(handler), _rom()
+{
+  if (_pattern)
+    _pattern->setParent(this);
+  if (_handler)
+    _handler->setParent(this);
+
+  connect(this, &AnyToneDevice::startProgram, _handler, &ImageCollector::startProgram);
+  connect(this, &AnyToneDevice::endProgram, _handler, &ImageCollector::endProgram);
+
+}
+
+
+bool
+Device::read(uint32_t address, uint8_t len, QByteArray &buffer) {
+  return rom().read(address, len, buffer);
+}
+
+bool
+Device::write(uint32_t addr, const QByteArray &data) {
+  if (nullptr != _handler)
+    return _handler->write(addr, data);
+  return false;
+}
+
+
+ImageCollector *
+Device::handler() const {
+  return _handler;
+}
+
+void
+Device::setHandler(ImageCollector *handler) {
+  if (nullptr != _handler)
+    delete _handler;
+  _handler = handler;
+  if (_handler)
+    _handler->setParent(this);
+}
+
+CodeplugPattern *
+Device::pattern() const {
+  return _pattern;
+}
+
+
+const ModelRom &
+Device::rom() const {
+  return _rom;
+}
+
+ModelRom &
+Device::rom() {
+  return _rom;
+}
+
+
+
+/* ********************************************************************************************* *
+ * Implementation of AnyToneDevice
+ * ********************************************************************************************* */
+AnyToneDevice::AnyToneDevice(QIODevice *interface, CodeplugPattern *pattern, ImageCollector *handler,
+                             const QByteArray &model, const QByteArray &revision, QObject *parent)
+  : Device{pattern, handler, parent}, _state(State::Initial), _interface(interface),
+    _in_buffer(), _out_buffer(), _model(model), _revision(revision)
 {
   _interface->setParent(this);
   connect(_interface, SIGNAL(readyRead()), this, SLOT(onBytesAvailable()));
@@ -17,20 +86,14 @@ Device::Device(QIODevice *interface, Model* model, QObject *parent)
 
   if (! _interface->open(QIODevice::ReadWrite)) {
     logError() << "Cannot open interface: " << _interface->errorString();
-    disconnect(_interface, &QIODevice::readyRead, this, &Device::onBytesAvailable);
-    disconnect(_interface, &QIODevice::bytesWritten, this, &Device::onBytesWritten);
-  }
-
-  if (nullptr != _model) {
-    _model->setParent(this);
-    connect(this, &Device::startProgram, _model, &Model::startProgram);
-    connect(this, &Device::endProgram, _model, &Model::endProgram);
+    disconnect(_interface, &QIODevice::readyRead, this, &AnyToneDevice::onBytesAvailable);
+    disconnect(_interface, &QIODevice::bytesWritten, this, &AnyToneDevice::onBytesWritten);
   }
 }
 
 
 void
-Device::onBytesAvailable() {
+AnyToneDevice::onBytesAvailable() {
   _in_buffer.append(_interface->readAll());
 
   while (Request *req = Request::fromBuffer(_in_buffer)) {
@@ -46,7 +109,7 @@ Device::onBytesAvailable() {
 
 
 void
-Device::onBytesWritten() {
+AnyToneDevice::onBytesWritten() {
   if (0 == _out_buffer.size())
     return;
 
@@ -56,7 +119,7 @@ Device::onBytesWritten() {
 
 
 Response *
-Device::handle(Request *request) {
+AnyToneDevice::handle(Request *request) {
   if (request->is<ProgramRequest>()) {
     if (State::Initial == _state)
       emit startProgram();
@@ -65,7 +128,7 @@ Device::handle(Request *request) {
     return new ProgramResponse();
   } else if ((State::Program == _state) && request->is<DeviceInfoRequest>()) {
     logDebug() << "Get device info.";
-    return new DeviceInfoResponse(this->model(), this->hwVersion());
+    return new DeviceInfoResponse(this->model(), this->revision());
   } else if ((State::Program == _state) && request->is<ReadRequest>()) {
     ReadRequest *rreq = request->as<ReadRequest>();
     logDebug() << "Read " << (int)rreq->length() << "b from " << Qt::hex << rreq->address() << "h.";
@@ -91,59 +154,12 @@ Device::handle(Request *request) {
 }
 
 
-bool
-Device::read(uint32_t address, uint8_t len, QByteArray &buffer) {
-  int n = std::min(16u, std::min((uint)len, (uint)buffer.capacity()));
-
-  if (0x02fa0000 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x01\x01\x01\x00\x00\x01\x01\x20\x20\x20\x20\xff", n));
-  else if (0x02fa0010 == address)
-    buffer.append(QByteArray::fromRawData("\x44\x38\x37\x38\x55\x56\x00\x01\x00\xff\xff\xff\xff\xff\xff\xff", n));
-  else if (0x02fa0020 == address)
-    buffer.append(QByteArray::fromRawData("\xff\xff\xff\xff\x00\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa0030 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa0040 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa0050 == address)
-    buffer.append(QByteArray::fromRawData("\x31\x32\x33\x34\x35\x36\x37\x38\xff\xff\xff\xff\xff\xff\xff\xff", n));
-  else if (0x02fa0060 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa0070 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa0080 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa0090 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa00a0 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa00b0 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa00c0 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa00d0 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa00e0 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (0x02fa00f0 == address)
-    buffer.append(QByteArray::fromRawData("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", n));
-  else if (nullptr != _model)
-    return _model->read(address, len, buffer);
-  else
-    return false;
-
-  return true;
+const QByteArray &
+AnyToneDevice::model() const {
+  return _model;
 }
 
-
-bool
-Device::write(uint32_t addr, const QByteArray &data) {
-  if (nullptr != _model)
-    return _model->write(addr, data);
-  return false;
-}
-
-CodeplugPattern *
-Device::pattern() const {
-  return _model->pattern();
+const QByteArray &
+AnyToneDevice::revision() const {
+  return _revision;
 }

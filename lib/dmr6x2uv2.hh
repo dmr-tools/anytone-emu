@@ -5,7 +5,7 @@
 
 /** Implements a Btech DMR-6X2UV II device emulator.
  * @ingroup device */
-class DMR6X2UV2 : public Device
+class DMR6X2UV2 : public AnyToneDevice
 {
   Q_OBJECT
 

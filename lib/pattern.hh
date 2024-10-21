@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QFileInfo>
 #include "offset.hh"
+#include "errorstack.hh"
 
 class Image;
 class Element;
@@ -266,7 +267,7 @@ public:
   /** Retruns @c true if the codeplug was modified since the last save. */
   bool isModified() const;
   /** Loads a codeplug from the given file. */
-  static CodeplugPattern *load(const QString &filename);
+  static CodeplugPattern *load(const QString &filename, const ErrorStack &err = ErrorStack());
   /** Saves the codeplug into the last used file. */
   bool save();
   /** Saves the codeplug into the given file. */

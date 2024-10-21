@@ -3,8 +3,8 @@
 #include "logger.hh"
 
 
-ImageCollectionAdapter::ImageCollectionAdapter(Collection *collection, CodeplugPattern *pattern, QObject *parent)
-  : Model{pattern, parent}, _image(nullptr), _collection(collection)
+ImageCollectionAdapter::ImageCollectionAdapter(Collection *collection, QObject *parent)
+  : ImageCollector{parent}, _image(nullptr), _collection(collection)
 {
   // pass...
 }
