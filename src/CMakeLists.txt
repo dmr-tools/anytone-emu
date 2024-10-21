@@ -70,9 +70,7 @@ qt_add_resources(anytone-emu-gui "codeplugs"
         "${CMAKE_SOURCE_DIR}/codeplugs/d578uv2/2.03/codeplug.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/d578uv2/2.08/codeplug.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/2.10/codeplug.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv2/1.10/codeplug.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/djmd5/1.13e/codeplug.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/djmd5x/1.11/codeplug.xml")
+        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv2/1.10/codeplug.xml")
 
 
 generate_icons(

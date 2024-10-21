@@ -393,26 +393,26 @@ CodeplugPattern::isModified() const {
 }
 
 CodeplugPattern *
-CodeplugPattern::load(const QString &filename) {
+CodeplugPattern::load(const QString &filename, const ErrorStack &err) {
   QFile file(filename);
 
   if (! file.open(QIODevice::ReadOnly)) {
-    logError() << "Cannot load annotation pattern from '" << filename
-               << "': " << file.errorString() << ".";
+    errMsg(err) << "Cannot load annotation pattern from '" << filename
+                << "': " << file.errorString() << ".";
     return nullptr;
   }
 
   CodeplugPatternParser parser;
   QXmlStreamReader reader(&file);
   if (! parser.parse(reader)) {
-    logError() << "Cannot load annotation pattern from '" << filename
-               << "', cannot parse pattern: " << parser.errorMessage() << ".";
+    errMsg(err) << "Cannot load annotation pattern from '" << filename
+                << "', cannot parse pattern: " << parser.errorMessage() << ".";
     return nullptr;
   }
 
   if (! parser.topIs<CodeplugPattern>()) {
-    logError() << "Cannot load annotation pattern from '" << filename
-               << "': Files does not contain a codeplug pattern.";
+    errMsg(err) << "Cannot load annotation pattern from '" << filename
+                << "': Files does not contain a codeplug pattern.";
     return nullptr;
   }
 

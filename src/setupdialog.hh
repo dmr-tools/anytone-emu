@@ -27,10 +27,11 @@ public:
   Device *createDevice(const ErrorStack &err=ErrorStack());
 
 private slots:
-  void onDeviceSelected(int idx);
-  void onInterfaceSelected(int idx);
   void onUseBuildinPatternToggled(bool enabled);
   void onSelectCatalogFile();
+  void onDeviceSelected(int idx);
+  void onFirmwareSelected(int idx);
+  void onInterfaceSelected(int idx);
 
 private:
   Ui::SetupDialog *ui;

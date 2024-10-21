@@ -21,7 +21,8 @@ SetupDialog::SetupDialog(QWidget *parent) :
   if (settings.contains("catalogFile"))
     ui->catalogFile->setText(settings.value("catalogFile").toString());
   if (settings.contains("useBuildinPatterns"))
-    ui->useBuildin->setChecked(settings.value("useBuildinPattern").toBool());
+    ui->useBuildin->setChecked(settings.value("useBuildinPatterns").toBool());
+  onUseBuildinPatternToggled(ui->useBuildin->isChecked());
   connect(ui->useBuildin, &QCheckBox::toggled, this, &SetupDialog::onUseBuildinPatternToggled);
   connect(ui->selectCatalogFile, &QPushButton::clicked, this, &SetupDialog::onSelectCatalogFile);
 
@@ -33,11 +34,20 @@ SetupDialog::SetupDialog(QWidget *parent) :
     _catalog.load(ui->catalogFile->text().simplified());
   }
 
-  connect(ui->deviceSelection, &QComboBox::currentIndexChanged, this, &SetupDialog::onDeviceSelected);
   for (ModelCatalog::const_iterator model=_catalog.begin(); model!=_catalog.end(); model++) {
     ui->deviceSelection->addItem((*model)->name(), (*model)->id());
   }
-  ui->deviceSelection->setCurrentIndex(0);
+  if (ui->deviceSelection->count()) {
+    if (settings.contains("device") &&
+        (-1 != ui->deviceSelection->findData(settings.value("device"))) )
+      ui->deviceSelection->setCurrentIndex(
+            ui->deviceSelection->findData(settings.value("device")));
+    else
+      ui->deviceSelection->setCurrentIndex(0);
+    onDeviceSelected(ui->deviceSelection->currentIndex());
+  }
+  connect(ui->deviceSelection, &QComboBox::currentIndexChanged, this, &SetupDialog::onDeviceSelected);
+  connect(ui->firmwareSelection, &QComboBox::currentIndexChanged, this, &SetupDialog::onFirmwareSelected);
 
   ui->interfaceSelection->addItem("Pseudo Terminal", QVariant::fromValue(Interface::PTY));
   ui->interfaceSelection->addItem("Serial Port", QVariant::fromValue(Interface::Serial));
@@ -151,11 +161,21 @@ SetupDialog::onDeviceSelected(int idx) {
   if (! _catalog.hasModel(modelId))
     return;
 
-  QSettings().setValue("device", modelId);
+  QSettings settings;
+  settings.setValue("device", modelId);
   ModelDefinition *model = _catalog.model(modelId);
   for (ModelDefinition::const_iterator firmware=model->begin(); firmware!=model->end(); firmware++) {
-    ui->firmwareSelection->addItem((*firmware)->name());
+    int idx = ui->firmwareSelection->count();
+    ui->firmwareSelection->addItem((*firmware)->name(), (*firmware)->name());
+    if (settings.contains("firmware")
+        && settings.value("firmware").toString() == (*firmware)->name())
+      ui->firmwareSelection->setCurrentIndex(idx);
   }
+}
+
+void
+SetupDialog::onFirmwareSelected(int idx) {
+  QSettings().setValue("firmware", ui->firmwareSelection->currentData());
 }
 
 
