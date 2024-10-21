@@ -38,6 +38,7 @@ PatternParserTest::parseCodeplugMetaTest() {
       R"(<codeplug>)"
       R"(  <meta>)"
       R"(    <name>Example Codeplug</name>)"
+      R"(    <short-name>ExCp</short-name>)"
       R"(    <description>An Example Codeplug</description>)"
       R"(    <firmware>1.0.0-1</firmware>)"
       R"(  </meta>)"
@@ -52,6 +53,7 @@ PatternParserTest::parseCodeplugMetaTest() {
 
   CodeplugPattern *codeplug = parser.popAs<CodeplugPattern>();
   QCOMPARE(codeplug->meta().name(), "Example Codeplug");
+  QCOMPARE(codeplug->meta().shortName(), "ExCp");
   QCOMPARE(codeplug->meta().description(), "An Example Codeplug");
   QCOMPARE(codeplug->meta().firmwareVersion(), "1.0.0-1");
 }

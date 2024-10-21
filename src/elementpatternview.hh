@@ -58,6 +58,8 @@ private:
   FixedPattern *findPatternAt(const QPoint &pos) const;
 
   void renderBlock(QPainter &painter, FixedPattern *pattern, const QRect &rect, bool isContinuation, bool isEnd);
+  void renderBlockBorder(QPainter &painter, FixedPattern *pattern, const QRect &rect, bool isContinuation, bool isEnd);
+  void renderBlockText(QPainter &painter, FixedPattern *pattern, const QRect &rect, bool isContinuation, bool isEnd);
 
   QString formatTooltip(const FixedPattern *pattern) const;
   QString formatTooltipElement(const ElementPattern *pattern) const;

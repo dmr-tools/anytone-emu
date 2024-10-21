@@ -12,7 +12,7 @@
  * Implementation of PatternMeta
  * ********************************************************************************************* */
 PatternMeta::PatternMeta(QObject *parent)
-  : QObject{parent}, _name(), _description(), _fwVersion(), _flags(Flags::None)
+  : QObject{parent}, _name(), _shortName(), _description(), _fwVersion(), _flags(Flags::None)
 {
   // pass...
 }
@@ -24,6 +24,12 @@ PatternMeta::serialize(QXmlStreamWriter &writer) const {
   writer.writeStartElement("name");
   writer.writeCharacters(name());
   writer.writeEndElement();
+
+  if (hasShortName()) {
+    writer.writeStartElement("short-name");
+    writer.writeCharacters(shortName());
+    writer.writeEndElement();
+  }
 
   if (hasDescription()) {
     writer.writeStartElement("description");
@@ -51,6 +57,7 @@ PatternMeta::serialize(QXmlStreamWriter &writer) const {
 PatternMeta &
 PatternMeta::operator =(const PatternMeta &other) {
   _name = other._name;
+  _shortName = other._shortName;
   _description = other._description;
   _fwVersion = other._fwVersion;
   return *this;
@@ -64,6 +71,22 @@ PatternMeta::name() const {
 void
 PatternMeta::setName(const QString &name) {
   _name = name;
+  emit modified();
+}
+
+bool
+PatternMeta::hasShortName() const {
+  return !_shortName.isEmpty();
+}
+
+const QString &
+PatternMeta::shortName() const {
+  return _shortName;
+}
+
+void
+PatternMeta::setShortName(const QString &name) {
+  _shortName = name;
   emit modified();
 }
 
@@ -108,6 +131,7 @@ PatternMeta::setFlags(Flags flags) {
   _flags = flags;
   emit modified();
 }
+
 
 
 /* ********************************************************************************************* *

@@ -3,6 +3,8 @@
 #include <QRegularExpression>
 #include <QMetaMethod>
 
+#define SPLIT_TAG_NAME_PATTERN R"([\-_.])"
+
 
 /* ********************************************************************************************* *
  * Implementation of XmlElementHandler
@@ -16,7 +18,7 @@ XmlElementHandler::XmlElementHandler(QObject *parent)
 bool
 XmlElementHandler::canBeginElement(const QStringView &name) const {
   // Search for matching slot by name
-  QStringList tagName = name.toString().split(QRegularExpression(R"([\-_.])"), Qt::SkipEmptyParts);
+  QStringList tagName = name.toString().split(QRegularExpression(SPLIT_TAG_NAME_PATTERN), Qt::SkipEmptyParts);
   for (int i=0; i<tagName.size(); i++)
     tagName[i][0] = tagName[i][0].toUpper();
   QByteArray slotName = QString("begin%1Element(QXmlStreamAttributes)").arg(tagName.join("")).toLocal8Bit();
@@ -28,7 +30,7 @@ XmlElementHandler::canBeginElement(const QStringView &name) const {
 bool
 XmlElementHandler::beginElement(const QStringView &name, const QXmlStreamAttributes &attributes) {
   // Search for matching slot by name
-  QStringList tagName = name.toString().split(QRegularExpression(R"([\-_.])"), Qt::SkipEmptyParts);
+  QStringList tagName = name.toString().split(QRegularExpression(SPLIT_TAG_NAME_PATTERN), Qt::SkipEmptyParts);
   for (int i=0; i<tagName.size(); i++)
     tagName[i][0] = tagName[i][0].toUpper();
   QByteArray slotName = QString("begin%1Element").arg(tagName.join("")).toLocal8Bit();
@@ -47,7 +49,7 @@ XmlElementHandler::beginElement(const QStringView &name, const QXmlStreamAttribu
 bool
 XmlElementHandler::canEndElement(const QStringView &name) const {
   // Search for matching slot by name
-  QStringList tagName = name.toString().split(QRegularExpression(R"([\-_.])"), Qt::SkipEmptyParts);
+  QStringList tagName = name.toString().split(QRegularExpression(SPLIT_TAG_NAME_PATTERN), Qt::SkipEmptyParts);
   for (int i=0; i<tagName.size(); i++)
     tagName[i][0] = tagName[i][0].toUpper();
   QByteArray slotName = QString("end%1Element()").arg(tagName.join("")).toLocal8Bit();
@@ -58,12 +60,14 @@ XmlElementHandler::canEndElement(const QStringView &name) const {
 bool
 XmlElementHandler::endElement(const QStringView &name) {
   // Search for matching slot by name
-  QString tagName = name.toString(); tagName[0] = tagName[0].toUpper();
-  QString slotName = QString("end%1Element").arg(tagName);
+  QStringList tagName = name.toString().split(QRegularExpression(SPLIT_TAG_NAME_PATTERN), Qt::SkipEmptyParts);
+  for (int i=0; i<tagName.size(); i++)
+    tagName[i][0] = tagName[i][0].toUpper();
+  QByteArray slotName = QString("end%1Element").arg(tagName.join("")).toLocal8Bit();
 
   bool ok;
   if (this->metaObject()->invokeMethod(
-        this, slotName.toLatin1().constData(), Qt::DirectConnection,
+        this, slotName.constData(), Qt::DirectConnection,
         Q_RETURN_ARG(bool, ok)))
     return ok;
 
