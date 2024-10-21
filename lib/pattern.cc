@@ -25,6 +25,12 @@ PatternMeta::serialize(QXmlStreamWriter &writer) const {
   writer.writeCharacters(name());
   writer.writeEndElement();
 
+  if (hasShortName()) {
+    writer.writeStartElement("short-name");
+    writer.writeCharacters(shortName());
+    writer.writeEndElement();
+  }
+
   if (hasDescription()) {
     writer.writeStartElement("description");
     writer.writeCharacters(description());
@@ -64,6 +70,22 @@ PatternMeta::name() const {
 void
 PatternMeta::setName(const QString &name) {
   _name = name;
+  emit modified();
+}
+
+bool
+PatternMeta::hasShortName() const {
+  return !_shortName.isEmpty();
+}
+
+const QString &
+PatternMeta::shortName() const {
+  return _shortName;
+}
+
+void
+PatternMeta::setShortName(const QString &name) {
+  _shortName = name;
   emit modified();
 }
 
@@ -108,6 +130,7 @@ PatternMeta::setFlags(Flags flags) {
   _flags = flags;
   emit modified();
 }
+
 
 
 /* ********************************************************************************************* *

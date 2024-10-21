@@ -16,6 +16,7 @@ protected:
   enum class State {
     None,            ///< No special state, aka start.
     MetaName,        ///< Parse meta information name.
+    MetaShortName,   ///< Parse meta information short name.
     MetaDescription, ///< Parse meta information description.
     MetaFWVersion    ///< Parse meta information firmware version.
   };
@@ -72,6 +73,10 @@ protected slots:
   bool beginNameElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of name element. */
   bool endNameElement();
+  /** Handler for start of short name element. */
+  bool beginShortNameElement(const QXmlStreamAttributes &attributes);
+  /** Handler for end of short name element. */
+  bool endShortNameElement();
   /** Handler for start of description element. */
   bool beginDescriptionElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of description element. */

@@ -6,7 +6,7 @@
 #include <QHelpEvent>
 #include <QToolTip>
 #include <algorithm>
-
+#include <QPainterPath>
 
 ElementPatternView::ElementPatternView(QWidget *parent)
   : QWidget{parent}, _pattern(), _selectedPattern(),
@@ -141,50 +141,82 @@ void
 ElementPatternView::renderBlock(
     QPainter &painter, FixedPattern *pattern, const QRect &rect, bool isContinuation, bool isEnd)
 {
+  renderBlockBorder(painter, pattern, rect, isContinuation, isEnd);
+  renderBlockText(painter, pattern, rect, isContinuation, isEnd);
+}
+
+void
+ElementPatternView::renderBlockBorder(QPainter &painter, FixedPattern *pattern, const QRect &rect, bool isContinuation, bool isEnd)
+{
+  QPainterPath borderPath;
+  QPainterPath fillPath;
+
+  if (isContinuation) {
+    borderPath.moveTo(rect.topLeft()); borderPath.lineTo(rect.left()+_layout.radius, rect.top());
+    fillPath.moveTo(rect.topLeft());   fillPath.lineTo(rect.left()+_layout.radius, rect.top());
+  } else {
+    borderPath.moveTo(rect.left(), rect.top()+_layout.radius);
+    borderPath.arcTo(rect.left(), rect.top(), _layout.radius, _layout.radius, 180,-90);
+    fillPath.moveTo(rect.left(), rect.top()+_layout.radius);
+    fillPath.arcTo(rect.left(), rect.top(), _layout.radius, _layout.radius, 180,-90);
+  }
+
+  borderPath.lineTo(rect.right()-_layout.radius, rect.top());
+  fillPath.lineTo(rect.right()-_layout.radius, rect.top());
+
+  if (isEnd) {
+    borderPath.arcTo(rect.right()-_layout.radius, rect.top(), _layout.radius, _layout.radius,
+                     90, -90);
+    borderPath.lineTo(rect.right(), rect.bottom()-_layout.radius);
+    borderPath.arcTo(rect.right()-_layout.radius, rect.bottom()-_layout.radius,
+                     _layout.radius, _layout.radius,
+                     0, -90);
+    fillPath.arcTo(rect.right()-_layout.radius, rect.top(), _layout.radius, _layout.radius,
+                     90, -90);
+    fillPath.lineTo(rect.right(), rect.bottom()-_layout.radius);
+    fillPath.arcTo(rect.right()-_layout.radius, rect.bottom()-_layout.radius,
+                     _layout.radius, _layout.radius,
+                     0, -90);
+  } else {
+    borderPath.lineTo(rect.right(), rect.top());
+    borderPath.moveTo(rect.right(), rect.bottom());
+    borderPath.lineTo(rect.right()-_layout.radius, rect.bottom());
+    fillPath.lineTo(rect.right(), rect.top());
+    fillPath.lineTo(rect.right(), rect.bottom());
+    fillPath.lineTo(rect.right()-_layout.radius, rect.bottom());
+  }
+
+  borderPath.lineTo(rect.left()+_layout.radius, rect.bottom());
+  fillPath.lineTo(rect.left()+_layout.radius, rect.bottom());
+
+  if (isContinuation) {
+    borderPath.lineTo(rect.left(), rect.bottom());
+    borderPath.moveTo(rect.topLeft());
+    fillPath.lineTo(rect.left(), rect.bottom());
+    fillPath.lineTo(rect.topLeft());
+  } else {
+    borderPath.arcTo(rect.left(), rect.bottom()-_layout.radius,
+                     _layout.radius, _layout.radius, -90,-90);
+    borderPath.lineTo(rect.left(), rect.top()+_layout.radius);
+    fillPath.arcTo(rect.left(), rect.bottom()-_layout.radius,
+                         _layout.radius, _layout.radius, -90,-90);
+    fillPath.lineTo(rect.left(), rect.top()+_layout.radius);
+  }
+
+  if (pattern == _selectedPattern) {
+    painter.strokePath(borderPath, QPen(palette().highlightedText(), _layout.lineWidth));
+    painter.fillPath(fillPath, palette().highlight());
+  } else {
+    painter.strokePath(borderPath, QPen(palette().text(), _layout.lineWidth));
+    painter.fillPath(fillPath, palette().alternateBase());
+  }
+}
+
+void
+ElementPatternView::renderBlockText(QPainter &painter, FixedPattern *pattern, const QRect &rect, bool isContinuation, bool isEnd) {
   QFont defaultFont = painter.font();
   QFont addressFont = defaultFont; addressFont.setFamily("monospace");
 
-  painter.setPen(Qt::transparent);
-  if (pattern == _selectedPattern)
-    painter.setBrush(palette().highlight());
-  else
-    painter.setBrush(palette().alternateBase());
-  painter.drawRect(rect);
-
-
-  if (pattern == _selectedPattern)
-    painter.setPen(QPen(palette().highlightedText(), _layout.lineWidth));
-  else
-    painter.setPen(QPen(palette().text(), _layout.lineWidth));
-  painter.setBrush(QBrush(Qt::transparent));
-
-  if (! isContinuation) {
-    painter.drawArc(rect.left(), rect.top(), _layout.radius, _layout.radius,
-                    16*90, 90*16);
-    painter.drawArc(rect.left(), rect.bottom()-_layout.radius, _layout.radius, _layout.radius,
-                    16*180, 90*16);
-    painter.drawLine(rect.left(), rect.bottom()-_layout.radius+_layout.lineWidth,
-                     rect.left(), rect.top()+_layout.radius-_layout.lineWidth);
-  }
-
-  if (isEnd) {
-    painter.drawLine(rect.right(), rect.top()+_layout.radius-_layout.lineWidth,
-                     rect.right(), rect.bottom()-_layout.radius+_layout.lineWidth);
-    painter.drawArc(rect.right()-_layout.radius, rect.top(), _layout.radius, _layout.radius,
-                    0, 90*16);
-    painter.drawArc(rect.right()-_layout.radius, rect.bottom()-_layout.radius,
-                    _layout.radius, _layout.radius,
-                    16*270, 90*16);
-  }
-  painter.drawLine(rect.left()+_layout.radius-_layout.lineWidth, rect.top(),
-                   rect.right()-_layout.radius+_layout.lineWidth, rect.top());
-  painter.drawLine(rect.right()-_layout.radius+_layout.lineWidth, rect.bottom(),
-                   rect.left()+_layout.radius-_layout.lineWidth, rect.bottom());
-
-  if (pattern == _selectedPattern)
-    painter.setPen(QPen(palette().highlightedText(), _layout.lineWidth));
-  else
-    painter.setPen(QPen(palette().text(), _layout.lineWidth));
   painter.setPen(QPen(palette().text().color()));
   painter.setBrush(palette().text());
   painter.setFont(defaultFont);

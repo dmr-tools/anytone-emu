@@ -24,10 +24,14 @@ class PatternMeta: public QObject
 
   /** The name property. */
   Q_PROPERTY(QString name READ name WRITE setName)
+  /** The optional short name of the pattern. */
+  Q_PROPERTY(QString shortName READ shortName WRITE setShortName)
   /** The description property. */
   Q_PROPERTY(QString description READ description WRITE setDescription)
   /** The firmware version property. */
   Q_PROPERTY(QString firmwareVersion READ firmwareVersion WRITE setFirmwareVersion)
+  /** Pattern flags. */
+  Q_PROPERTY(Flags flags READ flags WRITE setFlags)
 
 public:
   /** It is possible to flag a pattern. */
@@ -52,6 +56,13 @@ public:
   const QString &name() const;
   /** Sets the name of the pattern. */
   void setName(const QString &name);
+
+  /** Returns @c true, if the pattern has a short name. */
+  bool hasShortName() const;
+  /** Returns the optional short name of the pattern. */
+  const QString &shortName() const;
+  /** Sets the short name of the pattern. */
+  void setShortName(const QString &name);
 
   /** Returns @c true if the pattern has a description. */
   bool hasDescription() const;
@@ -79,6 +90,8 @@ signals:
 protected:
   /** Holds the name. */
   QString _name;
+  /** Holds the short name. */
+  QString _shortName;
   /** Holds the description. */
   QString _description;
   /** Holds the firmware version. */
