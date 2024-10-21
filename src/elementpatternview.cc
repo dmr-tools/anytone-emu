@@ -114,7 +114,8 @@ ElementPatternView::paintEvent(QPaintEvent *event) {
           right = _layout.margins.left() + _layout.colWidth*(col + consume) - _layout.lineWidth/2,
           top = _layout.margins.top() + _layout.rowHight*row + _layout.lineWidth/2,
           bottom = _layout.margins.top() + _layout.rowHight*(row+1) - _layout.lineWidth/2;
-      QRect rect = QRect(left, top, right-left, bottom-top);
+      QRect rect = QRect(left+_layout.lineWidth, top+_layout.lineWidth,
+                         right-left-2*_layout.lineWidth, bottom-top-2*_layout.lineWidth);
 
       if (0 == col) {
         painter.setPen(QPen(palette().text().color()));
@@ -220,17 +221,20 @@ ElementPatternView::renderBlockText(QPainter &painter, FixedPattern *pattern, co
   painter.setPen(QPen(palette().text().color()));
   painter.setBrush(palette().text());
   painter.setFont(defaultFont);
-  if (! isContinuation) {
-    painter.drawText(rect.adjusted(_layout.padding, _layout.padding,
-                                   -_layout.padding, -_layout.padding),
-                     pattern->meta().name(),
-                     QTextOption(Qt::AlignLeft|Qt::AlignVCenter));
-  } else {
-    painter.drawText(rect.adjusted(_layout.padding, _layout.padding,
-                                   -_layout.padding, -_layout.padding),
-                     "...",
-                     QTextOption(Qt::AlignHCenter|Qt::AlignVCenter));
+
+  QString text = pattern->meta().name();
+  QTextOption textOption = QTextOption(Qt::AlignLeft|Qt::AlignVCenter);
+
+  if (isContinuation) {
+    text = "...";
+    textOption = QTextOption(Qt::AlignHCenter|Qt::AlignVCenter);
+  } else if ((pattern->size().bits() < 4) && pattern->meta().hasShortName()) {
+    text = pattern->meta().shortName();
   }
+
+  painter.drawText(rect.adjusted(_layout.padding, _layout.padding,
+                                 -_layout.padding, -_layout.padding),
+                   text, textOption);
 }
 
 

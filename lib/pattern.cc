@@ -12,7 +12,7 @@
  * Implementation of PatternMeta
  * ********************************************************************************************* */
 PatternMeta::PatternMeta(QObject *parent)
-  : QObject{parent}, _name(), _description(), _fwVersion(), _flags(Flags::None)
+  : QObject{parent}, _name(), _shortName(), _description(), _fwVersion(), _flags(Flags::None)
 {
   // pass...
 }
@@ -57,6 +57,7 @@ PatternMeta::serialize(QXmlStreamWriter &writer) const {
 PatternMeta &
 PatternMeta::operator =(const PatternMeta &other) {
   _name = other._name;
+  _shortName = other._shortName;
   _description = other._description;
   _fwVersion = other._fwVersion;
   return *this;

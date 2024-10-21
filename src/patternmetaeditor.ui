@@ -24,38 +24,38 @@
    <item row="0" column="1">
     <widget class="QLineEdit" name="name"/>
    </item>
-   <item row="1" column="0">
+   <item row="2" column="0">
     <widget class="QLabel" name="label_3">
      <property name="text">
       <string>Version</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
+   <item row="2" column="1">
     <widget class="QLineEdit" name="version">
      <property name="placeholderText">
       <string>unspecified</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="3" column="0">
     <widget class="QLabel" name="label_2">
      <property name="text">
       <string>Description</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
+   <item row="3" column="1">
     <widget class="QTextEdit" name="description"/>
    </item>
-   <item row="3" column="0">
+   <item row="4" column="0">
     <widget class="QLabel" name="label_4">
      <property name="text">
       <string>State</string>
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
+   <item row="4" column="1">
     <widget class="QComboBox" name="tag">
      <item>
       <property name="text">
@@ -77,6 +77,20 @@
        <string>Incomplete</string>
       </property>
      </item>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="shortName">
+     <property name="placeholderText">
+      <string>unspecified</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Short Name</string>
+     </property>
     </widget>
    </item>
   </layout>
