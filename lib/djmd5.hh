@@ -5,7 +5,7 @@
 
 /** Implements a Alinco DJ-MD5 device emulator.
  * @ingroup device */
-class DJMD5 : public Device
+class DJMD5 : public AnyToneDevice
 {
   Q_OBJECT
 

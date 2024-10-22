@@ -1,7 +1,7 @@
 #include "dmr6x2uv.hh"
 
 DMR6X2UV::DMR6X2UV(QIODevice *interface, Model *model, QObject *parent)
-  : Device{interface, model, parent}
+  : AnyToneDevice{interface, model, parent}
 {
   // pass...
 }

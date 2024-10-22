@@ -19,7 +19,10 @@ void
 PatternMetaEditor::setPatternMeta(PatternMeta *meta, const CodeplugPattern *codeplug) {
   _meta = meta;
   ui->name->setText(meta->name());
-  ui->description->setText(meta->description());
+  if (meta->hasShortName())
+    ui->shortName->setText(meta->shortName());
+  if (meta->hasDescription())
+    ui->description->setText(meta->description());
   if (meta->firmwareVersion().isEmpty() && (nullptr != codeplug) && (! codeplug->meta().firmwareVersion().isEmpty()))
     ui->version->setText(codeplug->meta().firmwareVersion());
   else if (! meta->firmwareVersion().isEmpty())
@@ -29,6 +32,7 @@ PatternMetaEditor::setPatternMeta(PatternMeta *meta, const CodeplugPattern *code
 void
 PatternMetaEditor::apply() {
   _meta->setName(ui->name->text().simplified());
+  _meta->setShortName(ui->shortName->text().simplified());
   _meta->setDescription(ui->description->toPlainText().simplified());
   _meta->setFirmwareVersion(ui->version->text().simplified());
 }

@@ -3,6 +3,13 @@
 
 class FixedPattern;
 class ElementPattern;
+class FixedRepeatPattern;
+class UnknownFieldPattern;
+class UnusedFieldPattern;
+class EnumFieldPattern;
+class StringFieldPattern;
+class IntegerFieldPattern;
+
 
 #include <QWidget>
 #include <QPointer>
@@ -14,14 +21,9 @@ class ElementPatternView : public QWidget
   Q_OBJECT
 
 protected:
-  struct Item {
-    unsigned int startBit, width;
-    QPointer<FixedPattern> pattern;
-  };
-
   struct Layout {
     QMargins margins;
-    unsigned int rowHight, colWidth, lineWidth, padding;
+    unsigned int rowHight, colWidth, lineWidth, padding, radius;
   };
 
 public:
@@ -32,17 +34,46 @@ public:
 
   const ElementPattern *pattern() const;
   void setPattern(ElementPattern *pattern);
+  FixedPattern *selectedPattern() const;
 
   QSize minimumSizeHint() const override;
   QSize sizeHint() const override;
 
-protected:
-  void paintEvent(QPaintEvent *event) override;
+signals:
+  void selectionChanged(FixedPattern *pattern);
+  void doubleClicked(FixedPattern *pattern);
 
 protected:
-  ElementPattern *_pattern;
+  bool event(QEvent *event) override;
+  void paintEvent(QPaintEvent *event) override;
+
+  void mousePressEvent(QMouseEvent *event) override;
+  void mouseDoubleClickEvent(QMouseEvent *event) override;
+  void mouseReleaseEvent(QMouseEvent *event) override;
+  void contextMenuEvent(QContextMenuEvent *event) override;
+
+
+private:
+  int findItemAt(const QPoint &pos) const;
+  FixedPattern *findPatternAt(const QPoint &pos) const;
+
+  void renderBlock(QPainter &painter, FixedPattern *pattern, const QRect &rect, bool isContinuation, bool isEnd);
+  void renderBlockBorder(QPainter &painter, FixedPattern *pattern, const QRect &rect, bool isContinuation, bool isEnd);
+  void renderBlockText(QPainter &painter, FixedPattern *pattern, const QRect &rect, bool isContinuation, bool isEnd);
+
+  QString formatTooltip(const FixedPattern *pattern) const;
+  QString formatTooltipElement(const ElementPattern *pattern) const;
+  QString formatTooltipFixedRepeat(const FixedRepeatPattern *pattern) const;
+  QString formatTooltipUnknownField(const UnknownFieldPattern *pattern) const;
+  QString formatTooltipUnusedField(const UnusedFieldPattern *pattern) const;
+  QString formatTooltipEnumField(const EnumFieldPattern *pattern) const;
+  QString formatTooltipStringField(const StringFieldPattern *pattern) const;
+  QString formatTooltipIntegerField(const IntegerFieldPattern *pattern) const;
+
+protected:
+  QPointer<ElementPattern> _pattern;
+  QPointer<FixedPattern> _selectedPattern;
   Layout _layout;
-  QVector<Item> _items;
 };
 
 #endif // ELEMENTPATTERNVIEW_HH

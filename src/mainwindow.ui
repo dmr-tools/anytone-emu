@@ -255,7 +255,6 @@
     <addaction name="actionInsert_below"/>
     <addaction name="separator"/>
     <addaction name="actionCopyPattern"/>
-    <addaction name="actionCutPattern"/>
     <addaction name="actionPastePatternAsChild"/>
     <addaction name="actionPastePatternAbove"/>
     <addaction name="actionPastePatternBelow"/>
@@ -275,6 +274,9 @@
    </property>
    <property name="text">
     <string>Save as ...</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionRestart">
@@ -337,16 +339,25 @@
    </property>
   </action>
   <action name="actionShowHexDump">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Show HexDump</string>
    </property>
   </action>
   <action name="actionShowHexDiff">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Show HexDiff</string>
    </property>
   </action>
   <action name="actionCloseTab">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset theme="window-close">
      <normaloff>.</normaloff>.</iconset>
@@ -368,6 +379,9 @@
    </property>
   </action>
   <action name="actionAnnotate">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset theme="edit-annotate">
      <normaloff>.</normaloff>.</iconset>
@@ -404,6 +418,9 @@
    </property>
   </action>
   <action name="actionEdit_pattern">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset theme="edit">
      <normaloff>.</normaloff>.</iconset>
@@ -411,8 +428,14 @@
    <property name="text">
     <string>Edit pattern</string>
    </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionSave_pattern">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset theme="document-save">
      <normaloff>.</normaloff>.</iconset>
@@ -425,30 +448,51 @@
    </property>
   </action>
   <action name="actionInsert_above">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Insert new above</string>
    </property>
    <property name="toolTip">
     <string>Inserts a pattern above the selected one</string>
    </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionInsert_below">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Insert new below</string>
    </property>
    <property name="toolTip">
     <string>Inserts a pattern below the selected one.</string>
    </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionAppendNewPattern">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Append new pattern</string>
    </property>
    <property name="toolTip">
     <string>Appends a pattern to the selected one.</string>
    </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionDelete_pattern">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset theme="edit-delete">
      <normaloff>.</normaloff>.</iconset>
@@ -456,26 +500,46 @@
    <property name="text">
     <string>Delete pattern</string>
    </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionSplitUnknownField">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Split unknown field</string>
    </property>
    <property name="toolTip">
     <string>Splits this unknown field and inserts a new field.</string>
    </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionViewPattern">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
-    <iconset theme="edit-find"/>
+    <iconset theme="edit-find">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>View pattern</string>
    </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionCopyPattern">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
-    <iconset theme="edit-copy"/>
+    <iconset theme="edit-copy">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Copy pattern</string>
@@ -486,37 +550,44 @@
    <property name="shortcut">
     <string>Ctrl+C</string>
    </property>
-  </action>
-  <action name="actionCutPattern">
-   <property name="icon">
-    <iconset theme="edit-cut"/>
-   </property>
-   <property name="text">
-    <string>Cut pattern</string>
-   </property>
-   <property name="toolTip">
-    <string>Cuts the selected pattern to be inserted into the codeplug elsewhere.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+X</string>
+   <property name="visible">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionPastePatternAsChild">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Paste pattern as child</string>
    </property>
    <property name="toolTip">
     <string>Appends the copied or cut pattern.</string>
    </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionPastePatternAbove">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Paste pattern above</string>
    </property>
+   <property name="visible">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionPastePatternBelow">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Paste pattern below</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
    </property>
   </action>
  </widget>

@@ -22,6 +22,8 @@
 #include "newpatterndialog.hh"
 #include "splitfieldpatterndialog.hh"
 #include "patternmimedata.hh"
+#include "questiondialog.hh"
+
 
 
 PatternView::PatternView(QWidget *parent)
@@ -54,12 +56,12 @@ PatternView::editPattern() {
     return;
   }
 
-  _editPattern(pattern);
+  showPatternEditor(pattern);
 }
 
 
 bool
-PatternView::_editPattern(AbstractPattern *pattern, const CodeplugPattern *codeplug) {
+PatternView::showPatternEditor(AbstractPattern *pattern, const CodeplugPattern *codeplug) {
   if (pattern->is<CodeplugPattern>()) {
     CodeplugDialog dialog;
     dialog.setPattern(pattern->as<CodeplugPattern>());
@@ -149,7 +151,7 @@ PatternView::appendNewPattern() {
 
   AbstractPattern *newPattern = dialog.create();
 
-  if (! _editPattern(newPattern, parent->codeplug())) {
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
     newPattern->deleteLater();
     return;
   }
@@ -201,7 +203,7 @@ PatternView::insertNewPatternAbove() {
     return;
   }
 
-  if (! _editPattern(newPattern, parent->codeplug())) {
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
     newPattern->deleteLater();
     return;
   }
@@ -256,7 +258,7 @@ PatternView::insertNewPatternBelow() {
     return;
   }
 
-  if (! _editPattern(newPattern, parent->codeplug())) {
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
     newPattern->deleteLater();
     return;
   }
@@ -304,7 +306,7 @@ PatternView::splitFieldPattern() {
   FixedPattern *inserted = dialog.createPattern();
 
   // Allow user to configure pattern
-  if (! _editPattern(inserted, parent->codeplug())) {
+  if (! showPatternEditor(inserted, parent->codeplug())) {
     inserted->deleteLater();
     return;
   }
@@ -357,26 +359,6 @@ PatternView::copySelected() {
 
 
 void
-PatternView::cutSelected() {
-  if ((nullptr == selectedPattern()) || (selectedPattern()->is<CodeplugPattern>())) {
-    QMessageBox::information(nullptr, tr("Select a pattern first"),
-                             tr("Select the pattern to copy."));
-    return;
-  }
-
-  StructuredPattern *parent = dynamic_cast<StructuredPattern *>(selectedPattern()->parent());
-  if (nullptr == parent) {
-    QMessageBox::information(nullptr, tr("Cannot remove pattern"),
-                             tr("The parent of the selected pattern is not a structured pattern."));
-    return;
-  }
-
-  auto pattern = parent->takeChild(parent->indexOf(selectedPattern()));
-  QGuiApplication::clipboard()->setMimeData(new PatternMimeData(pattern));
-}
-
-
-void
 PatternView::pastePatternAsChild() {
   auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
   if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
@@ -399,7 +381,7 @@ PatternView::pastePatternAsChild() {
       insertionAddress += fixed->size();
   }
 
-  if (! _editPattern(mimeData->pattern(), parent->codeplug())) {
+  if (! showPatternEditor(mimeData->pattern(), parent->codeplug())) {
     return;
   }
 
@@ -449,7 +431,7 @@ PatternView::pastePatternAbove() {
     return;
   }
 
-  if (! _editPattern(mimeData->pattern(), parent->codeplug())) {
+  if (! showPatternEditor(mimeData->pattern(), parent->codeplug())) {
     return;
   }
 
@@ -501,7 +483,7 @@ PatternView::pastePatternBelow() {
     return;
   }
 
-  if (! _editPattern(mimeData->pattern(), parent->codeplug())) {
+  if (! showPatternEditor(mimeData->pattern(), parent->codeplug())) {
     return;
   }
 
@@ -530,6 +512,13 @@ PatternView::removeSelected() {
                              tr("The parent of the selected pattern is not a structured pattern."));
     return;
   }
+
+  auto res = QuestionDialog::ask(
+        "patternViewDeleteSelected", tr("Delete pattern?"),
+        tr("You are abot to delete the pattern '%1'. "
+           "The cannot be undone. Do you want to proceed?").arg(selectedPattern()->meta().name()));
+  if (QMessageBox::Yes != res)
+    return;
 
   parent->deleteChild(parent->indexOf(selectedPattern()));
 }
@@ -582,6 +571,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
+    emit canView(false);
     return;
   }
 
@@ -590,11 +580,13 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
   if (pattern->is<RepeatPattern>() || pattern->is<BlockRepeatPattern>() || pattern->is<FixedRepeatPattern>()) {
     emit canAppendPattern(0 == pattern->as<StructuredPattern>()->numChildPattern());
     emit canSplitFieldPattern(false);
+    emit canView(false);
   } else if (pattern->is<ElementPattern>()) {
     emit canAppendPattern(true);
     emit canSplitFieldPattern(false);
     emit canView(true);
   } else {
+    emit canView(true);
     emit canAppendPattern(false);
   }
 
@@ -627,9 +619,9 @@ PatternView::onShowContextMenu(const QPoint &point) {
   contextMenu.addSeparator();
   contextMenu.addAction(app->findObject<QAction>("actionCopyPattern"));
   contextMenu.addAction(app->findObject<QAction>("actionCutPattern"));
-  contextMenu.addAction(app->findObject<QAction>("actionPastPatternAsChild"));
-  contextMenu.addAction(app->findObject<QAction>("actionPastPatternAbove"));
-  contextMenu.addAction(app->findObject<QAction>("actionPastPatternBelow"));
+  contextMenu.addAction(app->findObject<QAction>("actionPastePatternAsChild"));
+  contextMenu.addAction(app->findObject<QAction>("actionPastePatternAbove"));
+  contextMenu.addAction(app->findObject<QAction>("actionPastePatternBelow"));
   contextMenu.addSeparator();
   contextMenu.addAction(app->findObject<QAction>("actionDelete_pattern"));
 

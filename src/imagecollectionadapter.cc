@@ -3,15 +3,15 @@
 #include "logger.hh"
 
 
-ImageCollectionAdapter::ImageCollectionAdapter(Collection *collection, CodeplugPattern *pattern, QObject *parent)
-  : Model{pattern, parent}, _image(nullptr), _collection(collection)
+ImageCollectionAdapter::ImageCollectionAdapter(Collection *collection, QObject *parent)
+  : ImageCollector{parent}, _image(nullptr), _collection(collection)
 {
   // pass...
 }
 
 bool
 ImageCollectionAdapter::write(uint32_t address, const QByteArray &payload) {
-  if (nullptr==_image) {
+  if (nullptr == _image) {
     logError() << "No image created yet.";
     return false;
   }

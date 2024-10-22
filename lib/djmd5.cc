@@ -1,7 +1,7 @@
 #include "djmd5.hh"
 
 DJMD5::DJMD5(QIODevice *interface, Model* model, QObject *parent)
-  : Device{interface, model, parent}
+  : AnyToneDevice{interface, model, parent}
 {
   // pass...
 }

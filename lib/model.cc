@@ -3,64 +3,16 @@
 #include "logger.hh"
 #include "pattern.hh"
 
-/* ********************************************************************************************* *
- * Implementation of Model
- * ********************************************************************************************* */
-Model::Model(CodeplugPattern *pattern, QObject *parent)
-  : QObject{parent}, _pattern(pattern)
-{
-  if (_pattern)
-    _pattern->setParent(this);
-}
-
-
-bool
-Model::read(uint32_t address, uint8_t length, QByteArray &payload) {
-  Q_UNUSED(address); Q_UNUSED(length); Q_UNUSED(payload)
-  return false;
-}
-
-bool
-Model::write(uint32_t address, const QByteArray &payload) {
-  Q_UNUSED(address); Q_UNUSED(payload)
-  return false;
-}
-
-CodeplugPattern *
-Model::pattern() const {
-  return _pattern;
-}
-
-void
-Model::setPattern(CodeplugPattern *pattern) {
-  if (_pattern) {
-    delete _pattern;
-    _pattern = nullptr;
-  }
-  _pattern = pattern;
-  if (_pattern)
-    _pattern->setParent(this);
-}
-
-void
-Model::startProgram() {
-  // pass...
-}
-
-void
-Model::endProgram() {
-  // pass...
-}
-
 
 /* ********************************************************************************************* *
  * Implementation of ImageCollector
  * ********************************************************************************************* */
-ImageCollector::ImageCollector(CodeplugPattern *pattern, QObject *parent)
-  : Model(pattern, parent), _images()
+ImageCollector::ImageCollector(QObject *parent)
+  : QObject(parent), _images()
 {
   // pass...
 }
+
 
 unsigned int
 ImageCollector::count() const {
@@ -93,6 +45,13 @@ ImageCollector::previous() const {
   return _images.at(count()-2);
 }
 
+
+bool
+ImageCollector::read(uint32_t address, uint8_t length, QByteArray &payload) {
+  Q_UNUSED(address); Q_UNUSED(length); Q_UNUSED(payload)
+  return false;
+}
+
 bool
 ImageCollector::write(uint32_t address, const QByteArray &payload) {
   if (0 == count()) {
@@ -102,6 +61,7 @@ ImageCollector::write(uint32_t address, const QByteArray &payload) {
   _images.last()->append(address, payload);
   return true;
 }
+
 
 void
 ImageCollector::startProgram() {

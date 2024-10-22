@@ -5,7 +5,7 @@
 
 /** Implements a AnyTone AT-D868UVE device emulator.
  * @ingroup device */
-class D868UVE : public Device
+class D868UVE : public AnyToneDevice
 {
   Q_OBJECT
 

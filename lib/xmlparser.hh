@@ -3,10 +3,73 @@
 
 #include <QString>
 #include <QObject>
+#include <QList>
+#include <QUrl>
 
+class XmlParser;
 class QStringView;
 class QXmlStreamReader;
 class QXmlStreamAttributes;
+
+
+class XmlElementHandler: public QObject
+{
+  Q_OBJECT
+
+protected:
+  explicit XmlElementHandler(QObject *parent=nullptr);
+
+public:
+  /** Returns the current error message. */
+  const QString &errorMessage() const;
+
+protected:
+  /** Returns @c true, if the handler can process the start of this element. */
+  virtual bool canBeginElement(const QStringView &name) const;
+  /** Handles the start of an element.
+   * Dispatches to the corresponding slot based on the tag name. */
+  virtual bool beginElement(const QStringView &name, const QXmlStreamAttributes &attributes);
+  /** Returns @c true, if the handler can process the end of this element. */
+  virtual bool canEndElement(const QStringView &name) const;
+  /** Handles the end of an element.
+   * Dispatches to the corresponding slot based on the tag name. */
+  virtual bool endElement(const QStringView &name);
+
+  /** Handles some character data. */
+  virtual bool processCDATA(const QStringView &content);
+  /** Handles some text. */
+  virtual bool processText(const QStringView &content);
+
+  /** Raises an error (not an exception). */
+  void raiseError(const QString &message);
+
+protected:
+  /** Resolves the root parser of the handler stack. */
+  XmlParser *parser();
+  const XmlParser *parser() const;
+
+  /** Puts the given handler on the top of the stack. */
+  virtual void pushHandler(XmlElementHandler *parser);
+  /** Returns the first handler from the stack. */
+  virtual XmlElementHandler *topHandler() const;
+  /** Pops the first handler from the stack. */
+  virtual XmlElementHandler *popHandler();
+
+  /** Retruns the content of the curren text buffer. */
+  const QString &textBuffer() const;
+  /** Clears the current text buffer. */
+  void clearTextBuffer();
+
+protected:
+  /** The current error Message. */
+  QString _errorMessage;
+
+  /** Holds the current text buffer, gets filled by processCDATA, processText. */
+  QString _textBuffer;
+
+  friend class XmlParser;
+};
+
 
 
 /** Nicer XML SAX parser.
@@ -15,7 +78,7 @@ class QXmlStreamAttributes;
  * tag encountered. If a slot is not found, an error is raised.
  *
  * @ingroup utils */
-class XmlParser: public QObject
+class XmlParser: public XmlElementHandler
 {
   Q_OBJECT
 
@@ -46,8 +109,6 @@ public:
 
   /** Parses a XML document using the given XML stream reader. */
   virtual bool parse(QXmlStreamReader &reader);
-  /** Returns the current error message. */
-  const QString &errorMessage() const;
 
 protected:
   /** Handles the start of a document. */
@@ -56,23 +117,27 @@ protected:
   virtual bool endDocument();
 
   /** Handles the start of an element.
-   * Dispatches to the corresponding slot based on the tag name. */
-  virtual bool beginElement(const QStringView &name, const QXmlStreamAttributes &attributes);
+   * Dispatches to the corresponding slot based on the tag name of the current handler. */
+  virtual bool dispatchBeginElement(const QStringView &name, const QXmlStreamAttributes &attributes);
   /** Handles the end of an element.
-   * Dispatches to the corresponding slot based on the tag name. */
-  virtual bool endElement(const QStringView &name);
+   * Dispatches to the corresponding slot based on the tag name of the current handler. */
+  virtual bool dispatchEndElement(const QStringView &name);
 
-  /** Handles some character data. */
-  virtual bool processCDATA(const QStringView &name);
-  /** Handles some text. */
-  virtual bool processText(const QStringView &name);
+  /** Puts the given handler on the top of the stack. */
+  void pushHandler(XmlElementHandler *parser);
+  /** Returns the first handler from the stack. */
+  XmlElementHandler *topHandler() const;
+  /** Pops the first handler from the stack. */
+  XmlElementHandler *popHandler();
 
-  /** Raises an error (not an exception). */
-  void raiseError(const QString &message);
+  /** The stack of handler.
+   * This stack at least contains an instance of itself. */
+  QList<XmlElementHandler *> _handler;
 
-protected:
-  /** The current error Message. */
-  QString _errorMessage;
+  friend class XmlElementHandler;
 };
+
+
+
 
 #endif // XMLPARSER_HH

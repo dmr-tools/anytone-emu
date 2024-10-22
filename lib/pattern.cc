@@ -12,7 +12,7 @@
  * Implementation of PatternMeta
  * ********************************************************************************************* */
 PatternMeta::PatternMeta(QObject *parent)
-  : QObject{parent}, _name(), _description(), _fwVersion(), _flags(Flags::None)
+  : QObject{parent}, _name(), _shortName(), _description(), _fwVersion(), _flags(Flags::None)
 {
   // pass...
 }
@@ -24,6 +24,12 @@ PatternMeta::serialize(QXmlStreamWriter &writer) const {
   writer.writeStartElement("name");
   writer.writeCharacters(name());
   writer.writeEndElement();
+
+  if (hasShortName()) {
+    writer.writeStartElement("short-name");
+    writer.writeCharacters(shortName());
+    writer.writeEndElement();
+  }
 
   if (hasDescription()) {
     writer.writeStartElement("description");
@@ -51,6 +57,7 @@ PatternMeta::serialize(QXmlStreamWriter &writer) const {
 PatternMeta &
 PatternMeta::operator =(const PatternMeta &other) {
   _name = other._name;
+  _shortName = other._shortName;
   _description = other._description;
   _fwVersion = other._fwVersion;
   return *this;
@@ -64,6 +71,22 @@ PatternMeta::name() const {
 void
 PatternMeta::setName(const QString &name) {
   _name = name;
+  emit modified();
+}
+
+bool
+PatternMeta::hasShortName() const {
+  return !_shortName.isEmpty();
+}
+
+const QString &
+PatternMeta::shortName() const {
+  return _shortName;
+}
+
+void
+PatternMeta::setShortName(const QString &name) {
+  _shortName = name;
   emit modified();
 }
 
@@ -108,6 +131,7 @@ PatternMeta::setFlags(Flags flags) {
   _flags = flags;
   emit modified();
 }
+
 
 
 /* ********************************************************************************************* *
@@ -278,7 +302,8 @@ GroupPattern::GroupPattern(QObject *parent)
 CodeplugPattern::CodeplugPattern(QObject *parent)
   : GroupPattern(parent), _modified(false), _source(), _content()
 {
-  //connect(this, &AbstractPattern::modified, this, &CodeplugPattern::onModified);
+  connect(this, &AbstractPattern::modified,
+          this, [this](const AbstractPattern *pattern){ this->_modified = true; });
 }
 
 bool
@@ -352,6 +377,7 @@ CodeplugPattern::addChildPattern(AbstractPattern *pattern) {
   connect(pattern, &AbstractPattern::removed, this, &AbstractPattern::removed);
 
   emit added(this, idx);
+  emit modified(this);
 
   return true;
 }
@@ -375,6 +401,8 @@ CodeplugPattern::takeChild(unsigned int n) {
   _content.remove(n);
   emit removed(this, n);
 
+  emit modified(this);
+
   return pattern;
 }
 
@@ -389,31 +417,32 @@ CodeplugPattern::isModified() const {
 }
 
 CodeplugPattern *
-CodeplugPattern::load(const QString &filename) {
+CodeplugPattern::load(const QString &filename, const ErrorStack &err) {
   QFile file(filename);
 
   if (! file.open(QIODevice::ReadOnly)) {
-    logError() << "Cannot load annotation pattern from '" << filename
-               << "': " << file.errorString() << ".";
+    errMsg(err) << "Cannot load annotation pattern from '" << filename
+                << "': " << file.errorString() << ".";
     return nullptr;
   }
 
   CodeplugPatternParser parser;
   QXmlStreamReader reader(&file);
   if (! parser.parse(reader)) {
-    logError() << "Cannot load annotation pattern from '" << filename
-               << "', cannot parse pattern: " << parser.errorMessage() << ".";
+    errMsg(err) << "Cannot load annotation pattern from '" << filename
+                << "', cannot parse pattern: " << parser.errorMessage() << ".";
     return nullptr;
   }
 
   if (! parser.topIs<CodeplugPattern>()) {
-    logError() << "Cannot load annotation pattern from '" << filename
-               << "': Files does not contain a codeplug pattern.";
+    errMsg(err) << "Cannot load annotation pattern from '" << filename
+                << "': Files does not contain a codeplug pattern.";
     return nullptr;
   }
 
   CodeplugPattern *pattern = parser.popAs<CodeplugPattern>();
   pattern->setSource(filename);
+  pattern->_modified = false;
   return pattern;
 }
 
@@ -583,6 +612,7 @@ RepeatPattern::addChildPattern(AbstractPattern *subpattern) {
   connect(_subpattern, &AbstractPattern::removed, this, &AbstractPattern::removed);
 
   emit added(this, 0);
+  emit modified(this);
 
   return true;
 }
@@ -605,6 +635,7 @@ RepeatPattern::takeChild(unsigned int n) {
   _subpattern = nullptr;
   pattern->setParent(nullptr);
   emit removed(this, 0);
+  emit modified(this);
 
   return pattern;
 }
@@ -727,6 +758,7 @@ BlockRepeatPattern::addChildPattern(AbstractPattern *subpattern) {
   connect(_subpattern, &AbstractPattern::removed, this, &AbstractPattern::removed);
 
   emit added(this, 0);
+  emit modified(this);
 
   return true;
 }
@@ -759,6 +791,7 @@ BlockRepeatPattern::takeChild(unsigned int n) {
   _subpattern = nullptr;
   pattern->setParent(nullptr);
   emit removed(this, 0);
+  emit modified(this);
 
   return pattern;
 }
@@ -801,6 +834,7 @@ void
 FixedPattern::setSize(const Size &size) {
   _size = size;
   emit resized(this, _size);
+  emit modified(this);
 }
 
 
@@ -887,6 +921,7 @@ ElementPattern::addChildPattern(AbstractPattern *pattern) {
     setSize(pattern->as<FixedPattern>()->size());
 
   emit added(this, idx);
+  emit modified(this);
 
   return true;
 }
@@ -926,6 +961,7 @@ ElementPattern::insertChildPattern(FixedPattern *pattern, unsigned int idx) {
     setSize(pattern->size());
 
   emit added(this, idx);
+  emit modified(this);
 
   // Update addresses of all subsequent patterns:
   for (idx++; idx < _content.size(); idx++) {
@@ -975,6 +1011,9 @@ ElementPattern::takeChild(unsigned int n) {
   }
 
   setSize(mySize);
+
+  emit modified(this);
+
   return pattern;
 }
 

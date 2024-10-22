@@ -16,13 +16,15 @@ endfunction()
 function(generate_icons)
   cmake_parse_arguments(GENERATE_ICONS "" "DIRECTORY;CONTEXT;" "THEMES;ICONS;SIZES" ${ARGN})
 
-  set(GENERATE_ICONS_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/icons/")
+  cmake_path(APPEND ${CMAKE_CURRENT_BINARY_DIR} "icons/" OUTPUT_VARIABLE GENERATE_ICONS_OUTPUT_DIR)
+  message(STATUS "Drop incons into ${GENERATE_ICONS_OUTPUT_DIR}")
 
   foreach(ICON_THEME ${GENERATE_ICONS_THEMES})
     file(MAKE_DIRECTORY "${GENERATE_ICONS_OUTPUT_DIR}/${ICON_THEME}/scalable/${GENERATE_ICONS_CONTEXT}")
     foreach(ICON_NAME ${GENERATE_ICONS_ICONS})
-      set(source_file "${GENERATE_ICONS_DIRECTORY}/${ICON_THEME}/${GENERATE_ICONS_CONTEXT}/${ICON_NAME}.svg")
-      set(output_file "${GENERATE_ICONS_OUTPUT_DIR}/${ICON_THEME}/scalable/${GENERATE_ICONS_CONTEXT}/${ICON_NAME}.svg")
+      cmake_path(APPEND ${GENERATE_ICONS_DIRECTORY} ${ICON_THEME} ${GENERATE_ICONS_CONTEXT} "${ICON_NAME}.svg" OUTPUT_VARIABLE source_file)
+      cmake_path(APPEND ${GENERATE_ICONS_OUTPUT_DIR} ${ICON_THEME} "scalable" ${GENERATE_ICONS_CONTEXT} "${ICON_NAME}.svg" OUTPUT_VARIABLE output_file)
+      message(STATUS "Copy ${source_file} -> ${output_file}")
       list(APPEND GENERATE_ICONS_OUTPUT_FILES ${output_file})
       add_custom_command(
         OUTPUT ${output_file}

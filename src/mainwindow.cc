@@ -18,11 +18,13 @@
 #include <QStyleHints>
 #include <QClipboard>
 #include "aboutdialog.hh"
-#include "elementpatternview.hh"
+#include "elementpatterneditor.hh"
+#include "questiondialog.hh"
+#include <QCloseEvent>
 
 
-MainWindow::MainWindow(QWidget *parent) :
-  QMainWindow(parent), ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent)
+  : QMainWindow(parent), ui(new Ui::MainWindow)
 {
   ui->setupUi(this);
   setWindowIcon(QIcon::fromTheme("application-anytone-emu"));
@@ -53,36 +55,34 @@ MainWindow::MainWindow(QWidget *parent) :
   ui->images->addAction(ui->actionShowHexDiff);
 
   ui->patterns->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(ui->patterns, &PatternView::canEdit, ui->actionEdit_pattern, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canEdit, ui->actionEdit_pattern, &QAction::setEnabled);
   connect(ui->actionEdit_pattern, &QAction::triggered, ui->patterns, &PatternView::editPattern);
-  connect(ui->patterns, &PatternView::canView, ui->actionViewPattern, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canView, ui->actionViewPattern, &QAction::setEnabled);
   connect(ui->actionViewPattern, &QAction::triggered, this, &MainWindow::onViewPattern);
 
-  connect(ui->patterns, &PatternView::canAppendPattern, ui->actionAppendNewPattern, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canAppendPattern, ui->actionAppendNewPattern, &QAction::setEnabled);
   connect(ui->actionAppendNewPattern, &QAction::triggered, ui->patterns, &PatternView::appendNewPattern);
-  connect(ui->patterns, &PatternView::canAppendPattern, ui->actionPastePatternAsChild, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canAppendPattern, ui->actionPastePatternAsChild, &QAction::setEnabled);
   connect(ui->actionPastePatternAsChild, &QAction::triggered, ui->patterns, &PatternView::pastePatternAsChild);
 
-  connect(ui->patterns, &PatternView::canInsertPatternAbove, ui->actionInsert_above, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canInsertPatternAbove, ui->actionInsert_above, &QAction::setEnabled);
   connect(ui->actionInsert_above, &QAction::triggered, ui->patterns, &PatternView::insertNewPatternAbove);
-  connect(ui->patterns, &PatternView::canInsertPatternAbove, ui->actionPastePatternAbove, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canInsertPatternAbove, ui->actionPastePatternAbove, &QAction::setEnabled);
   connect(ui->actionPastePatternAbove, &QAction::triggered, ui->patterns, &PatternView::pastePatternAbove);
 
-  connect(ui->patterns, &PatternView::canSplitFieldPattern, ui->actionSplitUnknownField, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canSplitFieldPattern, ui->actionSplitUnknownField, &QAction::setEnabled);
   connect(ui->actionSplitUnknownField, &QAction::triggered, ui->patterns, &PatternView::splitFieldPattern);
 
-  connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionInsert_below, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionInsert_below, &QAction::setEnabled);
   connect(ui->actionInsert_below, &QAction::triggered, ui->patterns, &PatternView::insertNewPatternBelow);
-  connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionPastePatternBelow, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionPastePatternBelow, &QAction::setEnabled);
   connect(ui->actionPastePatternBelow, &QAction::triggered, ui->patterns, &PatternView::pastePatternBelow);
 
-  connect(ui->patterns, &PatternView::canRemove, ui->actionDelete_pattern, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canRemove, ui->actionDelete_pattern, &QAction::setEnabled);
   connect(ui->actionDelete_pattern, &QAction::triggered, ui->patterns, &PatternView::removeSelected);
 
-  connect(ui->patterns, &PatternView::canRemove, ui->actionCopyPattern, &QAction::setVisible);
+  connect(ui->patterns, &PatternView::canRemove, ui->actionCopyPattern, &QAction::setEnabled);
   connect(ui->actionCopyPattern, &QAction::triggered, ui->patterns, &PatternView::copySelected);
-  connect(ui->patterns, &PatternView::canRemove, ui->actionCutPattern, &QAction::setVisible);
-  connect(ui->actionCutPattern, &QAction::triggered, ui->patterns, &PatternView::cutSelected);
 
   connect(ui->actionSave_pattern, &QAction::triggered, ui->patterns, &PatternView::save);
 
@@ -120,6 +120,17 @@ MainWindow::~MainWindow()
 
 void
 MainWindow::closeEvent(QCloseEvent *event) {
+  if (qobject_cast<Application*>(QApplication::instance())->device()->pattern()->isModified()) {
+    auto res = QuestionDialog::ask(
+          "closeOnUnsavedPattern", tr("Discard changes?"),
+          tr("Some changes to the codeplug pattern are not saved yet. Do you want to close the "
+             "application and discard these changes?"));
+    if (QMessageBox::Yes != res) {
+      event->ignore();
+      return;
+    }
+  }
+
   QSettings settings;
   settings.setValue("layout/mainWindowSize", saveGeometry());
   settings.setValue("layout/mainWindowState", saveState());
@@ -137,6 +148,9 @@ MainWindow::closeEvent(QCloseEvent *event) {
     settings.setValue("action/autoShow", "first");
   if (ui->actionAutoViewHexDiffPrev->isChecked())
     settings.setValue("action/autoShow", "prev");
+
+  event->accept();
+
   QMainWindow::closeEvent(event);
 }
 
@@ -316,7 +330,6 @@ MainWindow::onViewPattern() {
     return;
 
   ElementPattern *element = pattern->as<ElementPattern>();
-  auto view = new ElementPatternView(); view->setPattern(element);
-  auto frame = new QScrollArea(); frame->setWidget(view);
-  ui->tabs->addTab(frame, element->meta().name());
+  auto view = new ElementPatternEditor(); view->setPattern(element);
+  ui->tabs->addTab(view, element->meta().name());
 }

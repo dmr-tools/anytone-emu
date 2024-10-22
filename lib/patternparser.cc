@@ -15,6 +15,7 @@ PatternParser::processText(const QStringView &content) {
     switch(_state) {
     case State::None: break;
     case State::MetaName: topAs<PatternMeta>()->setName(content.toString()); break;
+    case State::MetaShortName: topAs<PatternMeta>()->setShortName(content.toString()); break;
     case State::MetaDescription: topAs<PatternMeta>()->setDescription(content.toString()); break;
     case State::MetaFWVersion: topAs<PatternMeta>()->setFirmwareVersion(content.toString()); break;
     }
@@ -85,6 +86,24 @@ PatternParser::endNameElement() {
   return true;
 }
 
+
+bool
+PatternParser::beginShortNameElement(const QXmlStreamAttributes &attributes) {
+  if (! topIs<PatternMeta>()) {
+    raiseError("Unexpected <short-name> tag.");
+    return false;
+  }
+  _state = State::MetaShortName;
+  return true;
+}
+
+bool
+PatternParser::endShortNameElement() {
+  _state = State::None;
+  return true;
+}
+
+
 bool
 PatternParser::beginDescriptionElement(const QXmlStreamAttributes &attributes) {
   if (! topIs<PatternMeta>()) {
@@ -102,9 +121,9 @@ PatternParser::endDescriptionElement() {
 }
 
 bool
-PatternParser::beginVersionElement(const QXmlStreamAttributes &attributes) {
+PatternParser::beginFirmwareElement(const QXmlStreamAttributes &attributes) {
   if (! topIs<PatternMeta>()) {
-    raiseError("Unexpected <version> tag.");
+    raiseError("Unexpected <firmware> tag.");
     return false;
   }
   _state = State::MetaFWVersion;
@@ -112,7 +131,7 @@ PatternParser::beginVersionElement(const QXmlStreamAttributes &attributes) {
 }
 
 bool
-PatternParser::endVersionElement() {
+PatternParser::endFirmwareElement() {
   _state = State::None;
   return true;
 }
