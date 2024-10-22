@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.8.0)
 project(anytone-emu VERSION 0.1.0 LANGUAGES CXX)
 
 option(BUILD_TESTS    "Build test programs" OFF)
