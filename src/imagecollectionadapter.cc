@@ -11,7 +11,7 @@ ImageCollectionAdapter::ImageCollectionAdapter(Collection *collection, QObject *
 
 bool
 ImageCollectionAdapter::write(uint32_t address, const QByteArray &payload) {
-  if (nullptr==_image) {
+  if (nullptr == _image) {
     logError() << "No image created yet.";
     return false;
   }
