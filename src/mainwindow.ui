@@ -40,9 +40,13 @@
           <x>0</x>
           <y>0</y>
           <width>389</width>
-          <height>495</height>
+          <height>498</height>
          </rect>
         </property>
+        <attribute name="icon">
+         <iconset theme="camera-photo">
+          <normaloff>.</normaloff>.</iconset>
+        </attribute>
         <attribute name="label">
          <string>Images</string>
         </attribute>
@@ -89,9 +93,13 @@
           <x>0</x>
           <y>0</y>
           <width>389</width>
-          <height>495</height>
+          <height>498</height>
          </rect>
         </property>
+        <attribute name="icon">
+         <iconset>
+          <normaloff>ui-&gt;actionElementEditorSplitUnknownField-&gt;setIcon(QIcon::fromTheme(&quot;edit-split-unknown&quot;));</normaloff>ui-&gt;actionElementEditorSplitUnknownField-&gt;setIcon(QIcon::fromTheme(&quot;edit-split-unknown&quot;));</iconset>
+        </attribute>
         <attribute name="label">
          <string>Pattern</string>
         </attribute>
@@ -194,7 +202,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSession">

@@ -84,10 +84,10 @@ generate_icons(
 
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
-  ICONS settings-interface
+  ICONS settings-interface camera-photo
   THEMES light dark
   CONTEXT categories
-  SIZES 64)
+  SIZES 16 48 64)
 
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
@@ -99,7 +99,7 @@ generate_icons(
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
   ICONS application-exit dialog-ok dialog-cancel document-save document-save-as
-        edit edit-annotate edit-clear edit-delete edit-erase
+        edit edit-annotate edit-clear edit-delete edit-erase edit-split-element
         help-about help-contents show-log window-close
   THEMES light dark
   CONTEXT actions
