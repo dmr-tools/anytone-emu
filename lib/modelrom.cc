@@ -1,5 +1,6 @@
 #include "modelrom.hh"
 #include <algorithm>
+#include "logger.hh"
 
 
 /* ********************************************************************************************** *
@@ -82,14 +83,27 @@ bool
 ModelRom::read(uint32_t address, uint8_t length, QByteArray &data) const {
   auto next = std::lower_bound(begin(), end(), address);
 
-  if (end() == next)
-    return false;
+  if (begin() == next) {
+    if ( (next->address != address) || (! next->contains(address, length))) {
+      logDebug() << "Cannot read from rom at address " << QString::number(address, 16)
+                 << "h: No segment containing this address found.";
+      return false;
+    }
 
-  if (! next->contains(address, length))
-    return false;
+    uint32_t offset = address - next->address;
+    data = next->content.mid(offset, length);
+    return true;
+  }
 
-  uint32_t offset = address - next->address;
-  data = next->content.mid(offset, length);
+  auto prev = next-1;
+  if (!prev->contains(address, length)) {
+    logDebug() << "Cannot read from rom at address " << QString::number(address, 16)
+               << "h: No segment containing this address found.";
+    return false;
+  }
+
+  uint32_t offset = address - prev->address;
+  data = prev->content.mid(offset, length);
   return true;
 }
 

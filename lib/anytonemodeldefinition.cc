@@ -82,7 +82,11 @@ AnyToneModelFirmwareDefinition::createDevice(QIODevice *interface, const ErrorSt
     return nullptr;
   }
 
-  return new AnyToneDevice(interface, codeplug, nullptr, modelId(), revision());
+  Device *dev = new AnyToneDevice(interface, codeplug, nullptr, modelId(), revision());
+  dev->rom() += qobject_cast<AnyToneModelDefinition *>(parent())->rom();
+  dev->rom() += this->rom();
+
+  return dev;
 }
 
 
