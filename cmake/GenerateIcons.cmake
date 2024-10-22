@@ -10,7 +10,8 @@ function(_create_build_icon_command icon_name icon_source_dir icon_theme icon_co
   list(APPEND GENERATE_ICONS_OUTPUT_FILES ${output_file})
   add_custom_command(
     OUTPUT ${output_file}
-    COMMAND convert ARGS -background none -resize ${icon_size}x${icon_size} ${input_file} ${output_file}
+    #COMMAND convert ARGS -background none -resize ${icon_size}x${icon_size} ${input_file} ${output_file}
+    COMMAND rsvg-convert ARGS -w ${icon_size} -h ${icon_size} -o ${output_file} ${input_file}
     DEPENDS ${input_file}
     COMMENT "Generate ${output_file}"
     VERBATIM)
