@@ -18,18 +18,23 @@ Device::Device(CodeplugPattern *pattern, ImageCollector *handler, QObject *paren
 {
   if (_pattern)
     _pattern->setParent(this);
-  if (_handler)
+  if (_handler) {
     _handler->setParent(this);
-
-  connect(this, &AnyToneDevice::startProgram, _handler, &ImageCollector::startProgram);
-  connect(this, &AnyToneDevice::endProgram, _handler, &ImageCollector::endProgram);
-
+    connect(this, &AnyToneDevice::startProgram, _handler, &ImageCollector::startProgram);
+    connect(this, &AnyToneDevice::endProgram, _handler, &ImageCollector::endProgram);
+  }
 }
 
 
 bool
 Device::read(uint32_t address, uint8_t len, QByteArray &buffer) {
-  return rom().read(address, len, buffer);
+  if (! rom().read(address, len, buffer)) {
+    logError() << "Cannot read " << len
+               << "b from ROM at address " << QString::number(address, 16) << "h.";
+    return false;
+  }
+
+  return true;
 }
 
 bool
@@ -49,9 +54,14 @@ void
 Device::setHandler(ImageCollector *handler) {
   if (nullptr != _handler)
     delete _handler;
+
   _handler = handler;
-  if (_handler)
+
+  if (_handler) {
     _handler->setParent(this);
+    connect(this, &AnyToneDevice::startProgram, _handler, &ImageCollector::startProgram);
+    connect(this, &AnyToneDevice::endProgram, _handler, &ImageCollector::endProgram);
+  }
 }
 
 CodeplugPattern *
@@ -133,8 +143,10 @@ AnyToneDevice::handle(Request *request) {
     ReadRequest *rreq = request->as<ReadRequest>();
     logDebug() << "Read " << (int)rreq->length() << "b from " << Qt::hex << rreq->address() << "h.";
     QByteArray payload; payload.reserve(rreq->length());
-    if (! this->read(rreq->address(), rreq->length(), payload))
+    if (! this->read(rreq->address(), rreq->length(), payload)) {
+      logError() << "Cannot read from emulated device.";
       return nullptr;
+    }
     return new ReadResponse(rreq->address(), payload);
   } else if ((State::Program == _state) && request->is<WriteRequest>()) {
     WriteRequest *wreq = request->as<WriteRequest>();
