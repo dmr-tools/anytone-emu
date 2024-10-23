@@ -18,8 +18,9 @@ ElementPatternEditor::ElementPatternEditor(QWidget *parent)
                            ui->actionElementEditorSplitUnknownField,
                            ui->actionElementEditorMarkAsUnknown });
 
-  ui->actionElementEditorSplitUnknownField->setIcon(QIcon::fromTheme("edit-split-unknown"));
   ui->actionElementEditorEditPattern->setIcon(QIcon::fromTheme("edit"));
+  ui->actionElementEditorSplitUnknownField->setIcon(QIcon::fromTheme("edit-split-unknown"));
+  ui->actionElementEditorMarkAsUnknown->setIcon(QIcon::fromTheme("edit-erase"));
 
   connect(ui->editor, &ElementPatternView::selectionChanged,
           this, &ElementPatternEditor::onSelectionChanged);

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ImageWidget</class>
+ <widget class="QWidget" name="ImageWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QTreeView" name="images">
+     <property name="selectionMode">
+      <enum>QAbstractItemView::MultiSelection</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="statusBar">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+  </layout>
+  <action name="actionOnNewImageShowNone">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
+   </property>
+   <property name="toolTip">
+    <string>Does nothing, if a new image is received</string>
+   </property>
+  </action>
+  <action name="actionOnNewImageShowHexDump">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show hex dump</string>
+   </property>
+   <property name="toolTip">
+    <string>Shows a hex dump of the entire received window.</string>
+   </property>
+  </action>
+  <action name="actionOnNewImageShowHexDiffVsFirst">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show hex diff vs. first</string>
+   </property>
+   <property name="toolTip">
+    <string>Shows a hex difference between the first and last received image.</string>
+   </property>
+  </action>
+  <action name="actionOnNewImageShowHexDiffVsPrevious">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show hex diff vs. previous</string>
+   </property>
+   <property name="toolTip">
+    <string>Shows a hex difference between the last two received images.</string>
+   </property>
+  </action>
+  <action name="actionShowHexDump">
+   <property name="text">
+    <string>Show hex dump</string>
+   </property>
+   <property name="toolTip">
+    <string>Show a hex dump of the selected image.</string>
+   </property>
+  </action>
+  <action name="actionShowHexDiff">
+   <property name="text">
+    <string>Show hex diff</string>
+   </property>
+   <property name="toolTip">
+    <string>Show the difference between the two selected images.</string>
+   </property>
+  </action>
+  <action name="actionAnnotate">
+   <property name="text">
+    <string>Annotate</string>
+   </property>
+   <property name="toolTip">
+    <string>Annotates the selected image.</string>
+   </property>
+  </action>
+  <action name="actionClearAnnotation">
+   <property name="icon">
+    <iconset theme="edit-clear">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Clear annotation</string>
+   </property>
+   <property name="toolTip">
+    <string>Clears the annotations from the selected image.</string>
+   </property>
+  </action>
+  <action name="actionDeleteImage">
+   <property name="icon">
+    <iconset theme="edit-delete">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Delete image</string>
+   </property>
+   <property name="toolTip">
+    <string>Deletes the selected image.</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

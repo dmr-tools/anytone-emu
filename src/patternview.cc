@@ -8,6 +8,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QClipboard>
+#include <QContextMenuEvent>
 
 #include "codeplugdialog.hh"
 #include "sparserepeatdialog.hh"
@@ -35,7 +36,6 @@ PatternView::PatternView(QWidget *parent)
   if (_pattern)
     setModel(new PatternWrapper(_pattern));
 
-  connect(this, &QWidget::customContextMenuRequested, this, &PatternView::onShowContextMenu);
 }
 
 AbstractPattern *
@@ -604,30 +604,27 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
   }
 }
 
+
 void
-PatternView::onShowContextMenu(const QPoint &point) {
-  Application *app = qobject_cast<Application *>(Application::instance());
-
-  QMenu contextMenu(this);
-  contextMenu.addAction(app->findObject<QAction>("actionEdit_pattern"));
-  contextMenu.addAction(app->findObject<QAction>("actionViewPattern"));
+PatternView::contextMenuEvent(QContextMenuEvent *event) {
+  QMenu contextMenu;
+  contextMenu.addActions({ parent()->findChild<QAction*>("actionViewElement"),
+                           parent()->findChild<QAction*>("actionEditPattern")});
   contextMenu.addSeparator();
-  contextMenu.addAction(app->findObject<QAction>("actionAppendNewPattern"));
-  contextMenu.addAction(app->findObject<QAction>("actionInsert_above"));
-  contextMenu.addAction(app->findObject<QAction>("actionSplitUnknownField"));
-  contextMenu.addAction(app->findObject<QAction>("actionInsert_below"));
+  contextMenu.addActions({ parent()->findChild<QAction*>("actionAppendNewPattern"),
+                           parent()->findChild<QAction*>("actionInsertNewPatternAbove"),
+                           parent()->findChild<QAction*>("actionSplitUnknownField"),
+                           parent()->findChild<QAction*>("actionInsertNewPatternBelow") });
   contextMenu.addSeparator();
-  contextMenu.addAction(app->findObject<QAction>("actionCopyPattern"));
-  contextMenu.addAction(app->findObject<QAction>("actionCutPattern"));
-  contextMenu.addAction(app->findObject<QAction>("actionPastePatternAsChild"));
-  contextMenu.addAction(app->findObject<QAction>("actionPastePatternAbove"));
-  contextMenu.addAction(app->findObject<QAction>("actionPastePatternBelow"));
+  contextMenu.addActions({ parent()->findChild<QAction*>("actionCopyPattern"),
+                           parent()->findChild<QAction*>("actionPastePatternAsChild"),
+                           parent()->findChild<QAction*>("actionPastePatternAbove"),
+                           parent()->findChild<QAction*>("actionPastePatternBelow") });
   contextMenu.addSeparator();
-  contextMenu.addAction(app->findObject<QAction>("actionDelete_pattern"));
-
-  contextMenu.exec(mapToGlobal(point));
+  contextMenu.addActions({ parent()->findChild<QAction*>("actionMarkFieldAsUnknown"),
+                           parent()->findChild<QAction*>("actionDeletePattern") });
+  contextMenu.exec(event->globalPos());
 }
-
 
 void
 PatternView::save() {

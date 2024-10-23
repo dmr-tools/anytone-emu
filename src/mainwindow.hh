@@ -3,9 +3,14 @@
 
 #include <QMainWindow>
 
+class Image;
+class Element;
+class ElementPattern;
+
 namespace Ui {
   class MainWindow;
 }
+
 
 class MainWindow : public QMainWindow
 {
@@ -21,14 +26,12 @@ protected:
   bool isDarkMode() const;
 
 private slots:
-  void onShowHexDump();
-  void onShowHexDiff();
+  void onShowHexImage(const Image *img);
+  void onShowHexElement(const Element *element);
+  void onShowHexDiff(const Image *left, const Image *right);
   void onCloseTab(int index=-1);
-  void onImageReceived(unsigned int idx);
-  void onAnnotate();
   void onShowAboutDialog();
-  void onViewPattern();
-  void onClipboardDataChanged();
+  void onViewPattern(ElementPattern *element);
 
 private:
   Ui::MainWindow *ui;
