@@ -9,7 +9,7 @@
 #include "application.hh"
 #include "image.hh"
 #include "logger.hh"
-
+#include "imagecollectionwrapper.hh"
 
 ImageWidget::ImageWidget(QWidget *parent)
   : QWidget(parent), ui(new Ui::ImageWidget)
@@ -18,6 +18,8 @@ ImageWidget::ImageWidget(QWidget *parent)
   Application *app = qobject_cast<Application*>(Application::instance());
 
   ui->setupUi(this);
+
+  ui->images->setModel(new CollectionWrapper(app->collection()));
 
   auto toolBar = new QToolBar();
   int defaultSize = app->style()->pixelMetric(QStyle::PM_ToolBarIconSize),

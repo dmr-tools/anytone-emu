@@ -9,6 +9,8 @@ Application::Application(int &argc, char *argv[])
   : QApplication(argc, argv), _collection(new Collection(this)), _device(nullptr)
 {
   setApplicationDisplayName("AnyTone emulator");
+  setOrganizationName("DMRTools");
+  setOrganizationDomain("dmr-tools.github.io");
   setApplicationName("anytone-emu-gui");
   setApplicationVersion(PROJECT_VERSION);
 }
