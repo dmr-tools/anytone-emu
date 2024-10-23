@@ -10,7 +10,6 @@
 #include "imagecollectionwrapper.hh"
 #include "logger.hh"
 #include "logmessagelist.hh"
-#include "patternmimedata.hh"
 #include <QActionGroup>
 #include <QSettings>
 #include <QTextBrowser>
@@ -21,7 +20,10 @@
 #include "patternwidget.hh"
 #include "elementpatterneditor.hh"
 #include "questiondialog.hh"
+
 #include <QCloseEvent>
+#include <QScrollBar>
+
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -43,6 +45,9 @@ MainWindow::MainWindow(QWidget *parent)
   if (settings.contains("layout/logHeaderState"))
     ui->log->horizontalHeader()->restoreState(settings.value("layout/logHeaderState").toByteArray());
 
+  ui->toolBox->setCurrentIndex(settings.value("layout/toolBoxIndex", 0).toUInt());
+  ui->actionShow_Log->setChecked(settings.value("layout/showLog", true).toBool());
+  ui->log->setVisible(settings.value("layout/showLog", true).toBool());
   ui->log->setModel(new LogMessageList());
 
   Application *app = qobject_cast<Application*>(Application::instance());
@@ -50,21 +55,28 @@ MainWindow::MainWindow(QWidget *parent)
   ui->toolBox->setItemIcon(0, QIcon::fromTheme("camera-photo"));
   ui->toolBox->setItemIcon(1, QIcon::fromTheme("pattern-element"));
 
+  ui->actionShow_Log->setIcon(QIcon::fromTheme("show-log"));
+  connect(ui->actionShow_Log, &QAction::toggled, ui->log, &QWidget::setVisible);
+
+  auto spacer = new QWidget();
+  spacer->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+  ui->toolBar->insertWidget(ui->actionRestart, spacer);
+
   connect(ui->actionRestart, &QAction::triggered, app, &QCoreApplication::quit);
   connect(ui->imageWidget, &ImageWidget::showHexImage, this, &MainWindow::onShowHexImage);
   connect(ui->imageWidget, &ImageWidget::showHexElement, this, &MainWindow::onShowHexElement);
   connect(ui->imageWidget, &ImageWidget::showHexDiff, this, &MainWindow::onShowHexDiff);
   connect(ui->patternPage, &PatternWidget::viewPattern, this, &MainWindow::onViewPattern);
-  connect(ui->actionCloseTab, &QAction::triggered, this, &MainWindow::onCloseTab);
   connect(ui->tabs, &QTabWidget::tabCloseRequested, this, &MainWindow::onCloseTab);
   connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onShowAboutDialog);
-
 }
+
 
 MainWindow::~MainWindow()
 {
   delete ui;
 }
+
 
 void
 MainWindow::closeEvent(QCloseEvent *event) {
@@ -85,7 +97,8 @@ MainWindow::closeEvent(QCloseEvent *event) {
   settings.setValue("layout/verticalSplitterState", ui->verticalSplitter->saveState());
   settings.setValue("layout/horizontalSplitterState", ui->horizontalSplitter->saveState());
   settings.setValue("layout/logHeaderState", ui->log->horizontalHeader()->saveState());
-
+  settings.setValue("layout/showLog", ui->actionShow_Log->isChecked());
+  settings.setValue("layout/toolBoxIndex", ui->toolBox->currentIndex());
 
   event->accept();
 
@@ -170,3 +183,4 @@ MainWindow::onViewPattern(ElementPattern *element) {
   auto view = new ElementPatternEditor(); view->setPattern(element);
   ui->tabs->addTab(view, element->meta().name());
 }
+

@@ -1,5 +1,6 @@
 #include "elementpatterneditor.hh"
 #include "ui_elementpatterneditor.h"
+#include <QToolBar>
 #include <QMenu>
 #include <QMessageBox>
 
@@ -19,8 +20,15 @@ ElementPatternEditor::ElementPatternEditor(QWidget *parent)
                            ui->actionElementEditorMarkAsUnknown });
 
   ui->actionElementEditorEditPattern->setIcon(QIcon::fromTheme("edit"));
-  ui->actionElementEditorSplitUnknownField->setIcon(QIcon::fromTheme("edit-split-unknown"));
+  ui->actionElementEditorSplitUnknownField->setIcon(QIcon::fromTheme("edit-split-element"));
   ui->actionElementEditorMarkAsUnknown->setIcon(QIcon::fromTheme("edit-erase"));
+
+  auto toolBar = new QToolBar();
+  toolBar->addAction(ui->actionElementEditorEditPattern);
+  toolBar->addAction(ui->actionElementEditorSplitUnknownField);
+  toolBar->addSeparator();
+  toolBar->addAction(ui->actionElementEditorMarkAsUnknown);
+  qobject_cast<QVBoxLayout*>(layout())->insertWidget(0, toolBar);
 
   connect(ui->editor, &ElementPatternView::selectionChanged,
           this, &ElementPatternEditor::onSelectionChanged);
