@@ -44,9 +44,7 @@ public:
 
 protected:
   void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
-
-private slots:
-  void onShowContextMenu(const QPoint &point);
+  void contextMenuEvent(QContextMenuEvent *event);
 
 private:
   CodeplugPattern *_pattern;

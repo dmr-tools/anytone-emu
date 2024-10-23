@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>patternWidget</class>
+ <widget class="QWidget" name="patternWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="PatternView" name="patterns"/>
+   </item>
+  </layout>
+  <action name="actionViewElement">
+   <property name="icon">
+    <iconset theme="edit-find">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>View element</string>
+   </property>
+  </action>
+  <action name="actionEditPattern">
+   <property name="text">
+    <string>Edit pattern</string>
+   </property>
+  </action>
+  <action name="actionSavePattern">
+   <property name="icon">
+    <iconset theme="document-save">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Save pattern</string>
+   </property>
+  </action>
+  <action name="actionDeletePattern">
+   <property name="icon">
+    <iconset theme="edit-delete">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Delete pattern</string>
+   </property>
+  </action>
+  <action name="actionAppendNewPattern">
+   <property name="text">
+    <string>Append new child</string>
+   </property>
+  </action>
+  <action name="actionInsertNewPatternAbove">
+   <property name="text">
+    <string>Insert new above</string>
+   </property>
+  </action>
+  <action name="actionInsertNewPatternBelow">
+   <property name="text">
+    <string>Insert new below</string>
+   </property>
+  </action>
+  <action name="actionCopyPattern">
+   <property name="icon">
+    <iconset theme="edit-copy">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>Copy pattern</string>
+   </property>
+  </action>
+  <action name="actionPastePatternAsChild">
+   <property name="text">
+    <string>Paste as child</string>
+   </property>
+  </action>
+  <action name="actionPastePatternAbove">
+   <property name="text">
+    <string>Paste above</string>
+   </property>
+  </action>
+  <action name="actionPastePatternBelow">
+   <property name="text">
+    <string>Paste below</string>
+   </property>
+  </action>
+  <action name="actionSplitUnknownField">
+   <property name="text">
+    <string>Split unknown field</string>
+   </property>
+  </action>
+  <action name="actionMarkFieldAsUnknown">
+   <property name="text">
+    <string>Mark field as unknown</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PatternView</class>
+   <extends>QTreeView</extends>
+   <header>patternview.hh</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

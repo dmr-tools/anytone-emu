@@ -57,7 +57,9 @@ qt_add_executable(anytone-emu-gui WIN32
   unknownpatterndialog.hh unknownpatterndialog.cc unknownpatterndialog.ui
   elementpatternview.hh elementpatternview.cc
   elementpatterneditor.hh elementpatterneditor.cc elementpatterneditor.ui
-  questiondialog.cc questiondialog.hh)
+  questiondialog.cc questiondialog.hh
+  imagewidget.hh imagewidget.cc imagewidget.ui
+  patternwidget.hh patternwidget.cc patternwidget.ui)
 
 qt_add_resources(anytone-emu-gui "codeplugs"
   PREFIX "/codeplugs"
@@ -98,8 +100,10 @@ generate_icons(
 
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
-  ICONS application-exit dialog-ok dialog-cancel document-save document-save-as
-        edit edit-annotate edit-clear edit-delete edit-erase edit-split-element
+  ICONS application-exit dialog-ok dialog-cancel document-new document-save document-save-as
+        edit edit-annotate edit-clear edit-delete edit-erase edit-split-element edit-copy edit-paste
+        insert-child insert-above insert-below
+        none show-diff-single show-diff-multiple show-hexdump inspect
         help-about help-contents show-log window-close
   THEMES light dark
   CONTEXT actions
