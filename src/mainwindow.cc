@@ -54,6 +54,22 @@ MainWindow::MainWindow(QWidget *parent)
   ui->images->addAction(ui->actionShowHexDump);
   ui->images->addAction(ui->actionShowHexDiff);
 
+  ui->toolBox->setItemIcon(0, QIcon::fromTheme("camera-photo"));
+  auto imagesMenu = new QMenuBar();
+  auto autoSubMenu = imagesMenu->addMenu("Auto show");
+  autoSubMenu->addAction(ui->actionAutoViewNone);
+  autoSubMenu->addAction(ui->actionAutoViewHexDump);
+  autoSubMenu->addAction(ui->actionAutoViewHexDiffFirst);
+  autoSubMenu->addAction(ui->actionAutoViewHexDiffPrev);
+
+  imagesMenu->addAction(ui->actionShowHexDiff);
+  imagesMenu->addAction(ui->actionShowHexDump);
+  qobject_cast<QVBoxLayout *>(ui->toolBox->widget(0)->layout())->insertWidget(0, imagesMenu);
+
+  ui->toolBox->setItemIcon(1, QIcon::fromTheme("pattern-element"));
+  auto patternMenu = new QMenuBar();
+  qobject_cast<QVBoxLayout *>(ui->toolBox->widget(0)->layout())->insertWidget(1, patternMenu);
+
   ui->patterns->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(ui->patterns, &PatternView::canEdit, ui->actionEdit_pattern, &QAction::setEnabled);
   connect(ui->actionEdit_pattern, &QAction::triggered, ui->patterns, &PatternView::editPattern);
@@ -72,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent)
 
   connect(ui->patterns, &PatternView::canSplitFieldPattern, ui->actionSplitUnknownField, &QAction::setEnabled);
   connect(ui->actionSplitUnknownField, &QAction::triggered, ui->patterns, &PatternView::splitFieldPattern);
+  ui->actionSplitUnknownField->setIcon(QIcon::fromTheme("edit-split-element"));
 
   connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionInsert_below, &QAction::setEnabled);
   connect(ui->actionInsert_below, &QAction::triggered, ui->patterns, &PatternView::insertNewPatternBelow);

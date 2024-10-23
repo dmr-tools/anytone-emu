@@ -44,7 +44,7 @@
         <x>0</x>
         <y>0</y>
         <width>398</width>
-        <height>250</height>
+        <height>252</height>
        </rect>
       </property>
      </widget>
@@ -69,6 +69,9 @@
    </property>
   </action>
   <action name="actionElementEditorMarkAsUnknown">
+   <property name="icon">
+    <iconset theme="edit-clear"/>
+   </property>
    <property name="text">
     <string>Mark as unknown</string>
    </property>

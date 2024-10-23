@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.8.0)
+cmake_minimum_required(VERSION 3.20.0)
 project(anytone-emu VERSION 0.1.0 LANGUAGES CXX)
 
-option(BUILD_TESTS    "Build test programs" OFF)
+option(BUILD_TESTS    "Build test programs" ON)
 option(BUILD_API_DOCS "Build API documentation" OFF)
 option(BUILD_MANUAL   "Build man page for dmrconf" OFF)
 
@@ -46,7 +46,9 @@ message(STATUS "Build version ${PROJECT_VERSION}")
 add_subdirectory(lib)
 add_subdirectory(cli)
 add_subdirectory(src)
-add_subdirectory(test)
+if (BUILD_TESTS)
+  add_subdirectory(test)
+endif()
 add_subdirectory(doc)
 
 # Source distribution packages:
