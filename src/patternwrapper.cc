@@ -139,9 +139,17 @@ PatternWrapper::getTooltip(const AbstractPattern *pattern, int column) const {
 
 QVariant
 PatternWrapper::getIcon(const AbstractPattern *pattern) const {
-  if (pattern->is<CodeplugPattern>())
-    return QIcon::fromTheme("pattern-codeplug");
-  else if (pattern->is<RepeatPattern>())
+  QString suffix;
+  switch (pattern->meta().flags()) {
+  case PatternMeta::Flags::Done: suffix ="-okay"; break;
+  case PatternMeta::Flags::NeedsReview: suffix ="-warning"; break;
+  case PatternMeta::Flags::Incomplete: suffix ="-critical"; break;
+  default: break;
+  }
+
+  if (pattern->is<CodeplugPattern>()) {
+    return QIcon::fromTheme(QString("pattern-codeplug%1").arg(suffix));
+  }else if (pattern->is<RepeatPattern>())
     return QIcon::fromTheme("pattern-sparserepeat");
   else if (pattern->is<BlockRepeatPattern>())
     return QIcon::fromTheme("pattern-blockrepeat");
