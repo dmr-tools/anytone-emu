@@ -135,10 +135,6 @@ PatternMeta::setFlags(Flags flags) {
 
 PatternMeta::Flags
 operator+(PatternMeta::Flags a, PatternMeta::Flags b) {
-  if (PatternMeta::Flags::None == a)
-    return b;
-  if (PatternMeta::Flags::None == b)
-    return a;
   if ((int)a < (int)b)
     return b;
   return a;
@@ -324,7 +320,7 @@ PatternMeta::Flags
 GroupPattern::combinedFlags() const {
   PatternMeta::Flags flags = AbstractPattern::combinedFlags();
   for (unsigned int i=0; i<numChildPattern(); i++)
-    flags += childPattern(i)->meta().flags();
+    flags += childPattern(i)->combinedFlags();
   return flags;
 }
 
@@ -776,7 +772,7 @@ PatternMeta::Flags
 BlockRepeatPattern::combinedFlags() const {
   PatternMeta::Flags flags = AbstractPattern::combinedFlags();
   for (unsigned int i=0; i<numChildPattern(); i++)
-    flags += childPattern(i)->meta().flags();
+    flags += childPattern(i)->combinedFlags();
   return flags;
 }
 
@@ -934,7 +930,7 @@ PatternMeta::Flags
 ElementPattern::combinedFlags() const {
   PatternMeta::Flags flags = AbstractPattern::combinedFlags();
   for (unsigned int i=0; i<numChildPattern(); i++)
-    flags += childPattern(i)->meta().flags();
+    flags += childPattern(i)->combinedFlags();
   return flags;
 }
 
@@ -1146,9 +1142,9 @@ FixedRepeatPattern::setRepetition(unsigned int n) {
 
 PatternMeta::Flags
 FixedRepeatPattern::combinedFlags() const {
-  PatternMeta::Flags flags = AbstractPattern::combinedFlags();
+  PatternMeta::Flags flags = FixedPattern::combinedFlags();
   for (unsigned int i=0; i<numChildPattern(); i++)
-    flags += childPattern(i)->meta().flags();
+    flags += childPattern(i)->combinedFlags();
   return flags;
 }
 

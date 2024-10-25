@@ -150,23 +150,23 @@ PatternWrapper::getIcon(const AbstractPattern *pattern) const {
   if (pattern->is<CodeplugPattern>()) {
     return QIcon::fromTheme(QString("pattern-codeplug%1").arg(suffix));
   }else if (pattern->is<RepeatPattern>())
-    return QIcon::fromTheme("pattern-sparserepeat");
+    return QIcon::fromTheme(QString("pattern-sparserepeat%1").arg(suffix));
   else if (pattern->is<BlockRepeatPattern>())
-    return QIcon::fromTheme("pattern-blockrepeat");
+    return QIcon::fromTheme(QString("pattern-blockrepeat%1").arg(suffix));
   else if (pattern->is<FixedRepeatPattern>())
-    return QIcon::fromTheme("pattern-fixedrepeat");
+    return QIcon::fromTheme(QString("pattern-fixedrepeat%1").arg(suffix));
   else if (pattern->is<ElementPattern>())
-    return QIcon::fromTheme("pattern-element");
+    return QIcon::fromTheme(QString("pattern-element%1").arg(suffix));
   else if (pattern->is<IntegerFieldPattern>())
-    return QIcon::fromTheme("pattern-integer");
+    return QIcon::fromTheme(QString("pattern-integer%1").arg(suffix));
   else if (pattern->is<EnumFieldPattern>())
-    return QIcon::fromTheme("pattern-enum");
+    return QIcon::fromTheme(QString("pattern-enum%1").arg(suffix));
   else if (pattern->is<StringFieldPattern>())
-    return QIcon::fromTheme("pattern-stringfield");
+    return QIcon::fromTheme(QString("pattern-stringfield%1").arg(suffix));
   else if (pattern->is<UnusedFieldPattern>())
-    return QIcon::fromTheme("pattern-unused");
+    return QIcon::fromTheme(QString("pattern-unused%1").arg(suffix));
   else if (pattern->is<UnknownFieldPattern>())
-    return QIcon::fromTheme("pattern-unknown");
+    return QIcon::fromTheme(QString("pattern-unknown%1").arg(suffix));
   return QVariant();
 }
 

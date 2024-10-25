@@ -35,8 +35,8 @@ class PatternMeta: public QObject
 public:
   /** It is possible to flag a pattern. */
   enum class Flags {
-    None,        ///< Not flags set.
     Done,        ///< Pattern is considered complete.
+    None,        ///< Not flags set.
     NeedsReview, ///< Pattern needs review.
     Incomplete   ///< Pattern needs work. I.e., contains unknwon memory sections.
   };
