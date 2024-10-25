@@ -17,6 +17,7 @@ include(GNUInstallDirs)
 include(GenerateIcons)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets SerialPort Test)
+find_program(CONVERT_CMD rsvg-convert DOC "SVG conversion tool (librsvg)." REQUIRED)
 
 if (BUILD_MANUAL)
   find_package(DocBookXSL REQUIRED)

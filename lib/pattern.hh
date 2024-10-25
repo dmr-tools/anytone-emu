@@ -15,7 +15,6 @@ class QXmlStreamWriter;
 class QFileInfo;
 class CodeplugPattern;
 
-
 /** Holds some meta information about the pattern.
  * @ingroup pattern */
 class PatternMeta: public QObject
@@ -36,8 +35,8 @@ class PatternMeta: public QObject
 public:
   /** It is possible to flag a pattern. */
   enum class Flags {
-    None,        ///< Not flags set.
     Done,        ///< Pattern is considered complete.
+    None,        ///< Not flags set.
     NeedsReview, ///< Pattern needs review.
     Incomplete   ///< Pattern needs work. I.e., contains unknwon memory sections.
   };
@@ -100,6 +99,10 @@ protected:
   Flags   _flags;
 };
 
+/** Combine flags. */
+PatternMeta::Flags operator+(PatternMeta::Flags a, PatternMeta::Flags b);
+/** Combine flags. */
+PatternMeta::Flags &operator+=(PatternMeta::Flags &a, PatternMeta::Flags b);
 
 
 /** Base class of all pattern definitions.
@@ -133,6 +136,9 @@ public:
   /** Sets the address of the pattern. */
   void setAddress(const Address &offset);
 
+  /** Returns the combined flags of the pattern.
+   * That is, the worst flag of this pattern and its children, if there are any. */
+  virtual PatternMeta::Flags combinedFlags() const;
   /** Returns the meta information. */
   const PatternMeta &meta() const;
   /** Returns the meta information. */
@@ -248,6 +254,9 @@ class GroupPattern: public AbstractPattern, public StructuredPattern
 protected:
   /** Hidden constructor. */
   explicit GroupPattern(QObject *parent = nullptr);
+
+public:
+  PatternMeta::Flags combinedFlags() const;
 };
 
 
@@ -441,6 +450,8 @@ public:
   /** Sets the maximum number of repetitions of the sub-pattern. */
   void setMaxRepetition(unsigned int rep);
 
+  PatternMeta::Flags combinedFlags() const;
+
   int indexOf(const AbstractPattern *pattern) const;
   unsigned int numChildPattern() const;
   /** Retunrs the one child pattern, the sub pattern. */
@@ -474,6 +485,8 @@ public:
   bool serialize(QXmlStreamWriter &writer) const;
 
   AbstractPattern *clone() const;
+
+  PatternMeta::Flags combinedFlags() const;
 
   bool addChildPattern(AbstractPattern *pattern);
   /** Insert the given pattern at the specified index.
@@ -514,6 +527,8 @@ public:
   unsigned int repetition() const;
   /** Sets the number of repetition. */
   void setRepetition(unsigned int n);
+
+  PatternMeta::Flags combinedFlags() const;
 
   int indexOf(const AbstractPattern *pattern) const;
   unsigned int numChildPattern() const;
