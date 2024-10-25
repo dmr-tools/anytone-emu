@@ -140,7 +140,7 @@ PatternWrapper::getTooltip(const AbstractPattern *pattern, int column) const {
 QVariant
 PatternWrapper::getIcon(const AbstractPattern *pattern) const {
   QString suffix;
-  switch (pattern->meta().flags()) {
+  switch (pattern->combinedFlags()) {
   case PatternMeta::Flags::Done: suffix ="-okay"; break;
   case PatternMeta::Flags::NeedsReview: suffix ="-warning"; break;
   case PatternMeta::Flags::Incomplete: suffix ="-critical"; break;

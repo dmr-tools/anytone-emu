@@ -133,6 +133,23 @@ PatternMeta::setFlags(Flags flags) {
 }
 
 
+PatternMeta::Flags
+operator+(PatternMeta::Flags a, PatternMeta::Flags b) {
+  if (PatternMeta::Flags::None == a)
+    return b;
+  if (PatternMeta::Flags::None == b)
+    return a;
+  if ((int)a < (int)b)
+    return b;
+  return a;
+}
+
+PatternMeta::Flags &
+operator+=(PatternMeta::Flags &a, PatternMeta::Flags b) {
+  return (a = a+b);
+}
+
+
 
 /* ********************************************************************************************* *
  * Implementation of AbstractPattern
@@ -151,6 +168,12 @@ AbstractPattern::clone() const {
   return pattern;
 }
 
+
+PatternMeta::Flags
+AbstractPattern::combinedFlags() const {
+  return meta().flags();
+}
+
 const PatternMeta &
 AbstractPattern::meta() const {
   return _meta;
@@ -161,12 +184,14 @@ AbstractPattern::meta() {
   return _meta;
 }
 
+
 const CodeplugPattern *
 AbstractPattern::codeplug() const {
   if (parent() && qobject_cast<AbstractPattern *>(parent()))
     return qobject_cast<AbstractPattern *>(parent())->codeplug();
   return nullptr;
 }
+
 
 bool
 AbstractPattern::hasImplicitAddress() const {
@@ -293,6 +318,14 @@ GroupPattern::GroupPattern(QObject *parent)
   : AbstractPattern{parent}
 {
   // pass...
+}
+
+PatternMeta::Flags
+GroupPattern::combinedFlags() const {
+  PatternMeta::Flags flags = AbstractPattern::combinedFlags();
+  for (unsigned int i=0; i<numChildPattern(); i++)
+    flags += childPattern(i)->meta().flags();
+  return flags;
 }
 
 
@@ -738,6 +771,16 @@ BlockRepeatPattern::setMaxRepetition(unsigned int rep) {
   _maxRepetition = rep;
 }
 
+
+PatternMeta::Flags
+BlockRepeatPattern::combinedFlags() const {
+  PatternMeta::Flags flags = AbstractPattern::combinedFlags();
+  for (unsigned int i=0; i<numChildPattern(); i++)
+    flags += childPattern(i)->meta().flags();
+  return flags;
+}
+
+
 FixedPattern *
 BlockRepeatPattern::subpattern() const {
   return _subpattern;
@@ -885,6 +928,14 @@ ElementPattern::clone() const {
     pattern->addChildPattern(child->clone());
 
   return pattern;
+}
+
+PatternMeta::Flags
+ElementPattern::combinedFlags() const {
+  PatternMeta::Flags flags = AbstractPattern::combinedFlags();
+  for (unsigned int i=0; i<numChildPattern(); i++)
+    flags += childPattern(i)->meta().flags();
+  return flags;
 }
 
 bool
@@ -1091,6 +1142,14 @@ FixedRepeatPattern::setRepetition(unsigned int n) {
   _repetition = n;
   if (_subpattern)
     setSize(_subpattern->size()*_repetition);
+}
+
+PatternMeta::Flags
+FixedRepeatPattern::combinedFlags() const {
+  PatternMeta::Flags flags = AbstractPattern::combinedFlags();
+  for (unsigned int i=0; i<numChildPattern(); i++)
+    flags += childPattern(i)->meta().flags();
+  return flags;
 }
 
 FixedPattern *

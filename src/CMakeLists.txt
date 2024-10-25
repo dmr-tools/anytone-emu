@@ -78,9 +78,15 @@ qt_add_resources(anytone-emu-gui "codeplugs"
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
   ICONS pattern-codeplug pattern-codeplug-okay pattern-codeplug-warning pattern-codeplug-critical
-        pattern-sparserepeat pattern-blockrepeat pattern-fixedrepeat
-        pattern-element pattern-integer pattern-enum pattern-stringfield pattern-unused
-        pattern-unknown
+        pattern-sparserepeat pattern-sparserepeat-okay pattern-sparserepeat-warning pattern-sparserepeat-critical
+        pattern-blockrepeat pattern-blockrepeat-okay pattern-blockrepeat-warning pattern-blockrepeat-critical
+        pattern-fixedrepeat pattern-fixedrepeat-okay pattern-fixedrepeat-warning pattern-fixedrepeat-critical
+        pattern-element pattern-element-okay pattern-element-warning pattern-element-critical
+        pattern-integer pattern-integer-okay pattern-integer-warning pattern-integer-critical
+        pattern-enum pattern-enum-okay pattern-enum-warning pattern-enum-critical
+        pattern-stringfield pattern-stringfield-okay pattern-stringfield-warning pattern-stringfield-critical
+        pattern-unused pattern-unused-okay pattern-unused-warning pattern-unused-critical
+        pattern-unknown pattern-unknown-okay pattern-unknown-warning pattern-unknown-critical
   THEMES light dark
   CONTEXT pattern
   SIZES 16 32 64)

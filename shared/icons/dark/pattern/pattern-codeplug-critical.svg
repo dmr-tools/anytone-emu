@@ -22,7 +22,7 @@
      inkscape:pagecheckerboard="0"
      showgrid="false"
      inkscape:zoom="5.03125"
-     inkscape:cx="28.720497"
+     inkscape:cx="28.919255"
      inkscape:cy="64"
      inkscape:window-width="1920"
      inkscape:window-height="1011"
@@ -106,9 +106,9 @@
      id="circle20" />
   <g
      id="g1222"
-     style="fill:#d00000;fill-opacity:1">
+     style="fill:#ff0000;fill-opacity:1">
     <circle
-       style="fill:#d00000;fill-opacity:1;fill-rule:evenodd"
+       style="fill:#ff0000;fill-opacity:1;fill-rule:evenodd"
        id="path280"
        cx="104"
        cy="104"
