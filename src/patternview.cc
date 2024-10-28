@@ -24,6 +24,7 @@
 #include "splitfieldpatterndialog.hh"
 #include "patternmimedata.hh"
 #include "questiondialog.hh"
+#include "logger.hh"
 
 
 
@@ -525,6 +526,21 @@ PatternView::removeSelected() {
 
 
 void
+PatternView::markAsUpdated() {
+  if (nullptr == selectedPattern()) {
+    QMessageBox::information(nullptr, tr("Select a pattern first"),
+                             tr("Select the pattern to mark as updated."));
+    return;
+  }
+
+  selectedPattern()->meta().setFlags(PatternMeta::Flags::Done);
+  const CodeplugPattern *codeplug = selectedPattern()->codeplug();
+  if ((nullptr != codeplug) && codeplug->meta().hasFirmwareVersion())
+    selectedPattern()->meta().setFirmwareVersion(codeplug->meta().firmwareVersion());
+}
+
+
+void
 PatternView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) {
   QTreeView::selectionChanged(selected, deselected);
 
@@ -536,6 +552,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canInsertPatternBelow(false);
     emit canRemove(false);
     emit canView(false);
+    emit canMarkUpdated(false);
     return;
   }
 
@@ -549,10 +566,12 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canInsertPatternBelow(false);
     emit canRemove(false);
     emit canView(false);
+    emit canMarkUpdated(false);
     return;
   }
 
   emit canEdit(true);
+  emit canMarkUpdated(! pattern->is<UnknownFieldPattern>());
 
   if (pattern->is<CodeplugPattern>()) {
     emit canAppendPattern(true);
@@ -621,6 +640,8 @@ PatternView::contextMenuEvent(QContextMenuEvent *event) {
                            parent()->findChild<QAction*>("actionPastePatternAbove"),
                            parent()->findChild<QAction*>("actionPastePatternBelow") });
   contextMenu.addSeparator();
+  contextMenu.addAction(parent()->findChild<QAction*>("actionMarkPatternAsUpdated"));
+  contextMenu.addSeparator();
   contextMenu.addActions({ parent()->findChild<QAction*>("actionMarkFieldAsUnknown"),
                            parent()->findChild<QAction*>("actionDeletePattern") });
   contextMenu.exec(event->globalPos());
@@ -628,8 +649,10 @@ PatternView::contextMenuEvent(QContextMenuEvent *event) {
 
 void
 PatternView::save() {
-  if (nullptr == _pattern)
+  if (nullptr == _pattern) {
+    logWarn() << "Cannot save pattern, there is none.";
     return;
+  }
 
   if (_pattern->source().isFile() && _pattern->source().isWritable()) {
     if (! _pattern->save()) {

@@ -84,6 +84,8 @@ EnumFieldPatternWrapper::setData(const QModelIndex &index, const QVariant &value
   else if (4 == index.column())
     item->setFlags(value.value<PatternMeta::Flags>());
 
+  if (ok) emit dataChanged(index, index);
+
   return ok;
 }
 

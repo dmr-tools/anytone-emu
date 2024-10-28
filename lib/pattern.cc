@@ -1651,8 +1651,6 @@ EnumFieldPatternItem::value() const {
 
 bool
 EnumFieldPatternItem::setValue(unsigned int value) {
-  if (hasValue())
-    return false;
   _value = value;
   return true;
 }

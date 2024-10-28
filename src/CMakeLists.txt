@@ -111,7 +111,7 @@ generate_icons(
         edit edit-annotate edit-clear edit-delete edit-erase edit-split-element edit-copy edit-paste
         insert-child insert-above insert-below
         none show-diff-single show-diff-multiple show-hexdump inspect
-        help-about help-contents show-log window-close
+        help-about help-contents show-log window-close mark-done
   THEMES light dark
   CONTEXT actions
   SIZES 16)
