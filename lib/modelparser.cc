@@ -2,6 +2,8 @@
 #include <QXmlStreamAttributes>
 
 #include "anytonemodelparser.hh"
+#include "opengd77modelparser.hh"
+
 
 /* ********************************************************************************************** *
  * Implementation of ModelDefinitionParser
@@ -40,6 +42,8 @@ ModelDefinitionParser::beginModelElement(const QXmlStreamAttributes &attributes)
 
   if ("AnyTone" == modelClass) {
     pushHandler(qobject_cast<ModelDefinitionHandler*>(new AnyToneModelDefinitionHandler(_context, modelId, this)));
+  } else if ("OpenGD77" == modelClass) {
+    pushHandler(qobject_cast<ModelDefinitionHandler*>(new OpenGD77ModelDefinitionHandler(_context, modelId, this)));
   } else {
     raiseError(QString("Unknown model class '%1'").arg(modelClass));
     return false;
