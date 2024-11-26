@@ -1,5 +1,6 @@
 #include "opengd77protocol.hh"
 #include <QtEndian>
+#include "logger.hh"
 
 
 /* ********************************************************************************************* *
@@ -49,12 +50,14 @@ OpenGD77CommandRequest::OpenGD77CommandRequest()
 OpenGD77Request *
 OpenGD77CommandRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
 
-  if (buffer.size() < size()) {
+  if (buffer.size() < 2) {
     ok = true;
     return nullptr;
   }
 
-  Command cmd = (Command)buffer.at(1);
+  logDebug() << "Got command request for command " << (uint8_t)buffer.at(1);
+
+  uint8_t cmd = (uint8_t)buffer.at(1);
   switch (cmd) {
   case SHOW_CPS_SCREEN: return OpenGD77ShowCPSScreenRequest::fromBuffer(buffer, ok, err);
   case CLEAR_SCREEN: return OpenGD77ClearScreenRequest::fromBuffer(buffer, ok, err);
@@ -62,14 +65,32 @@ OpenGD77CommandRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStac
   case RENDER_CPS: return OpenGD77RenderScreenRequest::fromBuffer(buffer, ok, err);
   case CLOSE_CPS_SCREEN: return OpenGD77ResetScreenRequest::fromBuffer(buffer, ok, err);
   case COMMAND: return OpenGD77ControlRequest::fromBuffer(buffer, ok, err);
+  case PING: return OpenGD77PingRequest::fromBuffer(buffer, ok, err);
   default:
     break;
   }
 
   ok = false;
-  buffer.remove(0, size());
-  errMsg(err) << "Unkown command type " << (int) cmd << ".";
+  buffer.clear();
+  errMsg(err) << "Unkown command type " << (uint) cmd << ".";
   return nullptr;
+}
+
+
+/* ********************************************************************************************* *
+ * Implementation of OpenGD77PingRequest
+ * ********************************************************************************************* */
+OpenGD77PingRequest::OpenGD77PingRequest()
+  : OpenGD77CommandRequest()
+{
+  // pass...
+}
+
+OpenGD77Request *
+OpenGD77PingRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
+  Q_UNUSED(err);
+  buffer.remove(0, 2);
+  return new OpenGD77PingRequest();
 }
 
 
@@ -85,7 +106,7 @@ OpenGD77ShowCPSScreenRequest::OpenGD77ShowCPSScreenRequest()
 OpenGD77Request *
 OpenGD77ShowCPSScreenRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
   Q_UNUSED(err);
-  buffer.remove(0, size());
+  buffer.remove(0, 2);
   return new OpenGD77ShowCPSScreenRequest();
 }
 
@@ -102,7 +123,7 @@ OpenGD77ClearScreenRequest::OpenGD77ClearScreenRequest()
 OpenGD77Request *
 OpenGD77ClearScreenRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
   Q_UNUSED(err);
-  buffer.remove(0, size());
+  buffer.remove(0, 2);
   return new OpenGD77ClearScreenRequest();
 }
 
@@ -110,23 +131,22 @@ OpenGD77ClearScreenRequest::fromBuffer(QByteArray &buffer, bool &ok, const Error
 /* ********************************************************************************************* *
  * Implementation of OpenGD77DisplayRequest
  * ********************************************************************************************* */
-OpenGD77DisplayRequest::OpenGD77DisplayRequest(
-    uint8_t x, uint8_t y, uint8_t alignment, bool inverted, const QByteArray &text)
+OpenGD77DisplayRequest::OpenGD77DisplayRequest(uint8_t x, uint8_t y, uint8_t font, uint8_t alignment, bool inverted, const QByteArray &text)
   : OpenGD77CommandRequest(),
-    _x(x), _y(y), _alignment(alignment), _inverted(inverted), _message(text)
+    _x(x), _y(y), _font(font), _alignment(alignment), _inverted(inverted), _message(text)
 {
   // pass...
 }
 
 OpenGD77Request *
 OpenGD77DisplayRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
-  uint8_t x = buffer.at(2), y = buffer.at(3), n = buffer.at(4), alignment = buffer.at(5);
+  uint8_t x = buffer.at(2), y = buffer.at(3), font = buffer.at(4), alignment = buffer.at(5);
   bool inverted = buffer.at(6);
-  QByteArray text = buffer.mid(7, n);
+  QByteArray text = buffer.mid(7);
 
-  buffer.remove(0, size());
+  buffer.clear();
 
-  return new OpenGD77DisplayRequest{x,y, alignment, inverted, text};
+  return new OpenGD77DisplayRequest{x,y, font, alignment, inverted, text};
 }
 
 
@@ -142,7 +162,7 @@ OpenGD77RenderScreenRequest::OpenGD77RenderScreenRequest()
 OpenGD77Request *
 OpenGD77RenderScreenRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
   Q_UNUSED(err);
-  buffer.remove(0, size());
+  buffer.remove(0, 2);
   return new OpenGD77RenderScreenRequest();
 }
 
@@ -159,7 +179,7 @@ OpenGD77ResetScreenRequest::OpenGD77ResetScreenRequest()
 OpenGD77Request *
 OpenGD77ResetScreenRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
   Q_UNUSED(err);
-  buffer.remove(0, size());
+  buffer.remove(0, 2);
   return new OpenGD77ResetScreenRequest();
 }
 
@@ -182,7 +202,7 @@ OpenGD77Request *
 OpenGD77ControlRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
   Q_UNUSED(err);
   Option opt = (Option) buffer.at(2);
-  buffer.remove(0, size());
+  buffer.remove(0, 3);
   return new OpenGD77ControlRequest(opt);
 }
 

@@ -70,22 +70,31 @@ public:
     DISPLAY          = 2,
     RENDER_CPS       = 3,
     CLOSE_CPS_SCREEN = 5,
-    COMMAND          = 6
+    COMMAND          = 6,
+    PING             = 0xfe
   };
 
 protected:
   OpenGD77CommandRequest();
 
 public:
-  static constexpr unsigned int size() { return 0x0017; }
-
   /** Decodes the given request. */
   static OpenGD77Request *fromBuffer(
       QByteArray &buffer, bool &ok, const ErrorStack &err=ErrorStack());
 };
 
 
-class OpenGD77ShowCPSScreenRequest: OpenGD77CommandRequest
+class OpenGD77PingRequest: public OpenGD77CommandRequest
+{
+protected:
+  OpenGD77PingRequest();
+
+public:
+  static OpenGD77Request *fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err=ErrorStack());
+};
+
+
+class OpenGD77ShowCPSScreenRequest: public OpenGD77CommandRequest
 {
 protected:
   OpenGD77ShowCPSScreenRequest();
@@ -112,7 +121,7 @@ public:
 class OpenGD77DisplayRequest: public OpenGD77CommandRequest
 {
 protected:
-  OpenGD77DisplayRequest(uint8_t x, uint8_t y, uint8_t alignment, bool inverted,
+  OpenGD77DisplayRequest(uint8_t x, uint8_t y, uint8_t font, uint8_t alignment, bool inverted,
                          const QByteArray &message);
 
 public:
@@ -122,6 +131,7 @@ public:
 
 protected:
   uint8_t _x, _y;
+  uint8_t _font;
   uint8_t _alignment;
   uint8_t _inverted;
   QByteArray _message;

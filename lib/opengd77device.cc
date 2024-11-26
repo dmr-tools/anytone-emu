@@ -29,14 +29,18 @@ void
 OpenGD77Device::onBytesAvailable() {
   _in_buffer.append(_interface->readAll());
 
-  bool ok;
+  logDebug() << " > " << _in_buffer.toHex(' ');
+
+  bool ok = true;
   ErrorStack err;
   while (auto req = OpenGD77Request::fromBuffer(_in_buffer, ok, err)) {
     auto resp = this->handle(req);
     delete req;
     if (resp) {
-      if (resp->serialize(_out_buffer))
+      if (resp->serialize(_out_buffer)) {
+        logDebug() << " < " << _out_buffer.toHex(' ');
         onBytesWritten();
+      }
       delete resp;
     }
   }
