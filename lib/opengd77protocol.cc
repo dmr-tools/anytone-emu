@@ -202,6 +202,7 @@ OpenGD77Request *
 OpenGD77ControlRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
   Q_UNUSED(err);
   Option opt = (Option) buffer.at(2);
+  logDebug() << "Control request " << opt << ".";
   buffer.remove(0, 3);
   return new OpenGD77ControlRequest(opt);
 }
@@ -267,7 +268,7 @@ OpenGD77WriteRequest::section() const {
 
 OpenGD77Request *
 OpenGD77WriteRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
-  if (buffer.size() < size()) {
+  if (buffer.size() < 2) {
     ok = true;
     return nullptr;
   }
@@ -287,7 +288,7 @@ OpenGD77WriteRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack 
   }
 
   ok = false;
-  buffer.remove(0, size());
+  buffer.clear();
   errMsg(err) << "Unknown section " << (int) sec << " in write request";
 
   return nullptr;
@@ -314,7 +315,7 @@ OpenGD77SetSectorRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorSt
                       (((uint32_t)buffer.at(3)) <<  8) +
                       (((uint32_t)buffer.at(4)) <<  0) );
 
-  buffer.remove(0, size());
+  buffer.remove(0, 5);
 
   return new OpenGD77SetSectorRequest(sector);
 }
@@ -332,7 +333,7 @@ OpenGD77WriteSectorRequest::OpenGD77WriteSectorRequest()
 OpenGD77Request *
 OpenGD77WriteSectorRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
   ok = true;
-  buffer.remove(0, size());
+  buffer.remove(0, 2);
   return new OpenGD77WriteSectorRequest();
 }
 
@@ -365,7 +366,7 @@ OpenGD77WriteDataRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorSt
   QByteArray data  = buffer.mid(8, length);
 
   ok = true;
-  buffer.remove(0, size());
+  buffer.remove(0, 8+length);
   return new OpenGD77WriteDataRequest(section, address, data);
 }
 
@@ -434,7 +435,7 @@ OpenGD77ReadResponse::OpenGD77ReadResponse(const QByteArray &data)
 bool
 OpenGD77ReadResponse::serialize(QByteArray &buffer) {
   buffer.append('R');
-  uint16_t length = qToBigEndian((uint16_t)buffer.size());
+  uint16_t length = qToBigEndian((uint16_t)_data.size());
   buffer.append((char *)&length, 2);
   buffer.append(_data);
   return true;

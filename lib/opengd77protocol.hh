@@ -267,8 +267,6 @@ public:
   Section section() const;
 
 public:
-  static constexpr unsigned int size() { return 0x0028; }
-
   static OpenGD77Request *fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err = ErrorStack());
 
 protected:

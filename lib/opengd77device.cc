@@ -29,8 +29,6 @@ void
 OpenGD77Device::onBytesAvailable() {
   _in_buffer.append(_interface->readAll());
 
-  logDebug() << " > " << _in_buffer.toHex(' ');
-
   bool ok = true;
   ErrorStack err;
   while (auto req = OpenGD77Request::fromBuffer(_in_buffer, ok, err)) {
@@ -38,7 +36,6 @@ OpenGD77Device::onBytesAvailable() {
     delete req;
     if (resp) {
       if (resp->serialize(_out_buffer)) {
-        logDebug() << " < " << _out_buffer.toHex(' ');
         onBytesWritten();
       }
       delete resp;
@@ -73,8 +70,10 @@ OpenGD77Device::handle(OpenGD77Request *request) {
     if (request->is<OpenGD77ShowCPSScreenRequest>())
       emit startProgram();
     else if (request->is<OpenGD77ControlRequest>() &&
-             (OpenGD77ControlRequest::REBOOT == request->as<OpenGD77ControlRequest>()->option()))
+             ( (OpenGD77ControlRequest::REBOOT == request->as<OpenGD77ControlRequest>()->option()) |
+               (OpenGD77ControlRequest::SAVE_SETTINGS_NOT_VFOS == request->as<OpenGD77ControlRequest>()->option())) )
       emit endProgram();
+
     return new OpenGD77CommandResponse(true);
   }
 
@@ -100,10 +99,12 @@ OpenGD77Device::handle(OpenGD77Request *request) {
     auto wr = request->as<OpenGD77WriteRequest>();
     if (OpenGD77WriteRequest::WRITE_EEPROM == wr->section()) {
       auto wd = wr->as<OpenGD77WriteDataRequest>();
+      logDebug() << "Write " << wd->data().size() << "b to " << Qt::hex << wd->address() << "h.";
       if (! write(wd->address(), wd->data()))
         return new OpenGD77CommandResponse(true);
     } else if (OpenGD77WriteRequest::WRITE_SECTOR_BUFFER == wr->section()) {
       auto wd = wr->as<OpenGD77WriteDataRequest>();
+      logDebug() << "Write " << wd->data().size() << "b to " << Qt::hex << 0x01000000+wd->address() << "h.";
       if (! write(0x01000000 + wd->address(), wd->data()))
         return new OpenGD77CommandResponse(true);
     }
