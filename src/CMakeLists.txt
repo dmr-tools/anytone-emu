@@ -1,65 +1,44 @@
-SET(anytone-emu-gui_SOURCES
-  main.cc
-  setupdialog.cc setupdialog.ui
-  application.cc
-  patternwrapper.cc patternview.cc patternmetaeditor.cc patternmetaeditor.ui
-  codeplugdialog.cc codeplugdialog.ui
-  sparserepeatdialog.cc sparserepeatdialog.ui
-  blockrepeatdialog.cc blockrepeatdialog.ui
-  fixedrepeatdialog.cc fixedrepeatdialog.ui
-  elementdialog.cc elementdialog.ui
-  integerfielddialog.cc integerfielddialog.ui
-  enumfielddialog.cc enumfielddialog.ui enumfieldpatternwrapper.cc
-  stringfielddialog.cc stringfielddialog.ui
-  unusedfielddialog.cc unusedfielddialog.ui
-  unknownpatterndialog.cc unknownpatterndialog.ui
-  imagecollectionadapter.cc imagecollectionwrapper.cc
-  heximagedocument.cc heximagedumpdocument.cc hexelementdumpdocument.cc heximagediffdocument.cc
-  logmessagelist.cc
-  mainwindow.cc mainwindow.ui
-  aboutdialog.cc aboutdialog.ui
-  patternselectionwidget.cc patternselectionwidget.ui
-  newpatterndialog.cc newpatterndialog.ui
-  splitfieldpatterndialog.cc splitfieldpatterndialog.ui
-  splitfieldpatternwizard.cc splitfieldpatternwizard.ui
-)
-
-SET(anytone-emu-gui_HEADERS
-  setupdialog.hh
-  application.hh
-  patternwrapper.hh patternview.hh patternmetaeditor.hh
-  codeplugdialog.hh
-  sparserepeatdialog.hh
-  blockrepeatdialog.hh
-  fixedrepeatdialog.hh
-  elementdialog.hh
-  integerfielddialog.hh
-  enumfielddialog.hh enumfieldpatternwrapper.hh
-  stringfielddialog.hh
-  unusedfielddialog.hh
-  unknownpatterndialog.hh
-  imagecollectionadapter.hh imagecollectionwrapper.hh
-  heximagedocument.hh heximagedumpdocument.hh hexelementdumpdocument.hh heximagediffdocument.hh
-  logmessagelist.hh
-  mainwindow.hh
-  aboutdialog.hh
-  patternselectionwidget.hh
-  newpatterndialog.hh
-  splitfieldpatterndialog.hh
-  splitfieldpatternwizard.hh)
-
 
 qt_add_executable(anytone-emu-gui WIN32
-  ${anytone-emu-gui_SOURCES}
+  main.cc
+  application.hh application.cc
+  mainwindow.hh mainwindow.cc mainwindow.ui
+  aboutdialog.hh aboutdialog.cc aboutdialog.ui
+  setupdialog.hh setupdialog.cc setupdialog.ui
+  patternmetaeditor.hh patternmetaeditor.cc patternmetaeditor.ui
+  codeplugdialog.hh codeplugdialog.cc codeplugdialog.ui
+  sparserepeatdialog.hh sparserepeatdialog.cc sparserepeatdialog.ui
+  blockrepeatdialog.hh blockrepeatdialog.cc blockrepeatdialog.ui
+  fixedrepeatdialog.hh fixedrepeatdialog.cc fixedrepeatdialog.ui
+  elementdialog.hh elementdialog.cc elementdialog.ui
+  integerfielddialog.hh integerfielddialog.cc integerfielddialog.ui
+  enumfielddialog.hh enumfielddialog.cc enumfielddialog.ui
+  stringfielddialog.hh stringfielddialog.cc stringfielddialog.ui
+  unusedfielddialog.hh unusedfielddialog.cc unusedfielddialog.ui
+  unknownpatterndialog.hh unknownpatterndialog.cc unknownpatterndialog.ui
+  patternselectionwidget.hh patternselectionwidget.cc patternselectionwidget.ui
+  newpatterndialog.hh newpatterndialog.cc newpatterndialog.ui
+  splitfieldpatterndialog.hh splitfieldpatterndialog.cc splitfieldpatterndialog.ui
+  splitfieldpatternwizard.hh splitfieldpatternwizard.cc splitfieldpatternwizard.ui
   newpatterndialog.hh newpatterndialog.cc newpatterndialog.ui
   splitfieldpatterndialog.hh splitfieldpatterndialog.cc splitfieldpatterndialog.ui
   codeplugdialog.hh codeplugdialog.cc codeplugdialog.ui
   unknownpatterndialog.hh unknownpatterndialog.cc unknownpatterndialog.ui
-  elementpatternview.hh elementpatternview.cc
   elementpatterneditor.hh elementpatterneditor.cc elementpatterneditor.ui
-  questiondialog.cc questiondialog.hh
   imagewidget.hh imagewidget.cc imagewidget.ui
-  patternwidget.hh patternwidget.cc patternwidget.ui)
+  patternwidget.hh patternwidget.cc patternwidget.ui
+  patternview.hh patternview.cc
+  patternwrapper.hh patternwrapper.cc
+  enumfieldpatternwrapper.hh enumfieldpatternwrapper.cc
+  imagecollectionadapter.hh imagecollectionadapter.cc
+  imagecollectionwrapper.hh imagecollectionwrapper.cc
+  heximagedocument.hh heximagedocument.cc
+  heximagedumpdocument.hh heximagedumpdocument.cc
+  hexelementdumpdocument.hh hexelementdumpdocument.cc
+  heximagediffdocument.hh heximagediffdocument.cc
+  logmessagelist.hh logmessagelist.cc
+  elementpatternview.hh elementpatternview.cc
+  questiondialog.cc questiondialog.hh)
 
 qt_add_resources(anytone-emu-gui "codeplugs"
   PREFIX "/codeplugs"
