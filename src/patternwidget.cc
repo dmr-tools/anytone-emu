@@ -95,6 +95,10 @@ PatternWidget::PatternWidget(QWidget *parent)
   connect(ui->patterns, &PatternView::canRemove, ui->actionCopyPattern, &QAction::setEnabled);
   connect(ui->actionCopyPattern, &QAction::triggered, ui->patterns, &PatternView::copySelected);
 
+  ui->actionMarkPatternAsUpdated->setIcon(QIcon::fromTheme("mark-done"));
+  connect(ui->patterns, &PatternView::canMarkUpdated, ui->actionMarkPatternAsUpdated, &QAction::setEnabled);
+  connect(ui->actionMarkPatternAsUpdated, &QAction::triggered, ui->patterns, &PatternView::markAsUpdated);
+
   connect(ui->actionSavePattern, &QAction::triggered, ui->patterns, &PatternView::save);
 
   connect(QGuiApplication::clipboard(), &QClipboard::dataChanged, this, &PatternWidget::onClipboardDataChanged);

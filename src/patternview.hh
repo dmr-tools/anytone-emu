@@ -23,6 +23,7 @@ signals:
   void canRemove(bool enable);
   void canEdit(bool enable);
   void canView(bool enable);
+  void canMarkUpdated(bool enable);
 
 public slots:
   void editPattern();
@@ -38,6 +39,8 @@ public slots:
   void pastePatternAbove();
   void pastePatternBelow();
   void removeSelected();
+
+  void markAsUpdated();
 
 public:
   static bool showPatternEditor(AbstractPattern *pattern, const CodeplugPattern *codeplug=nullptr);

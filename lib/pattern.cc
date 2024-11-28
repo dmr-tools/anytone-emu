@@ -60,6 +60,7 @@ PatternMeta::operator =(const PatternMeta &other) {
   _shortName = other._shortName;
   _description = other._description;
   _fwVersion = other._fwVersion;
+  _flags = other._flags;
   return *this;
 }
 
@@ -492,6 +493,8 @@ CodeplugPattern::save(const QString &filename) {
   bool ok = save(&file);
   file.flush();
   file.close();
+
+  if (ok) logDebug() << "Saved pattern in '" << file.fileName() << "'.";
 
   return ok;
 }
@@ -1647,8 +1650,6 @@ EnumFieldPatternItem::value() const {
 
 bool
 EnumFieldPatternItem::setValue(unsigned int value) {
-  if (hasValue())
-    return false;
   _value = value;
   return true;
 }

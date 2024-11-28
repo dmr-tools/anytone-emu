@@ -55,6 +55,9 @@
    <property name="text">
     <string>Save pattern</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="actionDeletePattern">
    <property name="icon">
@@ -88,6 +91,9 @@
    <property name="text">
     <string>Copy pattern</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
   </action>
   <action name="actionPastePatternAsChild">
    <property name="text">
@@ -112,6 +118,11 @@
   <action name="actionMarkFieldAsUnknown">
    <property name="text">
     <string>Mark field as unknown</string>
+   </property>
+  </action>
+  <action name="actionMarkPatternAsUpdated">
+   <property name="text">
+    <string>Mark pattern as updated</string>
    </property>
   </action>
  </widget>
