@@ -131,7 +131,7 @@ public:
 };
 
 
-/** AnytoneResponse to a program request (ACK). */
+/** Response to a program request (ACK). */
 class AnytoneProgramResponse: public AnytoneResponse
 {
 public:
@@ -142,7 +142,7 @@ public:
 };
 
 
-/** AnytoneResponse to a device info request. Contains the model ID and HW version. */
+/** Response to a device info request. Contains the model ID and HW version. */
 class AnytoneDeviceInfoResponse: public AnytoneResponse
 {
 public:
@@ -159,7 +159,7 @@ protected:
 };
 
 
-/** AnytoneResponse to a read reqeust. Contains the data read. */
+/** Response to a read reqeust. Contains the data read. */
 class AnytoneReadResponse: public AnytoneResponse
 {
 public:
@@ -176,7 +176,7 @@ protected:
 };
 
 
-/** AnytoneResponse to a write request. Contains the address and amount written. */
+/** Response to a write request. Contains the address and amount written. */
 class AnytoneWriteResponse: public AnytoneResponse
 {
 public:
