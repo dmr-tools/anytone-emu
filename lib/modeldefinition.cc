@@ -258,6 +258,8 @@ ModelFirmwareDefinition::storeRom(uint32_t address, const QByteArray &data) {
 
 ModelRom
 ModelFirmwareDefinition::rom() const {
+  if (nullptr == parent())
+    return _rom;
   return qobject_cast<ModelDefinition*>(parent())->rom() + _rom;
 }
 

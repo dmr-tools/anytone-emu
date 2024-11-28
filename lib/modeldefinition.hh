@@ -15,7 +15,7 @@ class ModelFirmwareDefinition;
 
 class ModelCatalog: public QObject
 {
-  Q_OBJECT;
+  Q_OBJECT
 
 public:
   typedef QList<ModelDefinition *>::const_iterator const_iterator;

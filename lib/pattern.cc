@@ -424,9 +424,8 @@ CodeplugPattern::takeChild(unsigned int n) {
     return nullptr;
 
   AbstractPattern *pattern = _content[n];
-  pattern->setParent(nullptr);
-
   emit removing(this, n);
+  pattern->setParent(nullptr);
   _content.remove(n);
   emit removed(this, n);
 

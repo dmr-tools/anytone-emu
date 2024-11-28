@@ -56,7 +56,7 @@ CollectionWrapper::rowCount(const QModelIndex &parent) const {
 
 int
 CollectionWrapper::columnCount(const QModelIndex &parent) const {
-  return 3;
+  return 4;
 }
 
 bool
@@ -98,6 +98,8 @@ CollectionWrapper::data(const QModelIndex &index, int role) const {
       return tr("Element (%1)").arg(el->numAnnotations());
     } else if (1 == index.column()) {
       return el->address().toString();
+    } else if (2 == index.column()) {
+      return el->size().toString();
     }
     return QVariant();
   } else if (auto el = qobject_cast<const StructuredAnnotation *>(obj)) {
@@ -105,6 +107,8 @@ CollectionWrapper::data(const QModelIndex &index, int role) const {
       return tr("Structure '%1'").arg(el->pattern()->meta().name());
     } else if (1 == index.column()) {
       return el->address().toString();
+    } else if (2 == index.column()) {
+      return el->size().toString();
     }
     return QVariant();
   } else if (auto el = qobject_cast<const FieldAnnotation *>(obj)) {
@@ -115,6 +119,8 @@ CollectionWrapper::data(const QModelIndex &index, int role) const {
         return QString("%1h  ").arg(el->address().byte(), 0, 16);
       return QString("%1h:%2").arg(el->address().byte(), 0, 16).arg(el->address().bit(),0,8);
     } else if (2 == index.column()) {
+      return el->size().toString();
+    } else if (3 == index.column()) {
       return formatFieldValue(el);
     }
     return QVariant();
@@ -151,6 +157,9 @@ CollectionWrapper::headerData(int section, Qt::Orientation orientation, int role
     return tr("Address");
 
   if (2 == section)
+    return tr("Size");
+
+  if (3 == section)
     return tr("Value");
 
   return QVariant();

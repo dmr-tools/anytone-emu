@@ -2,7 +2,7 @@
 
 #include <QXmlStreamReader>
 #include "pattern.hh"
-#include "device.hh"
+#include "anytonedevice.hh"
 #include "codeplugpatternparser.hh"
 
 
