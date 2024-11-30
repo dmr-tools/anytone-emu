@@ -19,7 +19,6 @@ qt_add_executable(anytone-emu-gui WIN32
   patternselectionwidget.hh patternselectionwidget.cc patternselectionwidget.ui
   newpatterndialog.hh newpatterndialog.cc newpatterndialog.ui
   splitfieldpatterndialog.hh splitfieldpatterndialog.cc splitfieldpatterndialog.ui
-  splitfieldpatternwizard.hh splitfieldpatternwizard.cc splitfieldpatternwizard.ui
   newpatterndialog.hh newpatterndialog.cc newpatterndialog.ui
   splitfieldpatterndialog.hh splitfieldpatterndialog.cc splitfieldpatterndialog.ui
   codeplugdialog.hh codeplugdialog.cc codeplugdialog.ui

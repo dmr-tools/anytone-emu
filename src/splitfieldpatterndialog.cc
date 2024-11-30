@@ -9,7 +9,7 @@ SplitFieldPatternDialog::SplitFieldPatternDialog(FieldPattern *fieldPattern, QWi
 {
   ui->setupUi(this);
   ui->address->setText(_field->address().toString());
-  ui->patternSelection->setPatternTypes((int)PatternSelectionWidget::PatternType::FixedPattern);
+  ui->patternSelection->setPatternTypes((int)PatternSelectionWidget::PatternType::FieldPattern);
   ui->addressRange->setText(tr("Valid range %1 - %2.")
                             .arg(_field->address().toString())
                             .arg((_field->address() + _field->size()).toString()));
