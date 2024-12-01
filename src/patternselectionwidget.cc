@@ -36,7 +36,7 @@ PatternSelectionWidget::setPatternTypes(int mask) {
   ui->structuredPattern->clear();
 
   _patternTypes = mask;
-  if (_patternTypes | PatternType::FixedPattern) {
+  if (_patternTypes | PatternType::FieldPattern) {
     ui->fieldPattern->addItem(tr("ASCII string"), "ascii");
     ui->fieldPattern->addItem(tr("unicode string"), "uc16");
     ui->fieldPattern->addItem(tr("enumeration"), "enum");
@@ -54,7 +54,9 @@ PatternSelectionWidget::setPatternTypes(int mask) {
     ui->integerPattern->addItem(tr("32bit signed integer little-endian"), "int32le");
     ui->integerPattern->addItem(tr("32bit unsigned integer big-endian"), "uint32be");
     ui->integerPattern->addItem(tr("32bit signed integer big-endian"), "int32be");
+  }
 
+  if (_patternTypes | PatternType::FixedStructuredPattern) {
     ui->structuredPattern->addItem(tr("element"), "element");
     ui->structuredPattern->addItem(tr("fixed repeat"), "fixed repeat");
   }
@@ -124,7 +126,7 @@ PatternSelectionWidget::createPattern() const {
                        ? IntegerFieldPattern::Format::Unsigned
                        : IntegerFieldPattern::Format::Signed);
     pattern->setWidth(Offset::fromBits(match.captured(2).toUInt()));
-    pattern->setEndian( ("be" == match.captured(1))
+    pattern->setEndian( ("be" == match.captured(3))
                         ? IntegerFieldPattern::Endian::Big
                         : IntegerFieldPattern::Endian::Little );
     return pattern;

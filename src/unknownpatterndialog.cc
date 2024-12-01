@@ -28,7 +28,10 @@ UnknownPatternDialog::setPattern(UnknownFieldPattern *pattern, const CodeplugPat
     ui->address->setText(pattern->address().toString());
   }
 
-  ui->size->setText(_pattern->size().toString());
+  if (_pattern->size().isValid())
+    ui->size->setText(_pattern->size().toString());
+  else
+    ui->size->clear();
   ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 

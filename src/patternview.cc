@@ -315,7 +315,13 @@ PatternView::splitFieldPattern() {
   // compute size of head and tail unknown fields:
   Offset headFieldSize = insertionAddr - startAddress;
   // check size of inserted field
-  if (originalSize < (headFieldSize + inserted->size())) {
+  if ((! inserted->size().isValid()) || (0 == inserted->size().bits())) {
+    QMessageBox::information(
+          nullptr, tr("Inserted field has no size"),
+          tr("The newly inserted field should have some size."));
+    inserted->deleteLater();
+    return;
+  } else if (originalSize < (headFieldSize + inserted->size())) {
     QMessageBox::information(
           nullptr, tr("Inserted field too large."),
           tr("The size inserted field and its offset extends beyond the split field."));
