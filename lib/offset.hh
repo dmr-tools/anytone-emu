@@ -120,7 +120,7 @@ public:
   /** Factorry method to construct a zero offset. */
   static Offset zero();
   /** Factorry method to construct an offset from bytes and bits. */
-  static Offset fromByte(unsigned int n, unsigned bit=0);
+  static Offset fromByte(int n, int bit=0);
   /** Factorry method to construct an offset from bits. */
   static Offset fromBits(unsigned long n);
   /** Parses an offset. */

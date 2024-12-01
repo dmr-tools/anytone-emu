@@ -154,7 +154,7 @@ Offset::zero() {
 }
 
 Offset
-Offset::fromByte(unsigned int n, unsigned int bit) {
+Offset::fromByte(int n, int bit) {
   return Offset(8*((int64_t)n) + bit);
 }
 
