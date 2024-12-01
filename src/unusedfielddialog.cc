@@ -30,7 +30,10 @@ UnusedFieldDialog::setPattern(UnusedFieldPattern *pattern, const CodeplugPattern
     ui->address->setText(pattern->address().toString());
   }
 
-  ui->size->setText(_pattern->size().toString());
+  if (_pattern->size().isValid())
+    ui->size->setText(_pattern->size().toString());
+  else
+    ui->size->clear();
 
   ui->value->setText(_pattern->content().toHex());
 
