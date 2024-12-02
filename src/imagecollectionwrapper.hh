@@ -25,7 +25,11 @@ public:
   QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
 protected:
-  QVariant formatFieldValue(const FieldAnnotation *annotation) const;
+  QVariant getIcon(const QObject *obj) const;
+  QVariant formatTypeName(const QObject *obj) const;
+  QVariant formatAddress(const QObject *obj) const;
+  QVariant formatSize(const QObject *obj) const;
+  QVariant formatFieldValue(const QObject *obj) const;
 
 private slots:
   void onImageAdded(unsigned int idx);
