@@ -5,6 +5,9 @@
 #include "annotation.hh"
 #include "pattern.hh"
 
+#include <QIcon>
+
+
 CollectionWrapper::CollectionWrapper(Collection *collection, QObject *parent)
   : QAbstractItemModel{parent}, _collection(collection)
 {
