@@ -5,6 +5,9 @@
 #include "annotation.hh"
 #include "pattern.hh"
 
+#include <QIcon>
+
+
 CollectionWrapper::CollectionWrapper(Collection *collection, QObject *parent)
   : QAbstractItemModel{parent}, _collection(collection)
 {
@@ -82,69 +85,143 @@ CollectionWrapper::flags(const QModelIndex &index) const {
 
 QVariant
 CollectionWrapper::data(const QModelIndex &index, int role) const {
-  if ((! index.isValid()) || (nullptr == index.constInternalPointer()) || (Qt::DisplayRole != role))
+  if ((! index.isValid()) || (nullptr == index.constInternalPointer()))
     return QVariant();
 
   const QObject *obj = reinterpret_cast<const QObject *>(index.constInternalPointer());
-  if (auto img = qobject_cast<const Image *>(obj)) {
-    if (0 == index.column()) {
-      return tr("Image (%1)").arg(img->count());
-    }
+  if (nullptr == obj)
     return QVariant();
-  } else if (auto el = qobject_cast<const Element *>(obj)) {
-    if (0 == index.column()) {
-      if (0 == el->numAnnotations())
-        return tr("Element (unannotated)");
-      return tr("Element (%1)").arg(el->numAnnotations());
-    } else if (1 == index.column()) {
-      return el->address().toString();
-    } else if (2 == index.column()) {
-      return el->size().toString();
-    }
-    return QVariant();
-  } else if (auto el = qobject_cast<const StructuredAnnotation *>(obj)) {
-    if (0 == index.column()) {
-      return tr("Structure '%1'").arg(el->pattern()->meta().name());
-    } else if (1 == index.column()) {
-      return el->address().toString();
-    } else if (2 == index.column()) {
-      return el->size().toString();
-    }
-    return QVariant();
-  } else if (auto el = qobject_cast<const FieldAnnotation *>(obj)) {
-    if (0 == index.column()) {
-      return tr("Field '%1'").arg(el->pattern()->meta().name());
-    } else if (1 == index.column()) {
-      if ((7 == el->address().bit()) && (0 == (el->size().bits() % 8)))
-        return QString("%1h  ").arg(el->address().byte(), 0, 16);
-      return QString("%1h:%2").arg(el->address().byte(), 0, 16).arg(el->address().bit(),0,8);
-    } else if (2 == index.column()) {
-      return el->size().toString();
-    } else if (3 == index.column()) {
-      return formatFieldValue(el);
-    }
-    return QVariant();
+
+  if ((Qt::DisplayRole == role) && (0 == index.column())) {
+    return formatTypeName(obj);
+  } else if ((Qt::DisplayRole == role) && (1 == index.column())) {
+    return formatAddress(obj);
+  } else if ((Qt::DisplayRole == role) && (2 == index.column())) {
+    return formatSize(obj);
+  } else if ((Qt::DisplayRole == role) && (3 == index.column())) {
+    return formatFieldValue(obj);
+  } else if ((Qt::DecorationRole  == role) && (0 == index.column())) {
+    return getIcon(obj);
   }
 
   return QVariant();
 }
 
+
 QVariant
-CollectionWrapper::formatFieldValue(const FieldAnnotation *annotation) const {
-  auto pattern = annotation->pattern()->as<FieldPattern>();
+CollectionWrapper::formatTypeName(const QObject *obj) const {
+  if (nullptr == obj)
+    return QVariant();
+
+  if (auto img = qobject_cast<const Image *>(obj)) {
+    return tr("Image (%1)").arg(img->count());
+  } else if (auto el = qobject_cast<const Element *>(obj)) {
+    if (0 == el->numAnnotations())
+      return tr("Element (unannotated)");
+    return tr("Element (%1)").arg(el->numAnnotations());
+  } else if (auto el = qobject_cast<const StructuredAnnotation *>(obj)) {
+    return tr("Structure '%1'").arg(el->pattern()->meta().name());
+  } else if (auto el = qobject_cast<const FieldAnnotation *>(obj)) {
+    return tr("Field '%1'").arg(el->pattern()->meta().name());
+  }
+
+  return QVariant();
+}
+
+
+QVariant
+CollectionWrapper::formatAddress(const QObject *obj) const {
+  if (nullptr == obj)
+    return QVariant();
+
+  if (auto el = qobject_cast<const Element *>(obj)) {
+    return el->address().toString();
+  } else if (auto el = qobject_cast<const StructuredAnnotation *>(obj)) {
+    return el->address().toString();
+  } else if (auto el = qobject_cast<const FieldAnnotation *>(obj)) {
+    if ((7 == el->address().bit()) && (0 == (el->size().bits() % 8)))
+      return QString("%1h  ").arg(el->address().byte(), 0, 16);
+    return QString("%1h:%2").arg(el->address().byte(), 0, 16).arg(el->address().bit(),0,8);
+  }
+
+  return QVariant();
+}
+
+
+QVariant
+CollectionWrapper::formatSize(const QObject *obj) const {
+  if (nullptr == obj)
+    return QVariant();
+
+  if (auto el = qobject_cast<const Element *>(obj)) {
+    return el->size().toString();
+  } else if (auto el = qobject_cast<const StructuredAnnotation *>(obj)) {
+    return el->size().toString();
+  } else if (auto el = qobject_cast<const FieldAnnotation *>(obj)) {
+    return el->size().toString();
+  }
+
+  return QVariant();
+}
+
+
+QVariant
+CollectionWrapper::getIcon(const QObject *obj) const {
+  if (nullptr == obj)
+    return QVariant();
+
+  auto el = qobject_cast<const AbstractAnnotation *>(obj);
+  if (nullptr == el)
+    return QVariant();
+
+  auto pattern = el->pattern();
+
+  if (pattern->is<BlockRepeatPattern>())
+    return QIcon::fromTheme("pattern-blockrepeat");
+  else if (pattern->is<FixedRepeatPattern>())
+    return QIcon::fromTheme("pattern-fixedrepeat");
+  else if (pattern->is<ElementPattern>())
+    return QIcon::fromTheme("pattern-element");
+  else if (pattern->is<IntegerFieldPattern>())
+    return QIcon::fromTheme("pattern-integer");
+  else if (pattern->is<EnumFieldPattern>())
+    return QIcon::fromTheme("pattern-enum");
+  else if (pattern->is<StringFieldPattern>())
+    return QIcon::fromTheme("pattern-stringfield");
+  else if (pattern->is<UnusedFieldPattern>())
+    return QIcon::fromTheme("pattern-unused");
+  else if (pattern->is<UnknownFieldPattern>())
+    return QIcon::fromTheme("pattern-unknown");
+
+  return QVariant();
+}
+
+
+QVariant
+CollectionWrapper::formatFieldValue(const QObject *obj) const {
+  if (nullptr == obj)
+    return QVariant();
+
+  auto el = qobject_cast<const FieldAnnotation *>(obj);
+  if (nullptr == el)
+    return QVariant();
+
+  auto pattern = el->pattern()->as<FieldPattern>();
   if (nullptr == pattern)
     return QVariant();
 
   if (auto enumPattern = pattern->as<EnumFieldPattern>()) {
-    unsigned int val = annotation->value().toUInt();
+    unsigned int val = el->value().toUInt();
     EnumFieldPatternItem *item = enumPattern->itemByValue(val);
-    if (nullptr != item) {
+    if (nullptr != item)
       return QString("%1 (%2)").arg(item->name()).arg(val);
-    }
     return tr("Enum value %1").arg(val);
   }
 
-  return annotation->value();
+  if (pattern->is<UnknownFieldPattern>() || pattern->is<UnusedFieldPattern>())
+    return QVariant();
+
+  return el->value();
 }
 
 
