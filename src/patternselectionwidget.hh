@@ -17,9 +17,11 @@ class PatternSelectionWidget : public QWidget
 public:
   enum class PatternType {
     None = 0,
-    FixedPattern = 1,
-    DensePattern = 2,
-    SparsePattern = 4
+    FieldPattern = 1,
+    FixedStructuredPattern = 2,
+    FixedPattern = FieldPattern | FixedStructuredPattern,
+    DensePattern = 4,
+    SparsePattern = 8
   };
 
 public:
