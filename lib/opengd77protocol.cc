@@ -27,7 +27,7 @@ OpenGD77Request::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err)
   if ('R' == buffer.at(0))
     return OpenGD77ReadRequest::fromBuffer(buffer, ok, err);
 
-  if ('W' == buffer.at(0))
+  if (('W' == buffer.at(0)) || ('X' == buffer.at(0)))
     return OpenGD77WriteRequest::fromBuffer(buffer, ok, err);
 
   ok = false;
@@ -255,10 +255,15 @@ OpenGD77ReadRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &
 /* ********************************************************************************************* *
  * Implementation of OpenGD77WriteRequest
  * ********************************************************************************************* */
-OpenGD77WriteRequest::OpenGD77WriteRequest(Section section)
-  : OpenGD77Request(), _section(section)
+OpenGD77WriteRequest::OpenGD77WriteRequest(Type type, Section section)
+  : OpenGD77Request(), _type(type), _section(section)
 {
   // pass...
+}
+
+OpenGD77WriteRequest::Type
+OpenGD77WriteRequest::type() const {
+  return _type;
 }
 
 OpenGD77WriteRequest::Section
@@ -299,8 +304,8 @@ OpenGD77WriteRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack 
 /* ********************************************************************************************* *
  * Implementation of OpenGD77SetSectorRequest
  * ********************************************************************************************* */
-OpenGD77SetSectorRequest::OpenGD77SetSectorRequest(uint32_t sector)
-  : OpenGD77WriteRequest(OpenGD77WriteRequest::SET_FLASH_SECTOR), _sector(sector)
+OpenGD77SetSectorRequest::OpenGD77SetSectorRequest(Type type, uint32_t sector)
+  : OpenGD77WriteRequest(type, OpenGD77WriteRequest::SET_FLASH_SECTOR), _sector(sector)
 {
   // pass...
 }
@@ -311,21 +316,22 @@ OpenGD77SetSectorRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorSt
 
   ok = true;
 
+  Type type = ('W' == buffer.at(0)) ? Type::W_REQUEST : Type::X_REQUEST;
   uint32_t sector = ( (((uint32_t)buffer.at(2)) << 16) +
                       (((uint32_t)buffer.at(3)) <<  8) +
                       (((uint32_t)buffer.at(4)) <<  0) );
 
   buffer.remove(0, 5);
 
-  return new OpenGD77SetSectorRequest(sector);
+  return new OpenGD77SetSectorRequest(type, sector);
 }
 
 
 /* ********************************************************************************************* *
  * Implementation of OpenGD77WriteSectorRequest
  * ********************************************************************************************* */
-OpenGD77WriteSectorRequest::OpenGD77WriteSectorRequest()
-  : OpenGD77WriteRequest(OpenGD77WriteRequest::WRITE_FLASH_SECTOR)
+OpenGD77WriteSectorRequest::OpenGD77WriteSectorRequest(Type type)
+  : OpenGD77WriteRequest(type, OpenGD77WriteRequest::WRITE_FLASH_SECTOR)
 {
   // pass...
 }
@@ -333,17 +339,18 @@ OpenGD77WriteSectorRequest::OpenGD77WriteSectorRequest()
 OpenGD77Request *
 OpenGD77WriteSectorRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
   ok = true;
+  Type type = ('W' == buffer.at(0)) ? Type::W_REQUEST : Type::X_REQUEST;
   buffer.remove(0, 2);
-  return new OpenGD77WriteSectorRequest();
+  return new OpenGD77WriteSectorRequest(type);
 }
 
 
 /* ********************************************************************************************* *
  * Implementation of OpenGD77WriteDataRequest
  * ********************************************************************************************* */
-OpenGD77WriteDataRequest::OpenGD77WriteDataRequest(
+OpenGD77WriteDataRequest::OpenGD77WriteDataRequest(Type type,
     OpenGD77WriteRequest::Section section, uint32_t address, const QByteArray &data)
-  : OpenGD77WriteRequest(section), _address(address), _data(data)
+  : OpenGD77WriteRequest(type, section), _address(address), _data(data)
 {
   // pass...
 }
@@ -360,6 +367,7 @@ OpenGD77WriteDataRequest::data() const {
 
 OpenGD77Request *
 OpenGD77WriteDataRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
+  Type type = ('W' == buffer.at(0)) ? Type::W_REQUEST : Type::X_REQUEST;
   Section section = (Section) buffer.at(1);
   uint32_t address = qFromBigEndian(*((uint32_t *)buffer.mid(2,4).constData()));
   uint16_t length  = qFromBigEndian(*((uint16_t *)buffer.mid(6,2).constData()));
@@ -367,7 +375,7 @@ OpenGD77WriteDataRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorSt
 
   ok = true;
   buffer.remove(0, 8+length);
-  return new OpenGD77WriteDataRequest(section, address, data);
+  return new OpenGD77WriteDataRequest(type, section, address, data);
 }
 
 
@@ -408,15 +416,18 @@ OpenGD77CommandResponse::serialize(QByteArray &buffer) {
 /* ********************************************************************************************* *
  * Implementation of OpenGD77WriteResponse
  * ********************************************************************************************* */
-OpenGD77WriteResponse::OpenGD77WriteResponse(OpenGD77WriteRequest::Section section)
-  : OpenGD77Response(), _section(section)
+OpenGD77WriteResponse::OpenGD77WriteResponse(OpenGD77WriteRequest::Type type, OpenGD77WriteRequest::Section section)
+  : OpenGD77Response(), _type(type), _section(section)
 {
   // pass...
 }
 
 bool
 OpenGD77WriteResponse::serialize(QByteArray &buffer) {
-  buffer.append('W');
+  if (OpenGD77WriteRequest::Type::W_REQUEST == _type)
+    buffer.append('W');
+  else
+    buffer.append('X');
   buffer.append((char)_section);
   return true;
 }

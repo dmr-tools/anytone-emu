@@ -252,6 +252,10 @@ protected:
 class OpenGD77WriteRequest: public OpenGD77Request
 {
 public:
+  enum Type {
+    W_REQUEST, X_REQUEST
+  };
+
   enum Section {
     SET_FLASH_SECTOR = 1,
     WRITE_SECTOR_BUFFER = 2,
@@ -261,15 +265,17 @@ public:
   };
 
 protected:
-  OpenGD77WriteRequest(Section section);
+  OpenGD77WriteRequest(Type type, Section section);
 
 public:
+  Type type() const;
   Section section() const;
 
 public:
   static OpenGD77Request *fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err = ErrorStack());
 
 protected:
+  Type _type;
   Section _section;
 };
 
@@ -277,11 +283,12 @@ protected:
 class OpenGD77WriteResponse: public OpenGD77Response
 {
 public:
-  OpenGD77WriteResponse(OpenGD77WriteRequest::Section section);
+  OpenGD77WriteResponse(OpenGD77WriteRequest::Type type, OpenGD77WriteRequest::Section section);
 
   bool serialize(QByteArray &buffer);
 
 protected:
+  OpenGD77WriteRequest::Type _type;
   OpenGD77WriteRequest::Section _section;
 };
 
@@ -289,7 +296,7 @@ protected:
 class OpenGD77SetSectorRequest: public OpenGD77WriteRequest
 {
 protected:
-  OpenGD77SetSectorRequest(uint32_t sector);
+  OpenGD77SetSectorRequest(OpenGD77WriteRequest::Type type, uint32_t sector);
 
 public:
   static OpenGD77Request *fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err);
@@ -302,7 +309,7 @@ protected:
 class OpenGD77WriteSectorRequest: public OpenGD77WriteRequest
 {
 protected:
-  OpenGD77WriteSectorRequest();
+  OpenGD77WriteSectorRequest(OpenGD77WriteRequest::Type type);
 
 public:
   static OpenGD77Request *fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err);
@@ -312,7 +319,7 @@ public:
 class OpenGD77WriteDataRequest: public OpenGD77WriteRequest
 {
 protected:
-  OpenGD77WriteDataRequest(Section section, uint32_t address, const QByteArray &data);
+  OpenGD77WriteDataRequest(OpenGD77WriteRequest::Type type, Section section, uint32_t address, const QByteArray &data);
 
 public:
   uint32_t address() const;

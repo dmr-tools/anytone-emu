@@ -108,7 +108,7 @@ OpenGD77Device::handle(OpenGD77Request *request) {
       if (! write(0x01000000 + wd->address(), wd->data()))
         return new OpenGD77CommandResponse(true);
     }
-    return new OpenGD77WriteResponse(wr->section());
+    return new OpenGD77WriteResponse(wr->type(), wr->section());
   }
 
   logWarn() << "Got unkown request type.";
