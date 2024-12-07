@@ -12,7 +12,8 @@
  * Implementation of PatternMeta
  * ********************************************************************************************* */
 PatternMeta::PatternMeta(QObject *parent)
-  : QObject{parent}, _name(), _shortName(), _description(), _fwVersion(), _flags(Flags::None)
+  : QObject{parent}, _name(), _shortName(), _brief(), _description(),
+    _fwVersion(), _flags(Flags::None)
 {
   // pass...
 }
@@ -28,6 +29,12 @@ PatternMeta::serialize(QXmlStreamWriter &writer) const {
   if (hasShortName()) {
     writer.writeStartElement("short-name");
     writer.writeCharacters(shortName());
+    writer.writeEndElement();
+  }
+
+  if (hasBriefDescription()) {
+    writer.writeStartElement("brief");
+    writer.writeCharacters(briefDescription());
     writer.writeEndElement();
   }
 
@@ -58,6 +65,7 @@ PatternMeta &
 PatternMeta::operator =(const PatternMeta &other) {
   _name = other._name;
   _shortName = other._shortName;
+  _brief = other._brief;
   _description = other._description;
   _fwVersion = other._fwVersion;
   _flags = other._flags;
@@ -88,6 +96,22 @@ PatternMeta::shortName() const {
 void
 PatternMeta::setShortName(const QString &name) {
   _shortName = name;
+  emit modified();
+}
+
+bool
+PatternMeta::hasBriefDescription() const {
+  return ! _brief.isEmpty();
+}
+
+const QString &
+PatternMeta::briefDescription() const {
+  return _brief;
+}
+
+void
+PatternMeta::setBriefDescription(const QString &description) {
+  _brief = description;
   emit modified();
 }
 

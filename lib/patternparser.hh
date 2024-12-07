@@ -17,6 +17,7 @@ protected:
     None,            ///< No special state, aka start.
     MetaName,        ///< Parse meta information name.
     MetaShortName,   ///< Parse meta information short name.
+    MetaBrief,       ///< Parse meta information brief description.
     MetaDescription, ///< Parse meta information description.
     MetaFWVersion    ///< Parse meta information firmware version.
   };
@@ -77,6 +78,10 @@ protected slots:
   bool beginShortNameElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of short name element. */
   bool endShortNameElement();
+  /** Handler for start of brief description element. */
+  bool beginBriefElement(const QXmlStreamAttributes &attributes);
+  /** Handler for end of brief description element. */
+  bool endBriefElement();
   /** Handler for start of description element. */
   bool beginDescriptionElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of description element. */
