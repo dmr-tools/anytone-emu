@@ -5,8 +5,8 @@ qt_add_executable(anytone-emu-gui WIN32
   mainwindow.hh mainwindow.cc mainwindow.ui
   aboutdialog.hh aboutdialog.cc aboutdialog.ui
   setupdialog.hh setupdialog.cc setupdialog.ui
-  patternmetaeditor.hh patternmetaeditor.cc patternmetaeditor.ui
   codeplugdialog.hh codeplugdialog.cc codeplugdialog.ui
+  patternmetaeditor.hh patternmetaeditor.cc patternmetaeditor.ui
   sparserepeatdialog.hh sparserepeatdialog.cc sparserepeatdialog.ui
   blockrepeatdialog.hh blockrepeatdialog.cc blockrepeatdialog.ui
   fixedrepeatdialog.hh fixedrepeatdialog.cc fixedrepeatdialog.ui

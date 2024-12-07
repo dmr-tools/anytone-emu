@@ -14,11 +14,11 @@ PatternParser::processText(const QStringView &content) {
   if (topIs<PatternMeta>()) {
     switch(_state) {
     case State::None: break;
-    case State::MetaName: topAs<PatternMeta>()->setName(content.toString()); break;
-    case State::MetaShortName: topAs<PatternMeta>()->setShortName(content.toString()); break;
-    case State::MetaBrief: topAs<PatternMeta>()->setBriefDescription(content.toString()); break;
-    case State::MetaDescription: topAs<PatternMeta>()->setDescription(content.toString()); break;
-    case State::MetaFWVersion: topAs<PatternMeta>()->setFirmwareVersion(content.toString()); break;
+    case State::MetaName: topAs<PatternMeta>()->setName(content.toString().simplified()); break;
+    case State::MetaShortName: topAs<PatternMeta>()->setShortName(content.toString().simplified()); break;
+    case State::MetaBrief: topAs<PatternMeta>()->setBriefDescription(content.toString().simplified()); break;
+    case State::MetaDescription: topAs<PatternMeta>()->setDescription(content.toString().simplified()); break;
+    case State::MetaFWVersion: topAs<PatternMeta>()->setFirmwareVersion(content.toString().simplified()); break;
     }
     return true;
   }

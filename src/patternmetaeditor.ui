@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PatternMetaEditor</class>
- <widget class="QWidget" name="PatternMetaEditor">
+ <class>metaEditor</class>
+ <widget class="QTabWidget" name="metaEditor">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,89 +11,72 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>TabWidget</string>
   </property>
-  <layout class="QFormLayout" name="formLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Name</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="name"/>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Version</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="version">
-     <property name="placeholderText">
-      <string>unspecified</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Description</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QTextEdit" name="description"/>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="text">
-      <string>State</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="QComboBox" name="tag">
-     <item>
+  <property name="currentIndex">
+   <number>0</number>
+  </property>
+  <widget class="QWidget" name="metaTab">
+   <attribute name="title">
+    <string>Information</string>
+   </attribute>
+   <layout class="QFormLayout" name="formLayout">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
       <property name="text">
-       <string>None</string>
+       <string>Name</string>
       </property>
-     </item>
-     <item>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="name"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_2">
       <property name="text">
-       <string>Done</string>
+       <string>Version</string>
       </property>
-     </item>
-     <item>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="version">
+      <property name="placeholderText">
+       <string>unspecified</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_3">
       <property name="text">
-       <string>Needs review</string>
+       <string>Description</string>
       </property>
-     </item>
-     <item>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QTextEdit" name="briefDescription"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_4">
       <property name="text">
-       <string>Incomplete</string>
+       <string>Flags</string>
       </property>
-     </item>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="shortName">
-     <property name="placeholderText">
-      <string>unspecified</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>Short Name</string>
-     </property>
-    </widget>
-   </item>
-  </layout>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QComboBox" name="flags"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="descriptionTab">
+   <attribute name="title">
+    <string>Details</string>
+   </attribute>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QTextEdit" name="description"/>
+    </item>
+   </layout>
+  </widget>
  </widget>
  <resources/>
  <connections/>
