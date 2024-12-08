@@ -720,8 +720,7 @@ BlockPattern::BlockPattern(QObject *parent)
  * Implementation of BlockRepeatPattern
  * ********************************************************************************************* */
 BlockRepeatPattern::BlockRepeatPattern(QObject *parent)
-  : BlockPattern{parent}, _minRepetition(std::numeric_limits<unsigned int>::max()),
-    _maxRepetition(std::numeric_limits<unsigned int>::max()), _subpattern(nullptr)
+  : BlockPattern{parent}, _minRepetition(0), _maxRepetition(1), _subpattern(nullptr)
 {
   // pass...
 }
@@ -739,10 +738,8 @@ BlockRepeatPattern::serialize(QXmlStreamWriter &writer) const {
 
   if (! hasImplicitAddress())
     writer.writeAttribute("at", address().toString());
-  if (hasMinRepetition())
-    writer.writeAttribute("min", QString::number(minRepetition()));
-  if (hasMaxRepetition())
-    writer.writeAttribute("max", QString::number(maxRepetition()));
+  writer.writeAttribute("min", QString::number(minRepetition()));
+  writer.writeAttribute("max", QString::number(maxRepetition()));
 
   if (! meta().serialize(writer))
     return false;
@@ -767,10 +764,6 @@ BlockRepeatPattern::clone() const {
   return pattern;
 }
 
-bool
-BlockRepeatPattern::hasMinRepetition() const {
-  return std::numeric_limits<unsigned int>::max() != _minRepetition;
-}
 unsigned int
 BlockRepeatPattern::minRepetition() const {
   return _minRepetition;
@@ -780,10 +773,6 @@ BlockRepeatPattern::setMinRepetition(unsigned int rep) {
   _minRepetition = rep;
 }
 
-bool
-BlockRepeatPattern::hasMaxRepetition() const {
-  return std::numeric_limits<unsigned int>::max() != _maxRepetition;
-}
 unsigned int
 BlockRepeatPattern::maxRepetition() const {
   return _maxRepetition;
