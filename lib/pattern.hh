@@ -448,14 +448,11 @@ public:
 
   AbstractPattern *clone() const;
 
-  /** Retunrs @c true, if a minimum repetition number is specified. */
-  bool hasMinRepetition() const;
   /** Returns the minimum number of repetitions of the sub-pattern. */
   unsigned int minRepetition() const;
   /** Sets the minimum number of repetitions of the sub-pattern. */
   void setMinRepetition(unsigned int rep);
-  /** Retunrs @c true, if a maximum repetition number is specified. */
-  bool hasMaxRepetition() const;
+
   /** Returns the maximum number of repetitions of the sub-pattern. */
   unsigned int maxRepetition() const;
   /** Sets the maximum number of repetitions of the sub-pattern. */

@@ -2,7 +2,7 @@
 #include "ui_blockrepeatdialog.h"
 #include "pattern.hh"
 #include <QMessageBox>
-#include "logger.hh"
+
 
 BlockRepeatDialog::BlockRepeatDialog(QWidget *parent) :
   QDialog(parent), ui(new Ui::BlockRepeatDialog), _pattern(nullptr)
@@ -29,12 +29,8 @@ BlockRepeatDialog::setPattern(BlockRepeatPattern *pattern, const CodeplugPattern
     ui->address->setText(pattern->address().toString());
   }
 
-  ui->minRepetitionUnset->setChecked(! pattern->hasMinRepetition());
-  if (pattern->hasMinRepetition())
-    ui->minRepetition->setValue(pattern->minRepetition());
-  ui->maxRepetitionUnset->setChecked(! pattern->hasMaxRepetition());
-  if (pattern->hasMaxRepetition())
-    ui->maxRepetition->setValue(pattern->maxRepetition());
+  ui->minRepetition->setValue(pattern->minRepetition());
+  ui->maxRepetition->setValue(pattern->maxRepetition());
   ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
@@ -51,10 +47,8 @@ BlockRepeatDialog::accept() {
     _pattern->setAddress(addr);
   }
 
-  if (! ui->minRepetitionUnset->isChecked())
-    _pattern->setMinRepetition(ui->minRepetition->value());
-  if (! ui->maxRepetitionUnset->isChecked())
-    _pattern->setMaxRepetition(ui->maxRepetition->value());
+  _pattern->setMinRepetition(ui->minRepetition->value());
+  _pattern->setMaxRepetition(ui->maxRepetition->value());
 
   ui->metaEdit->apply();
 
