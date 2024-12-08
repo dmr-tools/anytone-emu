@@ -962,16 +962,21 @@ ElementPattern::combinedFlags() const {
 
 bool
 ElementPattern::addChildPattern(AbstractPattern *pattern) {
-  if (! pattern->is<FixedPattern>())
+  if (! pattern->is<FixedPattern>()) {
+    logInfo() << "Only fixed pattern can be added to ElementPattern.";
     return false;
+  }
 
   // Compute offset, where to put pattern
   Address addr = Address::zero();
   if (! _content.isEmpty())
     addr = _content.back()->address() + _content.back()->size();
   // If a offset is set -> check it
-  if (pattern->hasAddress() && (pattern->address() != addr))
+  if (pattern->hasAddress() && (pattern->address() != addr)) {
+    logDebug() << "Cannot append pattern at address " << pattern->address().toString()
+               << ", must be " << addr.toString() << ".";
     return false;
+  }
 
   // Set/update offset
   pattern->setAddress(addr);

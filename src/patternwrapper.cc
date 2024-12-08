@@ -4,7 +4,6 @@
 #include <QApplication>
 #include <QPalette>
 #include <QFont>
-#include "logger.hh"
 
 
 PatternWrapper::PatternWrapper(CodeplugPattern *pattern, QObject *parent)

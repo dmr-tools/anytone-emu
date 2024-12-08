@@ -56,14 +56,14 @@ IntegerFieldDialog::setPattern(IntegerFieldPattern *pattern, const CodeplugPatte
 
 void
 IntegerFieldDialog::accept() {
-  if (! _pattern->hasAddress()) {
+  if (! _pattern->hasImplicitAddress()) {
     Address addr = Address::fromString(ui->address->text());
     if (! addr.isValid()) {
       QMessageBox::critical(nullptr, tr("Invalid address format."),
                             tr("Invalid address format '%1'.").arg(ui->address->text()));
       return;
     }
-  _pattern->setAddress(addr);
+    _pattern->setAddress(addr);
   }
 
   if (! ui->width->text().simplified().isEmpty())
