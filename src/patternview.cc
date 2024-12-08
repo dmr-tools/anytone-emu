@@ -159,7 +159,7 @@ PatternView::appendNewPattern() {
 
   if (! structure->addChildPattern(newPattern)) {
     QMessageBox::information(nullptr, tr("Cannot append pattern."),
-                             tr("Cannot append pattern to {}.").arg(parent->meta().name()));
+                             tr("Cannot append pattern to %1.").arg(parent->meta().name()));
     newPattern->deleteLater();
     return;
   }
