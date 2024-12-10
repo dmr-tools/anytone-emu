@@ -83,6 +83,8 @@ PatternImportDialog::onFirmwareSelected(int index) {
 
   ModelFirmwareDefinition *firmware = ui->firmwareSelectionBox->currentData()
       .value<ModelFirmwareDefinition *>();
+  if (nullptr == firmware)
+    return;
 
   CodeplugPattern *cp = CodeplugPattern::load(firmware->codeplug());
   if (nullptr == cp)
