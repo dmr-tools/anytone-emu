@@ -39,6 +39,7 @@ main(int argc, char *argv[])
     }
 
     device->setHandler(new ImageCollectionAdapter(app.collection()));
+    app.setCatalog(setup.catalog());
     app.setDevice(device);
 
     MainWindow  mainwindow;

@@ -125,6 +125,30 @@
     <string>Mark pattern as updated</string>
    </property>
   </action>
+  <action name="actionAppendImportedPattern">
+   <property name="text">
+    <string>Append Imported Pattern</string>
+   </property>
+   <property name="toolTip">
+    <string>Imports a pattern from another codeplug  and appends it to the selected one.</string>
+   </property>
+  </action>
+  <action name="actionInsertImportedPatternAbove">
+   <property name="text">
+    <string>Insert Imported Pattern Above</string>
+   </property>
+   <property name="toolTip">
+    <string>Imports a pattern from another codeplug and inserts it above the selected one.</string>
+   </property>
+  </action>
+  <action name="actionInsertImportedPatternBelow">
+   <property name="text">
+    <string>Insert Imported Pattern Below</string>
+   </property>
+   <property name="toolTip">
+    <string>Imports a pattern from another codeplug and inserts it below the selected one.</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
