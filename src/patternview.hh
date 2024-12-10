@@ -5,6 +5,7 @@
 
 class CodeplugPattern;
 class AbstractPattern;
+class FixedPattern;
 
 class PatternView : public QTreeView
 {
@@ -31,8 +32,13 @@ public slots:
 
   void appendNewPattern();
   void insertNewPatternAbove();
-  void splitFieldPattern();
   void insertNewPatternBelow();
+
+  void appendImportedPattern();
+  void insertImportedPatternAbove();
+  void insertImportedPatternBelow();
+
+  void splitFieldPattern();
 
   void copySelected();
   void pastePatternAsChild();
@@ -48,6 +54,8 @@ public:
 protected:
   void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
   void contextMenuEvent(QContextMenuEvent *event);
+  AbstractPattern *selectedParent() const;
+  FixedPattern *selectedSibling() const;
 
 private:
   CodeplugPattern *_pattern;

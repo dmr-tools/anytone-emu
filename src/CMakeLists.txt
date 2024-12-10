@@ -37,7 +37,8 @@ qt_add_executable(anytone-emu-gui WIN32
   heximagediffdocument.hh heximagediffdocument.cc
   logmessagelist.hh logmessagelist.cc
   elementpatternview.hh elementpatternview.cc
-  questiondialog.cc questiondialog.hh)
+  questiondialog.cc questiondialog.hh
+  patternimportdialog.hh patternimportdialog.cc patternimportdialog.ui)
 
 qt_add_resources(anytone-emu-gui "codeplugs"
   PREFIX "/codeplugs"
@@ -87,7 +88,7 @@ generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
   ICONS application-exit dialog-ok dialog-cancel document-new document-save document-save-as
         edit edit-annotate edit-clear edit-delete edit-erase edit-split-element edit-copy edit-paste
-        insert-child insert-above insert-below
+        insert-child insert-above insert-below document-import
         none show-diff-single show-diff-multiple show-hexdump inspect
         help-about help-contents show-log window-close mark-done
   THEMES light dark

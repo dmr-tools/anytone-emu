@@ -24,6 +24,7 @@ public:
   explicit SetupDialog(QWidget *parent = nullptr);
   ~SetupDialog();
 
+  QString catalog() const;
   Device *createDevice(const ErrorStack &err=ErrorStack());
 
 private slots:

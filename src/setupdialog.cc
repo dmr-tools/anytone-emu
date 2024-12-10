@@ -82,6 +82,15 @@ SetupDialog::~SetupDialog()
 }
 
 
+QString
+SetupDialog::catalog() const {
+  if (ui->useBuildin->isChecked()) {
+    return ":/codeplugs/catalog.xml";
+  }
+  return ui->catalogFile->text().simplified();
+}
+
+
 Device *
 SetupDialog::createDevice(const ErrorStack &err) {
 
