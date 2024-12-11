@@ -225,6 +225,7 @@ PatternView::appendImportedPattern() {
     return;
 
   AbstractPattern *newPattern = dialog.copy();
+  newPattern->setAddress(Address());
 
   if (! showPatternEditor(newPattern, parent->codeplug())) {
     newPattern->deleteLater();
@@ -255,6 +256,8 @@ PatternView::insertImportedPatternAbove() {
     return;
 
   AbstractPattern *newPattern = dialog.copy();
+  newPattern->setAddress(Address());
+
   if (! newPattern->is<FixedPattern>()) {
     QMessageBox::critical(nullptr, tr("Canont import pattern to element."),
                           tr("Can only import fixed element."));
@@ -291,6 +294,8 @@ PatternView::insertImportedPatternBelow(){
     return;
 
   AbstractPattern *newPattern = dialog.copy();
+  newPattern->setAddress(Address());
+
   if (! newPattern->is<FixedPattern>()) {
     QMessageBox::critical(nullptr, tr("Canont import pattern to element."),
                           tr("Can only import fixed element."));
