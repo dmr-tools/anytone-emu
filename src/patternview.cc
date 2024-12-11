@@ -258,6 +258,7 @@ PatternView::insertImportedPatternAbove() {
 
   AbstractPattern *newPattern = dialog.copy();
   newPattern->setAddress(Address());
+  newPattern->setParent(parent);
 
   if (! newPattern->is<FixedPattern>()) {
     QMessageBox::critical(nullptr, tr("Canont import pattern to element."),
@@ -296,6 +297,7 @@ PatternView::insertImportedPatternBelow(){
 
   AbstractPattern *newPattern = dialog.copy();
   newPattern->setAddress(Address());
+  newPattern->setParent(parent);
 
   if (! newPattern->is<FixedPattern>()) {
     QMessageBox::critical(nullptr, tr("Canont import pattern to element."),
@@ -328,13 +330,18 @@ PatternView::pastePatternAsChild() {
   if (nullptr == parent)
     return;
 
-  if (! showPatternEditor(mimeData->pattern(), parent->codeplug())) {
-    return;
-  }
+  auto pattern = mimeData->pattern();
+  pattern->setParent(parent);
+  QGuiApplication::clipboard()->clear();
+  pattern->setAddress(Address());
 
-  if (! parent->as<StructuredPattern>()->addChildPattern(mimeData->pattern())) {
+  if (! showPatternEditor(pattern, parent->codeplug()))
+    return;
+
+  if (! parent->as<StructuredPattern>()->addChildPattern(pattern)) {
     QMessageBox::information(nullptr, tr("Cannot append pattern."),
                              tr("Cannot append pattern to {}.").arg(parent->meta().name()));
+    pattern->deleteLater();
     return;
   }
 
@@ -351,24 +358,32 @@ PatternView::pastePatternAbove() {
   auto nextSibling = selectedSibling();
   if (nullptr == nextSibling)
     return;
+
   auto parent = qobject_cast<ElementPattern *>(nextSibling->parent());
+  auto pattern = mimeData->pattern();
+  pattern->setParent(parent);
+  QGuiApplication::clipboard()->clear();
 
   Address insertionAddress = nextSibling->address();
   unsigned int insertionIndex = parent->indexOf(nextSibling);
+  pattern->setAddress(insertionAddress);
 
-  if (! mimeData->pattern()->is<FixedPattern>()) {
+  if (! pattern->is<FixedPattern>()) {
     QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
                              tr("Can onyl add fixed-sized patterns to an element pattern."));
+    pattern->deleteLater();
     return;
   }
 
-  if (! showPatternEditor(mimeData->pattern(), parent->codeplug())) {
+  if (! showPatternEditor(pattern, parent->codeplug())) {
+    pattern->deleteLater();
     return;
   }
 
-  if (! parent->insertChildPattern(mimeData->pattern()->as<FixedPattern>(), insertionIndex)) {
+  if (! parent->insertChildPattern(pattern->as<FixedPattern>(), insertionIndex)) {
     QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
                              tr("Element pattern rejected child."));
+    pattern->deleteLater();
     return;
   }
 
@@ -385,23 +400,32 @@ PatternView::pastePatternBelow() {
   auto prevSibling = selectedSibling();
   if (nullptr == prevSibling)
     return;
+
   auto parent = qobject_cast<ElementPattern *>(prevSibling->parent());
+  auto pattern = mimeData->pattern();
+  pattern->setParent(parent);
+  QGuiApplication::clipboard()->clear();
 
-  Address insertionAddress = prevSibling->address();
+  Address insertionAddress = prevSibling->address() + prevSibling->size();
   unsigned int insertionIndex = parent->indexOf(prevSibling) + 1;
+  pattern->setAddress(insertionAddress);
 
-  if (! mimeData->pattern()->is<FixedPattern>()) {
+  if (! pattern->is<FixedPattern>()) {
     QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
                              tr("Can only add fixed-sized patterns to an element pattern."));
+    pattern->deleteLater();
     return;
   }
 
-  if (! showPatternEditor(mimeData->pattern(), parent->codeplug()))
+  if (! showPatternEditor(pattern, parent->codeplug())) {
+    pattern->deleteLater();
     return;
+  }
 
-  if (! parent->insertChildPattern(mimeData->pattern()->as<FixedPattern>(), insertionIndex)) {
+  if (! parent->insertChildPattern(pattern->as<FixedPattern>(), insertionIndex)) {
     QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
                              tr("Element pattern rejected child."));
+    pattern->deleteLater();
     return;
   }
 
