@@ -226,6 +226,7 @@ PatternView::appendImportedPattern() {
 
   AbstractPattern *newPattern = dialog.copy();
   newPattern->setAddress(Address());
+  newPattern->setParent(parent);
 
   if (! showPatternEditor(newPattern, parent->codeplug())) {
     newPattern->deleteLater();
