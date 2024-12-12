@@ -68,6 +68,13 @@ CollectionWrapper::hasChildren(const QModelIndex &parent) const {
     return true;
 
   const QObject *obj = reinterpret_cast<const QObject *>(parent.constInternalPointer());
+
+  if (auto img = qobject_cast<const Image *>(obj))
+    return img->count();
+
+  if (auto element = qobject_cast<const Element*>(obj))
+    return element->numAnnotations();
+
   return obj->children().count();
 }
 
@@ -241,6 +248,27 @@ CollectionWrapper::headerData(int section, Qt::Orientation orientation, int role
 
   return QVariant();
 }
+
+
+void
+CollectionWrapper::clearAnnotation(unsigned int idx) {
+  if (idx >= _collection->count())
+    return;
+  auto image = _collection->image(idx);
+  QModelIndex imageIdx = index(idx, 0, QModelIndex());
+
+  for (unsigned int eidx = 0; eidx < image->count(); eidx++) {
+    Element *element = image->element(eidx);
+    QModelIndex elementIdx = index(eidx, 0, imageIdx);
+    if (0 == element->numAnnotations())
+      continue;
+    beginRemoveRows(elementIdx, 0, element->numAnnotations()-1);
+    element->clearAnnotations();
+    endRemoveRows();
+    emit dataChanged(elementIdx, elementIdx);
+  }
+}
+
 
 void
 CollectionWrapper::onImageAdded(unsigned int idx) {

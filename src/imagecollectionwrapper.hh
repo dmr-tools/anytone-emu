@@ -10,6 +10,8 @@ class FieldAnnotation;
 
 class CollectionWrapper : public QAbstractItemModel
 {
+  Q_OBJECT
+
 public:
   explicit CollectionWrapper(Collection *collection, QObject *parent = nullptr);
 
@@ -23,6 +25,9 @@ public:
 
   QVariant data(const QModelIndex &index, int role) const;
   QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+
+public slots:
+  void clearAnnotation(unsigned int idx);
 
 protected:
   QVariant getIcon(const QObject *obj) const;

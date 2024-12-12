@@ -4,12 +4,15 @@
 #include <QMenu>
 #include <QActionGroup>
 #include <QToolBar>
+#include <QMessageBox>
 
 #include "device.hh"
 #include "application.hh"
 #include "image.hh"
 #include "logger.hh"
 #include "imagecollectionwrapper.hh"
+
+
 
 ImageWidget::ImageWidget(QWidget *parent)
   : QWidget(parent), ui(new Ui::ImageWidget)
@@ -63,6 +66,7 @@ ImageWidget::ImageWidget(QWidget *parent)
 
   ui->actionAnnotate->setIcon(QIcon::fromTheme("edit-annotate"));
   toolBar->addAction(ui->actionAnnotate);
+
   ui->actionClearAnnotation->setIcon(QIcon::fromTheme("edit-clear"));
   toolBar->addAction(ui->actionClearAnnotation);
   toolBar->addSeparator();
@@ -77,6 +81,7 @@ ImageWidget::ImageWidget(QWidget *parent)
   connect(ui->actionShowHexDump, &QAction::triggered, this, &ImageWidget::onShowHexDump);
   connect(ui->actionShowHexDiff, &QAction::triggered, this, &ImageWidget::onShowHexDiff);
   connect(ui->actionAnnotate, &QAction::triggered, this, &ImageWidget::onAnnotate);
+  connect(ui->actionClearAnnotation, &QAction::triggered, this, &ImageWidget::onClearAnnotations);
   connect(app->collection(), &Collection::imageAdded, this, &ImageWidget::onImageReceived);
 }
 
@@ -206,3 +211,44 @@ ImageWidget::onAnnotate() {
   }
 }
 
+
+void
+ImageWidget::onClearAnnotations() {
+  QList<Image *> images = getSelectedImages();
+  if (images.isEmpty())
+    return;
+
+  Application *app = qobject_cast<Application*>(Application::instance());
+  Collection *collection = app->collection();
+  CollectionWrapper *wrapper = qobject_cast<CollectionWrapper *>(ui->images->model());
+  for (auto img: images) {
+    int idx = collection->indexOf(img);
+    wrapper->clearAnnotation(idx);
+  }
+}
+
+QList<Image *>
+ImageWidget::getSelectedImages() {
+  QList<Image *> images;
+  auto selectionModel = ui->images->selectionModel();
+  if (nullptr == selectionModel)
+    return images;
+
+  foreach (const QItemSelectionRange &range, selectionModel->selection()) {
+    foreach (const QModelIndex &index, range.indexes()) {
+      if (! index.isValid())
+        continue;
+      QObject *obj = reinterpret_cast<QObject *>(index.internalPointer());
+      if (Image *img = qobject_cast<Image *>(obj))
+        if (! images.contains(img))
+          images.append(img);
+    }
+  }
+
+  if (0 == images.size()) {
+    QMessageBox::information(nullptr, tr("Select an image first."),
+                             tr("Please select at least one image first."));
+  }
+
+  return images;
+}

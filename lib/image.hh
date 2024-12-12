@@ -24,6 +24,8 @@ public:
   /** Constructs an element from the given data at the specified address. */
   explicit Element(const Address &address, const QByteArray &data, QObject *parent=nullptr);
 
+  virtual ~Element();
+
   /** Comparison operator wrt the address. */
   bool operator <= (const Element &other) const;
   /** Comparison operator wrt the address. */
@@ -57,6 +59,7 @@ public:
   void append(const QByteArray &data);
 
   void addAnnotation(AbstractAnnotation *annotation);
+  void clearAnnotations();
 
 signals:
   /** Get emitted, if the element is modified at the specified address. */
@@ -80,6 +83,10 @@ class Image : public QObject
   Q_OBJECT
 
 public:
+  /** Iterator over elements. */
+  typedef QVector<Element *>::const_iterator const_iterator;
+
+public:
   /** Constructs a new image.
    * @param label Specifies an optional label for the image.
    * @param parent The QObject parent. */
@@ -88,7 +95,7 @@ public:
   /** Returns the number of elements in that image. */
   unsigned int count() const;
   /** Returns the element at the given index. */
-  const Element *element(unsigned int idx) const;
+  Element *element(unsigned int idx) const;
   /** Find the element containing the given address.
    * Returns @c nullptr if there is none. */
   Element *find(const Address &address) const;
@@ -119,6 +126,11 @@ public:
 
   /** Annotates the image using the given pattern. */
   bool annotate(const CodeplugPattern *pattern);
+
+  /** Points to the first element. */
+  const_iterator begin() const;
+  /** Points right after the last element. */
+  const_iterator end() const;
 
 signals:
   /** Gets emitted when the image is modified at the specified address. */

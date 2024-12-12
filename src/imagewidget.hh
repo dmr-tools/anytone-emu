@@ -29,6 +29,10 @@ protected slots:
   void onShowHexDiff();
   void onImageReceived(unsigned int idx);
   void onAnnotate();
+  void onClearAnnotations();
+
+protected:
+  QList<Image *> getSelectedImages();
 
 private:
   Ui::ImageWidget *ui;
