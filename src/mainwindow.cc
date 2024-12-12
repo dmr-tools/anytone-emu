@@ -161,14 +161,15 @@ MainWindow::onShowHexDiff(const Image *left, const Image *right) {
 
 void
 MainWindow::onCloseTab(int index) {
-  if (0 <= index) {
-    QWidget *view = ui->tabs->widget(index);
-    ui->tabs->removeTab(ui->tabs->currentIndex());
-    view->deleteLater();
-  } else if (QWidget *view = ui->tabs->currentWidget()) {
-    ui->tabs->removeTab(ui->tabs->currentIndex());
-    view->deleteLater();
-  }
+  if (0 > index)
+    index = ui->tabs->currentIndex();
+
+  if ((0 > index) || (ui->tabs->count() <= index))
+    return;
+
+  QWidget *view = ui->tabs->widget(index);
+  ui->tabs->removeTab(index);
+  view->deleteLater();
 }
 
 

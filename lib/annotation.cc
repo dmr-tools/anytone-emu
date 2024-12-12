@@ -94,6 +94,9 @@ AnnotationCollection::AnnotationCollection()
   // pass...
 }
 
+AnnotationCollection::~AnnotationCollection() {
+}
+
 bool
 AnnotationCollection::unAnnotated() const {
   return _annotations.isEmpty();
@@ -114,6 +117,13 @@ AnnotationCollection::annotation(unsigned int n) const {
 void
 AnnotationCollection::addAnnotation(AbstractAnnotation *child) {
   _annotations.append(child);
+}
+
+void
+AnnotationCollection::clearAnnotations() {
+  for (auto annotation: _annotations)
+    delete annotation;
+  _annotations.clear();
 }
 
 const AbstractAnnotation *
