@@ -22,7 +22,14 @@ main(int argc, char *argv[])
   QApplication::setStyle("fusion");
   Application app(argc, argv);
 
-  if (Qt::ColorScheme::Dark == app.styleHints()->colorScheme()) {
+#if QT_VERSION >= QT_VERSION_CHECK(6,5,0)
+  bool darkMode = Qt::ColorScheme::Dark == app.styleHints()->colorScheme();
+#else
+  bool darkMode = (app.palette().text().color().lightness() >
+                   app.palette().window().color().lightness());
+#endif
+
+  if (darkMode) {
     QIcon::setThemeName("dark");
   } else {
     QIcon::setThemeName("light");
