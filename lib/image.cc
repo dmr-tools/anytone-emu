@@ -279,6 +279,22 @@ Collection::append(Image *image) {
 }
 
 void
+Collection::deleteImage(unsigned int idx) {
+  if (idx >= _images.count())
+    return;
+
+  auto image = _images.at(idx);
+  _images.remove(idx);
+
+  disconnect(image, &Image::annotated, this, &Collection::onImageAnnotated);
+  disconnect(image, &QObject::destroyed, this, &Collection::onImageDeleted);
+
+  emit imageRemoved(idx);
+
+  delete image;
+}
+
+void
 Collection::onImageDeleted(QObject *obj) {
   int idx = _images.indexOf(qobject_cast<Image*>(obj));
   if (idx < 0)

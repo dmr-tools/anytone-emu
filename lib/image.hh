@@ -174,6 +174,8 @@ public:
 
   /** Appends an image. */
   void append(Image *image);
+  /** Deletes the specified image. */
+  void deleteImage(unsigned int idx);
 
 signals:
   /** Gets emitted when an image is added. */

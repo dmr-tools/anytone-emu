@@ -24,12 +24,21 @@ signals:
   void showHexElement(const Element *element);
   void showHexDiff(const Image *left, const Image *right);
 
+  void canShowHexDiff(bool enable);
+  void canShowHexDump(bool enable);
+  void canAnnotate(bool enable);
+  void canClearAnnotation(bool enable);
+  void canDeleteImage(bool enable);
+
 protected slots:
+  void onSelectionChanged();
+
   void onShowHexDump();
   void onShowHexDiff();
   void onImageReceived(unsigned int idx);
   void onAnnotate();
   void onClearAnnotations();
+  void onDeleteImage();
 
 protected:
   QList<Image *> getSelectedImages();

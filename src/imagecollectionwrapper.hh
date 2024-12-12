@@ -28,6 +28,7 @@ public:
 
 public slots:
   void clearAnnotation(unsigned int idx);
+  void deleteImage(unsigned int idx);
 
 protected:
   QVariant getIcon(const QObject *obj) const;

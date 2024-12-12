@@ -89,6 +89,9 @@
    </property>
   </action>
   <action name="actionShowHexDump">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Show hex dump</string>
    </property>
@@ -97,6 +100,9 @@
    </property>
   </action>
   <action name="actionShowHexDiff">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Show hex diff</string>
    </property>
@@ -105,6 +111,9 @@
    </property>
   </action>
   <action name="actionAnnotate">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Annotate</string>
    </property>
@@ -113,6 +122,9 @@
    </property>
   </action>
   <action name="actionClearAnnotation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset theme="edit-clear">
      <normaloff>.</normaloff>.</iconset>
@@ -125,6 +137,9 @@
    </property>
   </action>
   <action name="actionDeleteImage">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset theme="edit-delete">
      <normaloff>.</normaloff>.</iconset>

@@ -271,6 +271,16 @@ CollectionWrapper::clearAnnotation(unsigned int idx) {
 
 
 void
+CollectionWrapper::deleteImage(unsigned int idx) {
+  if (idx >= _collection->count())
+    return;
+
+  beginRemoveRows(QModelIndex(), idx, idx);
+  _collection->deleteImage(idx);
+  endRemoveRows();
+}
+
+void
 CollectionWrapper::onImageAdded(unsigned int idx) {
   beginInsertRows(QModelIndex(), idx, idx+1);
   endInsertRows();

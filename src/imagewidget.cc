@@ -23,6 +23,8 @@ ImageWidget::ImageWidget(QWidget *parent)
   ui->setupUi(this);
 
   ui->images->setModel(new CollectionWrapper(app->collection()));
+  connect(ui->images->selectionModel(), &QItemSelectionModel::selectionChanged,
+          this, &ImageWidget::onSelectionChanged);
 
   auto toolBar = new QToolBar();
   int defaultSize = app->style()->pixelMetric(QStyle::PM_ToolBarIconSize),
@@ -78,10 +80,17 @@ ImageWidget::ImageWidget(QWidget *parent)
   if (settings.contains("layout/imagesHeaderState"))
     ui->images->header()->restoreState(settings.value("layout/imagesHeaderState").toByteArray());
 
+  connect(this, &ImageWidget::canAnnotate, ui->actionAnnotate, &QAction::setEnabled);
+  connect(this, &ImageWidget::canClearAnnotation, ui->actionClearAnnotation, &QAction::setEnabled);
+  connect(this, &ImageWidget::canShowHexDump, ui->actionShowHexDump, &QAction::setEnabled);
+  connect(this, &ImageWidget::canShowHexDiff, ui->actionShowHexDiff, &QAction::setEnabled);
+  connect(this, &ImageWidget::canDeleteImage, ui->actionDeleteImage, &QAction::setEnabled);
+
   connect(ui->actionShowHexDump, &QAction::triggered, this, &ImageWidget::onShowHexDump);
   connect(ui->actionShowHexDiff, &QAction::triggered, this, &ImageWidget::onShowHexDiff);
   connect(ui->actionAnnotate, &QAction::triggered, this, &ImageWidget::onAnnotate);
   connect(ui->actionClearAnnotation, &QAction::triggered, this, &ImageWidget::onClearAnnotations);
+  connect(ui->actionDeleteImage, &QAction::triggered, this, &ImageWidget::onDeleteImage);
   connect(app->collection(), &Collection::imageAdded, this, &ImageWidget::onImageReceived);
 }
 
@@ -100,6 +109,38 @@ ImageWidget::~ImageWidget() {
   delete ui;
 }
 
+
+void
+ImageWidget::onSelectionChanged() {
+  int countImages = 0, countElements = 0;
+
+  auto selectionModel = ui->images->selectionModel();
+  if (nullptr == selectionModel)
+    return;
+
+  foreach (const QItemSelectionRange &range, selectionModel->selection()) {
+    QSet<const QObject *> unique;
+    foreach (const QModelIndex &index, range.indexes()) {
+      if (! index.isValid())
+        continue;
+      const QObject *obj = reinterpret_cast<const QObject *>(index.constInternalPointer());
+      if (unique.contains(obj))
+        continue;
+      unique.insert(obj);
+      if (auto image = qobject_cast<const Image *>(obj))
+        countImages++;
+      else if (auto element = qobject_cast<const Element *>(obj))
+        countElements++;
+
+    }
+  }
+
+  emit canAnnotate(countImages > 0);
+  emit canShowHexDump((countImages > 0) | (countElements > 0));
+  emit canShowHexDiff(countImages > 1);
+  emit canClearAnnotation(countImages > 0);
+  emit canDeleteImage(countImages > 0);
+}
 
 
 void
@@ -143,7 +184,8 @@ ImageWidget::onShowHexDiff() {
       if (const Image *img = qobject_cast<const Image *>(
             reinterpret_cast<const QObject *>(
               index.constInternalPointer())))
-        items.append(img);
+        if (! items.contains(img))
+          items.append(img);
     }
   }
 
@@ -189,21 +231,18 @@ ImageWidget::onAnnotate() {
   if (! app->device()->pattern())
     return;
 
-  QList<Image *> images;
-  foreach (const QItemSelectionRange &range, selectionModel->selection()) {
-    foreach (const QModelIndex &index, range.indexes()) {
-      if (! index.isValid())
-        continue;
-      QObject *obj = reinterpret_cast<QObject *>(index.internalPointer());
-      if (Image *img = qobject_cast<Image *>(obj))
-        if (! images.contains(img))
-          images.append(img);
-    }
-  }
-  if (0 == images.size())
-    logInfo() << "Select an image to annotate.";
+  QList<Image *> images = getSelectedImages();
+  if (images.isEmpty())
+    return;
+
+  Collection *collection = app->collection();
+  CollectionWrapper *wrapper = qobject_cast<CollectionWrapper *>(ui->images->model());
 
   foreach (Image *img, images) {
+    logDebug() << "Remove annotations from image '" << img->label() << "' (if there are any).";
+    int idx = collection->indexOf(img);
+    wrapper->clearAnnotation(idx);
+
     logDebug() << "Annotate image '" << img->label() << "'.";
     if (! img->annotate(app->device()->pattern())) {
       logError() << "Annotation failed.";
@@ -226,6 +265,23 @@ ImageWidget::onClearAnnotations() {
     wrapper->clearAnnotation(idx);
   }
 }
+
+
+void
+ImageWidget::onDeleteImage() {
+  QList<Image *> images = getSelectedImages();
+  if (images.isEmpty())
+    return;
+
+  Application *app = qobject_cast<Application*>(Application::instance());
+  Collection *collection = app->collection();
+  CollectionWrapper *wrapper = qobject_cast<CollectionWrapper *>(ui->images->model());
+  for (auto img: images) {
+    int idx = collection->indexOf(img);
+    wrapper->deleteImage(idx);
+  }
+}
+
 
 QList<Image *>
 ImageWidget::getSelectedImages() {
