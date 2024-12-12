@@ -9,4 +9,4 @@ qt_add_resources(anytone-emu "codeplugs"
   PREFIX "/codeplugs"
   BASE "${CMAKE_SOURCE_DIR}/codeplugs/"
   FILES "${CMAKE_SOURCE_DIR}/codeplugs/catalog.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/2.10/codeplug.xml")
+        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/v2.10.xml")

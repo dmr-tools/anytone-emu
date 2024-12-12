@@ -1,30 +1,30 @@
 #ifndef PATTERNMETAEDITOR_HH
 #define PATTERNMETAEDITOR_HH
 
-#include <QWidget>
-class PatternMeta;
-class CodeplugPattern;
+#include <QTabWidget>
+#include "pattern.hh"
 
 namespace Ui {
-  class PatternMetaEditor;
+class metaEditor;
 }
 
 
-class PatternMetaEditor : public QWidget
+class PatternMetaEditor : public QTabWidget
 {
   Q_OBJECT
 
 public:
   explicit PatternMetaEditor(QWidget *parent = nullptr);
-  ~PatternMetaEditor();
+  virtual ~PatternMetaEditor();
 
-public slots:
   void setPatternMeta(PatternMeta *meta, const CodeplugPattern *codeplug);
+
+public:
   void apply();
 
 private:
-  Ui::PatternMetaEditor *ui;
   PatternMeta *_meta;
+  Ui::metaEditor *ui;
 };
 
 #endif // PATTERNMETAEDITOR_HH

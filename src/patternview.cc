@@ -24,6 +24,7 @@
 #include "splitfieldpatterndialog.hh"
 #include "patternmimedata.hh"
 #include "questiondialog.hh"
+#include "patternimportdialog.hh"
 #include "logger.hh"
 
 
@@ -129,24 +130,11 @@ PatternView::showPatternEditor(AbstractPattern *pattern, const CodeplugPattern *
 
 void
 PatternView::appendNewPattern() {
-  AbstractPattern *parent = selectedPattern();
-  if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
-    QMessageBox::information(nullptr, tr("Select a structured pattern first."),
-                             tr("To append a child pattern, select a structured pattern first."));
+  AbstractPattern *parent = selectedParent();
+  if (nullptr == parent)
     return;
-  }
 
-  StructuredPattern *structure = parent->as<StructuredPattern>();
-
-  Address insertionAddress;
-  if (structure->numChildPattern()) {
-    AbstractPattern *pred = structure->childPattern(structure->numChildPattern()-1);
-    insertionAddress = pred->address();
-    if (FixedPattern *fixed = pred->as<FixedPattern>())
-      insertionAddress += fixed->size();
-  }
-
-  NewPatternDialog dialog(parent, insertionAddress, nullptr);
+  NewPatternDialog dialog(parent, Address(), nullptr);
   if (QDialog::Accepted != dialog.exec())
     return;
 
@@ -157,59 +145,37 @@ PatternView::appendNewPattern() {
     return;
   }
 
-  if (! structure->addChildPattern(newPattern)) {
+  if (! dynamic_cast<StructuredPattern*>(parent)->addChildPattern(newPattern)) {
     QMessageBox::information(nullptr, tr("Cannot append pattern."),
-                             tr("Cannot append pattern to {}.").arg(parent->meta().name()));
+                             tr("Cannot append pattern to %1.").arg(parent->meta().name()));
     newPattern->deleteLater();
     return;
   }
 }
 
+
 void
 PatternView::insertNewPatternAbove() {
-  AbstractPattern *nextSibling = selectedPattern();
-
-  if (nullptr == nextSibling) {
-    QMessageBox::information(nullptr, tr("Select a sibling first."),
-                             tr("To insert a pattern above another pattern, select a pattern first."));
+  auto nextSibling = selectedSibling();
+  if (nullptr == nextSibling)
     return;
-  }
-
-  AbstractPattern *parent = qobject_cast<AbstractPattern *>(nextSibling->parent());
-  if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
-    QMessageBox::information(nullptr, tr("Parent must be structured pattern."),
-                             tr("The parent of the selected pattern must be a structured pattern."));
-    return;
-  }
+  auto parent = qobject_cast<ElementPattern *>(nextSibling->parent());
 
   Address insertionAddress = nextSibling->address();
-
-  StructuredPattern *structure = parent->as<StructuredPattern>();
-  unsigned int insertionIndex = structure->indexOf(nextSibling);
-  if (! parent->is<ElementPattern>()) {
-    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
-                             tr("The parent of the selected pattern must be an element pattern."));
-    return;
-  }
+  unsigned int insertionIndex = parent->indexOf(nextSibling);
 
   NewPatternDialog dialog(parent, insertionAddress, nullptr);
   if (QDialog::Accepted != dialog.exec())
     return;
 
-  AbstractPattern *newPattern = dialog.create();
-  if (! newPattern->is<FixedPattern>()) {
-    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
-                             tr("Can onyl add fixed-sized patterns to an element pattern."));
-    newPattern->deleteLater();
-    return;
-  }
+  auto newPattern = dialog.create()->as<FixedPattern>();
 
   if (! showPatternEditor(newPattern, parent->codeplug())) {
     newPattern->deleteLater();
     return;
   }
 
-  if (! parent->as<ElementPattern>()->insertChildPattern(newPattern->as<FixedPattern>(), insertionIndex)) {
+  if (! parent->insertChildPattern(newPattern, insertionIndex)) {
     QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
                              tr("Element pattern rejected child."));
     newPattern->deleteLater();
@@ -220,41 +186,83 @@ PatternView::insertNewPatternAbove() {
 
 void
 PatternView::insertNewPatternBelow() {
-  AbstractPattern *nextSibling = selectedPattern();
+  auto prevSibling = selectedSibling();
+  auto parent = qobject_cast<ElementPattern *>(prevSibling->parent());
 
-  if (nullptr == nextSibling) {
-    QMessageBox::information(nullptr, tr("Select a sibling first."),
-                             tr("To insert a pattern below another pattern, select a pattern first."));
-    return;
-  }
-
-  AbstractPattern *parent = qobject_cast<AbstractPattern *>(nextSibling->parent());
-  if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
-    QMessageBox::information(nullptr, tr("Parent must be structured pattern."),
-                             tr("The parent of the selected pattern must be a structured pattern."));
-    return;
-  }
-
-  Address insertionAddress = nextSibling->address();
-  if (FixedPattern *fixed = nextSibling->as<FixedPattern>())
+  Address insertionAddress = prevSibling->address();
+  if (FixedPattern *fixed = prevSibling->as<FixedPattern>())
     insertionAddress += fixed->size();
-
-  StructuredPattern *structure = parent->as<StructuredPattern>();
-  unsigned int insertionIndex = structure->indexOf(nextSibling) + 1;
-  if (! parent->is<ElementPattern>()) {
-    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
-                             tr("The parent of the selected pattern must be an element pattern."));
-    return;
-  }
+  unsigned int insertionIndex = parent->indexOf(prevSibling) + 1;
 
   NewPatternDialog dialog(parent, insertionAddress, nullptr);
   if (QDialog::Accepted != dialog.exec())
     return;
 
-  AbstractPattern *newPattern = dialog.create();
-  if (! newPattern->is<FixedPattern>()) {
+  auto newPattern = dialog.create()->as<FixedPattern>();
+
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! parent->insertChildPattern(newPattern, insertionIndex)) {
     QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
-                             tr("Can onyl add fixed-sized patterns to an element pattern."));
+                             tr("Element pattern rejected child."));
+    newPattern->deleteLater();
+    return;
+  }
+}
+
+
+void
+PatternView::appendImportedPattern() {
+  auto parent = selectedParent();
+  if (nullptr == parent)
+    return;
+
+  PatternImportDialog dialog(Application::instance()->catalog());
+  if (QDialog::Accepted != dialog.exec())
+    return;
+
+  AbstractPattern *newPattern = dialog.copy();
+  newPattern->setAddress(Address());
+  newPattern->setParent(parent);
+
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! parent->as<StructuredPattern>()->addChildPattern(newPattern)) {
+    QMessageBox::information(nullptr, tr("Cannot append pattern."),
+                             tr("Cannot append pattern to %1.").arg(parent->meta().name()));
+    newPattern->deleteLater();
+    return;
+  }
+}
+
+
+void
+PatternView::insertImportedPatternAbove() {
+  auto nextSibling = selectedSibling();
+  if (nullptr == nextSibling)
+    return;
+  auto parent = qobject_cast<ElementPattern *>(nextSibling->parent());
+
+  Address insertionAddress = nextSibling->address();
+  unsigned int insertionIndex = parent->indexOf(nextSibling);
+
+  PatternImportDialog dialog(Application::instance()->catalog());
+  if (QDialog::Accepted != dialog.exec())
+    return;
+
+  AbstractPattern *newPattern = dialog.copy();
+  newPattern->setAddress(Address());
+  newPattern->setParent(parent);
+
+  if (! newPattern->is<FixedPattern>()) {
+    QMessageBox::critical(nullptr, tr("Canont import pattern to element."),
+                          tr("Can only import fixed element."));
     newPattern->deleteLater();
     return;
   }
@@ -264,13 +272,164 @@ PatternView::insertNewPatternBelow() {
     return;
   }
 
-
-  if (! parent->as<ElementPattern>()->insertChildPattern(newPattern->as<FixedPattern>(), insertionIndex)) {
+  if (! parent->insertChildPattern(newPattern->as<FixedPattern>(), insertionIndex)) {
     QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
                              tr("Element pattern rejected child."));
     newPattern->deleteLater();
     return;
   }
+}
+
+
+void
+PatternView::insertImportedPatternBelow(){
+  auto prevSibling = selectedSibling();
+  auto parent = qobject_cast<ElementPattern *>(prevSibling->parent());
+
+  Address insertionAddress = prevSibling->address();
+  if (FixedPattern *fixed = prevSibling->as<FixedPattern>())
+    insertionAddress += fixed->size();
+  unsigned int insertionIndex = parent->indexOf(prevSibling) + 1;
+
+  PatternImportDialog dialog(Application::instance()->catalog());
+  if (QDialog::Accepted != dialog.exec())
+    return;
+
+  AbstractPattern *newPattern = dialog.copy();
+  newPattern->setAddress(Address());
+  newPattern->setParent(parent);
+
+  if (! newPattern->is<FixedPattern>()) {
+    QMessageBox::critical(nullptr, tr("Canont import pattern to element."),
+                          tr("Can only import fixed element."));
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! parent->insertChildPattern(newPattern->as<FixedPattern>(), insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    newPattern->deleteLater();
+    return;
+  }
+}
+
+
+void
+PatternView::pastePatternAsChild() {
+  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
+  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
+    return;
+
+  auto parent = selectedParent();
+  if (nullptr == parent)
+    return;
+
+  auto pattern = mimeData->pattern();
+  pattern->setParent(parent);
+  QGuiApplication::clipboard()->clear();
+  pattern->setAddress(Address());
+
+  if (! showPatternEditor(pattern, parent->codeplug()))
+    return;
+
+  if (! parent->as<StructuredPattern>()->addChildPattern(pattern)) {
+    QMessageBox::information(nullptr, tr("Cannot append pattern."),
+                             tr("Cannot append pattern to {}.").arg(parent->meta().name()));
+    pattern->deleteLater();
+    return;
+  }
+
+  QGuiApplication::clipboard()->clear();
+}
+
+
+void
+PatternView::pastePatternAbove() {
+  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
+  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
+    return;
+
+  auto nextSibling = selectedSibling();
+  if (nullptr == nextSibling)
+    return;
+
+  auto parent = qobject_cast<ElementPattern *>(nextSibling->parent());
+  auto pattern = mimeData->pattern();
+  pattern->setParent(parent);
+  QGuiApplication::clipboard()->clear();
+
+  Address insertionAddress = nextSibling->address();
+  unsigned int insertionIndex = parent->indexOf(nextSibling);
+  pattern->setAddress(insertionAddress);
+
+  if (! pattern->is<FixedPattern>()) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Can onyl add fixed-sized patterns to an element pattern."));
+    pattern->deleteLater();
+    return;
+  }
+
+  if (! showPatternEditor(pattern, parent->codeplug())) {
+    pattern->deleteLater();
+    return;
+  }
+
+  if (! parent->insertChildPattern(pattern->as<FixedPattern>(), insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    pattern->deleteLater();
+    return;
+  }
+
+  QGuiApplication::clipboard()->clear();
+}
+
+
+void
+PatternView::pastePatternBelow() {
+  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
+  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
+    return;
+
+  auto prevSibling = selectedSibling();
+  if (nullptr == prevSibling)
+    return;
+
+  auto parent = qobject_cast<ElementPattern *>(prevSibling->parent());
+  auto pattern = mimeData->pattern();
+  pattern->setParent(parent);
+  QGuiApplication::clipboard()->clear();
+
+  Address insertionAddress = prevSibling->address() + prevSibling->size();
+  unsigned int insertionIndex = parent->indexOf(prevSibling) + 1;
+  pattern->setAddress(insertionAddress);
+
+  if (! pattern->is<FixedPattern>()) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Can only add fixed-sized patterns to an element pattern."));
+    pattern->deleteLater();
+    return;
+  }
+
+  if (! showPatternEditor(pattern, parent->codeplug())) {
+    pattern->deleteLater();
+    return;
+  }
+
+  if (! parent->insertChildPattern(pattern->as<FixedPattern>(), insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    pattern->deleteLater();
+    return;
+  }
+
+  QGuiApplication::clipboard()->clear();
 }
 
 
@@ -362,146 +521,6 @@ PatternView::copySelected() {
   }
 
   QGuiApplication::clipboard()->setMimeData(new PatternMimeData(selectedPattern()->clone()));
-}
-
-
-void
-PatternView::pastePatternAsChild() {
-  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
-  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
-    return;
-
-  AbstractPattern *parent = selectedPattern();
-  if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
-    QMessageBox::information(nullptr, tr("Select a structured pattern first."),
-                             tr("To append a child pattern, select a structured pattern first."));
-    return;
-  }
-
-  StructuredPattern *structure = parent->as<StructuredPattern>();
-
-  Address insertionAddress;
-  if (structure->numChildPattern()) {
-    AbstractPattern *pred = structure->childPattern(structure->numChildPattern()-1);
-    insertionAddress = pred->address();
-    if (FixedPattern *fixed = pred->as<FixedPattern>())
-      insertionAddress += fixed->size();
-  }
-
-  if (! showPatternEditor(mimeData->pattern(), parent->codeplug())) {
-    return;
-  }
-
-  if (! structure->addChildPattern(mimeData->pattern())) {
-    QMessageBox::information(nullptr, tr("Cannot append pattern."),
-                             tr("Cannot append pattern to {}.").arg(parent->meta().name()));
-    return;
-  }
-
-  QGuiApplication::clipboard()->clear();
-}
-
-
-void
-PatternView::pastePatternAbove() {
-  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
-  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
-    return;
-
-  AbstractPattern *nextSibling = selectedPattern();
-  if (nullptr == nextSibling) {
-    QMessageBox::information(nullptr, tr("Select a sibling first."),
-                             tr("To insert a pattern above another pattern, select a pattern first."));
-    return;
-  }
-
-  AbstractPattern *parent = qobject_cast<AbstractPattern *>(nextSibling->parent());
-  if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
-    QMessageBox::information(nullptr, tr("Parent must be structured pattern."),
-                             tr("The parent of the selected pattern must be a structured pattern."));
-    return;
-  }
-
-  Address insertionAddress = nextSibling->address();
-
-  StructuredPattern *structure = parent->as<StructuredPattern>();
-  unsigned int insertionIndex = structure->indexOf(nextSibling);
-  if (! parent->is<ElementPattern>()) {
-    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
-                             tr("The parent of the selected pattern must be an element pattern."));
-    return;
-  }
-
-  if (! mimeData->pattern()->is<FixedPattern>()) {
-    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
-                             tr("Can onyl add fixed-sized patterns to an element pattern."));
-    return;
-  }
-
-  if (! showPatternEditor(mimeData->pattern(), parent->codeplug())) {
-    return;
-  }
-
-  if (! parent->as<ElementPattern>()->insertChildPattern(mimeData->pattern()->as<FixedPattern>(), insertionIndex)) {
-    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
-                             tr("Element pattern rejected child."));
-    return;
-  }
-
-  QGuiApplication::clipboard()->clear();
-}
-
-
-void
-PatternView::pastePatternBelow() {
-  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
-  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
-    return;
-
-  AbstractPattern *nextSibling = selectedPattern();
-  if (nullptr == nextSibling) {
-    QMessageBox::information(nullptr, tr("Select a sibling first."),
-                             tr("To insert a pattern below another pattern, select a pattern first."));
-    return;
-  }
-
-  AbstractPattern *parent = qobject_cast<AbstractPattern *>(nextSibling->parent());
-  if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
-    QMessageBox::information(nullptr, tr("Parent must be structured pattern."),
-                             tr("The parent of the selected pattern must be a structured pattern."));
-    return;
-  }
-
-  Address insertionAddress = nextSibling->address();
-  if (FixedPattern *fixed = nextSibling->as<FixedPattern>())
-    insertionAddress += fixed->size();
-
-  StructuredPattern *structure = parent->as<StructuredPattern>();
-  unsigned int insertionIndex = structure->indexOf(nextSibling) + 1;
-  if (! parent->is<ElementPattern>()) {
-    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
-                             tr("The parent of the selected pattern must be an element pattern."));
-    return;
-  }
-
-  if (! mimeData->pattern()->is<FixedPattern>()) {
-    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
-                             tr("Can onyl add fixed-sized patterns to an element pattern."));
-    return;
-  }
-
-  if (! showPatternEditor(mimeData->pattern(), parent->codeplug())) {
-    return;
-  }
-
-
-  if (! parent->as<ElementPattern>()->insertChildPattern(mimeData->pattern()->as<FixedPattern>(), insertionIndex)) {
-    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
-                             tr("Element pattern rejected child."));
-    return;
-  }
-
-  QGuiApplication::clipboard()->clear();
 }
 
 
@@ -641,6 +660,10 @@ PatternView::contextMenuEvent(QContextMenuEvent *event) {
                            parent()->findChild<QAction*>("actionSplitUnknownField"),
                            parent()->findChild<QAction*>("actionInsertNewPatternBelow") });
   contextMenu.addSeparator();
+  contextMenu.addActions({ parent()->findChild<QAction*>("actionAppendImportedPattern"),
+                           parent()->findChild<QAction*>("actionInsertImportedPatternAbove"),
+                           parent()->findChild<QAction*>("actionInsertImportedPatternBelow") });
+  contextMenu.addSeparator();
   contextMenu.addActions({ parent()->findChild<QAction*>("actionCopyPattern"),
                            parent()->findChild<QAction*>("actionPastePatternAsChild"),
                            parent()->findChild<QAction*>("actionPastePatternAbove"),
@@ -652,6 +675,41 @@ PatternView::contextMenuEvent(QContextMenuEvent *event) {
                            parent()->findChild<QAction*>("actionDeletePattern") });
   contextMenu.exec(event->globalPos());
 }
+
+
+AbstractPattern *
+PatternView::selectedParent() const {
+  AbstractPattern *parent = selectedPattern();
+  if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
+    QMessageBox::information(nullptr, tr("Select a structured pattern first."),
+                             tr("To append a child pattern, select a structured pattern first."));
+    return nullptr;
+  }
+
+  return parent;
+}
+
+
+FixedPattern *
+PatternView::selectedSibling() const {
+  AbstractPattern *nextSibling = selectedPattern();
+
+  if ((nullptr == nextSibling) || (! nextSibling->is<FixedPattern>())) {
+    QMessageBox::information(nullptr, tr("Select a sibling first."),
+                             tr("To insert a pattern above another pattern, select a fixed pattern first."));
+    return nullptr;
+  }
+
+  AbstractPattern *parent = qobject_cast<AbstractPattern *>(nextSibling->parent());
+  if ((nullptr == parent) || (! parent->is<ElementPattern>())) {
+    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
+                             tr("The parent of the selected pattern must be an element pattern."));
+    return nullptr;
+  }
+
+  return nextSibling->as<FixedPattern>();
+}
+
 
 void
 PatternView::save() {

@@ -184,6 +184,8 @@ protected:
   AnnotationCollection();
 
 public:
+  virtual ~AnnotationCollection();
+
   /** Returns @c true, if there are no child-annotations.
    * For @c Element instances, this means, that the element does not match any pattern or is
    * unannotated. */
@@ -196,6 +198,8 @@ public:
   const AbstractAnnotation *annotationAt(const Address& addr) const;
   /** Adds an annotation. The ownership is taken. */
   virtual void addAnnotation(AbstractAnnotation *annotation);
+  /** Removes all annotations. */
+  virtual void clearAnnotations();
 
 protected:
   /** The vector of annotations. */

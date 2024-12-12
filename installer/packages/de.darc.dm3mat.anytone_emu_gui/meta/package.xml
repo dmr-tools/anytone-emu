@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>Emulator and codeplug editor</DisplayName>
+    <Description>Graphical tool to reverse engineer and </Description>
+    <Version>0.1.0-1</Version>
+    <ReleaseDate>2024-11-29</ReleaseDate>
+    <Licenses>
+        <License name="General Public License v3" file="license.txt" />
+    </Licenses>
+    <Default>true</Default>
+    <Script>installscript.qs</Script>
+    <Name>de.darc.dm3mat.anytone_emu_gui</Name>
+</Package>

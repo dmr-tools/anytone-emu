@@ -12,7 +12,8 @@
  * Implementation of PatternMeta
  * ********************************************************************************************* */
 PatternMeta::PatternMeta(QObject *parent)
-  : QObject{parent}, _name(), _shortName(), _description(), _fwVersion(), _flags(Flags::None)
+  : QObject{parent}, _name(), _shortName(), _brief(), _description(),
+    _fwVersion(), _flags(Flags::None)
 {
   // pass...
 }
@@ -28,6 +29,12 @@ PatternMeta::serialize(QXmlStreamWriter &writer) const {
   if (hasShortName()) {
     writer.writeStartElement("short-name");
     writer.writeCharacters(shortName());
+    writer.writeEndElement();
+  }
+
+  if (hasBriefDescription()) {
+    writer.writeStartElement("brief");
+    writer.writeCharacters(briefDescription());
     writer.writeEndElement();
   }
 
@@ -58,6 +65,7 @@ PatternMeta &
 PatternMeta::operator =(const PatternMeta &other) {
   _name = other._name;
   _shortName = other._shortName;
+  _brief = other._brief;
   _description = other._description;
   _fwVersion = other._fwVersion;
   _flags = other._flags;
@@ -88,6 +96,22 @@ PatternMeta::shortName() const {
 void
 PatternMeta::setShortName(const QString &name) {
   _shortName = name;
+  emit modified();
+}
+
+bool
+PatternMeta::hasBriefDescription() const {
+  return ! _brief.isEmpty();
+}
+
+const QString &
+PatternMeta::briefDescription() const {
+  return _brief;
+}
+
+void
+PatternMeta::setBriefDescription(const QString &description) {
+  _brief = description;
   emit modified();
 }
 
@@ -696,8 +720,7 @@ BlockPattern::BlockPattern(QObject *parent)
  * Implementation of BlockRepeatPattern
  * ********************************************************************************************* */
 BlockRepeatPattern::BlockRepeatPattern(QObject *parent)
-  : BlockPattern{parent}, _minRepetition(std::numeric_limits<unsigned int>::max()),
-    _maxRepetition(std::numeric_limits<unsigned int>::max()), _subpattern(nullptr)
+  : BlockPattern{parent}, _minRepetition(0), _maxRepetition(1), _subpattern(nullptr)
 {
   // pass...
 }
@@ -715,10 +738,8 @@ BlockRepeatPattern::serialize(QXmlStreamWriter &writer) const {
 
   if (! hasImplicitAddress())
     writer.writeAttribute("at", address().toString());
-  if (hasMinRepetition())
-    writer.writeAttribute("min", QString::number(minRepetition()));
-  if (hasMaxRepetition())
-    writer.writeAttribute("max", QString::number(maxRepetition()));
+  writer.writeAttribute("min", QString::number(minRepetition()));
+  writer.writeAttribute("max", QString::number(maxRepetition()));
 
   if (! meta().serialize(writer))
     return false;
@@ -743,10 +764,6 @@ BlockRepeatPattern::clone() const {
   return pattern;
 }
 
-bool
-BlockRepeatPattern::hasMinRepetition() const {
-  return std::numeric_limits<unsigned int>::max() != _minRepetition;
-}
 unsigned int
 BlockRepeatPattern::minRepetition() const {
   return _minRepetition;
@@ -756,10 +773,6 @@ BlockRepeatPattern::setMinRepetition(unsigned int rep) {
   _minRepetition = rep;
 }
 
-bool
-BlockRepeatPattern::hasMaxRepetition() const {
-  return std::numeric_limits<unsigned int>::max() != _maxRepetition;
-}
 unsigned int
 BlockRepeatPattern::maxRepetition() const {
   return _maxRepetition;
@@ -938,16 +951,21 @@ ElementPattern::combinedFlags() const {
 
 bool
 ElementPattern::addChildPattern(AbstractPattern *pattern) {
-  if (! pattern->is<FixedPattern>())
+  if (! pattern->is<FixedPattern>()) {
+    logInfo() << "Only fixed pattern can be added to ElementPattern.";
     return false;
+  }
 
   // Compute offset, where to put pattern
   Address addr = Address::zero();
   if (! _content.isEmpty())
     addr = _content.back()->address() + _content.back()->size();
   // If a offset is set -> check it
-  if (pattern->hasAddress() && (pattern->address() != addr))
+  if (pattern->hasAddress() && (pattern->address() != addr)) {
+    logDebug() << "Cannot append pattern at address " << pattern->address().toString()
+               << ", must be " << addr.toString() << ".";
     return false;
+  }
 
   // Set/update offset
   pattern->setAddress(addr);

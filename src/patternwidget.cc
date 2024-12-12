@@ -57,6 +57,16 @@ PatternWidget::PatternWidget(QWidget *parent)
   auto pasteAction = new QAction(QIcon::fromTheme("edit-paste"), tr("Paste copied pattern"));
   pasteAction->setMenu(pasteMenu);
   toolBar->addAction(pasteAction);
+  auto importMenu = new QMenu();
+  ui->actionAppendImportedPattern->setIcon(QIcon::fromTheme("insert-child"));
+  importMenu->addAction(ui->actionAppendImportedPattern);
+  ui->actionInsertImportedPatternAbove->setIcon(QIcon::fromTheme("insert-above"));
+  importMenu->addAction(ui->actionInsertImportedPatternAbove);
+  ui->actionInsertImportedPatternBelow->setIcon(QIcon::fromTheme("insert-below"));
+  importMenu->addAction(ui->actionInsertImportedPatternBelow);
+  auto importAction = new QAction(QIcon::fromTheme("document-import"), tr("Imports patterns from other codeplugs."));
+  importAction->setMenu(importMenu);
+  toolBar->addAction(importAction);
   toolBar->addSeparator();
   ui->actionMarkFieldAsUnknown->setIcon(QIcon::fromTheme("edit-erase"));
   toolBar->addAction(ui->actionMarkFieldAsUnknown);
@@ -74,11 +84,15 @@ PatternWidget::PatternWidget(QWidget *parent)
   connect(ui->actionAppendNewPattern, &QAction::triggered, ui->patterns, &PatternView::appendNewPattern);
   connect(ui->patterns, &PatternView::canAppendPattern, ui->actionPastePatternAsChild, &QAction::setEnabled);
   connect(ui->actionPastePatternAsChild, &QAction::triggered, ui->patterns, &PatternView::pastePatternAsChild);
+  connect(ui->patterns, &PatternView::canAppendPattern, ui->actionAppendImportedPattern, &QAction::setEnabled);
+  connect(ui->actionAppendImportedPattern, &QAction::triggered, ui->patterns, &PatternView::appendImportedPattern);
 
   connect(ui->patterns, &PatternView::canInsertPatternAbove, ui->actionInsertNewPatternAbove, &QAction::setEnabled);
   connect(ui->actionInsertNewPatternAbove, &QAction::triggered, ui->patterns, &PatternView::insertNewPatternAbove);
   connect(ui->patterns, &PatternView::canInsertPatternAbove, ui->actionPastePatternAbove, &QAction::setEnabled);
   connect(ui->actionPastePatternAbove, &QAction::triggered, ui->patterns, &PatternView::pastePatternAbove);
+  connect(ui->patterns, &PatternView::canInsertPatternAbove, ui->actionInsertImportedPatternAbove, &QAction::setEnabled);
+  connect(ui->actionInsertImportedPatternAbove, &QAction::triggered, ui->patterns, &PatternView::insertImportedPatternAbove);
 
   connect(ui->patterns, &PatternView::canSplitFieldPattern, ui->actionSplitUnknownField, &QAction::setEnabled);
   connect(ui->actionSplitUnknownField, &QAction::triggered, ui->patterns, &PatternView::splitFieldPattern);
@@ -88,6 +102,8 @@ PatternWidget::PatternWidget(QWidget *parent)
   connect(ui->actionInsertNewPatternBelow, &QAction::triggered, ui->patterns, &PatternView::insertNewPatternBelow);
   connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionPastePatternBelow, &QAction::setEnabled);
   connect(ui->actionPastePatternBelow, &QAction::triggered, ui->patterns, &PatternView::pastePatternBelow);
+  connect(ui->patterns, &PatternView::canInsertPatternBelow, ui->actionInsertImportedPatternBelow, &QAction::setEnabled);
+  connect(ui->actionInsertImportedPatternBelow, &QAction::triggered, ui->patterns, &PatternView::insertImportedPatternBelow);
 
   connect(ui->patterns, &PatternView::canRemove, ui->actionDeletePattern, &QAction::setEnabled);
   connect(ui->actionDeletePattern, &QAction::triggered, ui->patterns, &PatternView::removeSelected);

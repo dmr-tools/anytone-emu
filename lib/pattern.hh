@@ -25,6 +25,8 @@ class PatternMeta: public QObject
   Q_PROPERTY(QString name READ name WRITE setName)
   /** The optional short name of the pattern. */
   Q_PROPERTY(QString shortName READ shortName WRITE setShortName)
+  /** The breif description property. */
+  Q_PROPERTY(QString brief READ briefDescription WRITE setBriefDescription)
   /** The description property. */
   Q_PROPERTY(QString description READ description WRITE setDescription)
   /** The firmware version property. */
@@ -63,6 +65,13 @@ public:
   /** Sets the short name of the pattern. */
   void setShortName(const QString &name);
 
+  /** Returns @c true if the pattern has a brief description. */
+  bool hasBriefDescription() const;
+  /** Returns the brief description of the pattern. */
+  const QString &briefDescription() const;
+  /** Sets the brief description of the pattern. */
+  void setBriefDescription(const QString &text);
+
   /** Returns @c true if the pattern has a description. */
   bool hasDescription() const;
   /** Returns the description of the pattern. */
@@ -91,6 +100,8 @@ protected:
   QString _name;
   /** Holds the short name. */
   QString _shortName;
+  /** Holds the brief description. */
+  QString _brief;
   /** Holds the description. */
   QString _description;
   /** Holds the firmware version. */
@@ -437,14 +448,11 @@ public:
 
   AbstractPattern *clone() const;
 
-  /** Retunrs @c true, if a minimum repetition number is specified. */
-  bool hasMinRepetition() const;
   /** Returns the minimum number of repetitions of the sub-pattern. */
   unsigned int minRepetition() const;
   /** Sets the minimum number of repetitions of the sub-pattern. */
   void setMinRepetition(unsigned int rep);
-  /** Retunrs @c true, if a maximum repetition number is specified. */
-  bool hasMaxRepetition() const;
+
   /** Returns the maximum number of repetitions of the sub-pattern. */
   unsigned int maxRepetition() const;
   /** Sets the maximum number of repetitions of the sub-pattern. */

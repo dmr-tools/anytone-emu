@@ -6,13 +6,24 @@
 #include <QIcon>
 
 Application::Application(int &argc, char *argv[])
-  : QApplication(argc, argv), _collection(new Collection(this)), _device(nullptr)
+  : QApplication(argc, argv), _collection(new Collection(this)), _catalog(), _device(nullptr)
 {
   setApplicationDisplayName("AnyTone emulator");
   setOrganizationName("DMRTools");
   setOrganizationDomain("dmr-tools.github.io");
   setApplicationName("anytone-emu-gui");
   setApplicationVersion(PROJECT_VERSION);
+}
+
+
+const QString &
+Application::catalog() const {
+  return _catalog;
+}
+
+void
+Application::setCatalog(const QString &filename) {
+  _catalog = filename;
 }
 
 
@@ -38,4 +49,9 @@ Application::device() const {
   return _device;
 }
 
+
+Application *
+Application::instance() {
+  return qobject_cast<Application *>(QApplication::instance());
+}
 

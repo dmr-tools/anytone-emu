@@ -5,8 +5,8 @@ qt_add_executable(anytone-emu-gui WIN32
   mainwindow.hh mainwindow.cc mainwindow.ui
   aboutdialog.hh aboutdialog.cc aboutdialog.ui
   setupdialog.hh setupdialog.cc setupdialog.ui
-  patternmetaeditor.hh patternmetaeditor.cc patternmetaeditor.ui
   codeplugdialog.hh codeplugdialog.cc codeplugdialog.ui
+  patternmetaeditor.hh patternmetaeditor.cc patternmetaeditor.ui
   sparserepeatdialog.hh sparserepeatdialog.cc sparserepeatdialog.ui
   blockrepeatdialog.hh blockrepeatdialog.cc blockrepeatdialog.ui
   fixedrepeatdialog.hh fixedrepeatdialog.cc fixedrepeatdialog.ui
@@ -37,19 +37,20 @@ qt_add_executable(anytone-emu-gui WIN32
   heximagediffdocument.hh heximagediffdocument.cc
   logmessagelist.hh logmessagelist.cc
   elementpatternview.hh elementpatternview.cc
-  questiondialog.cc questiondialog.hh)
+  questiondialog.cc questiondialog.hh
+  patternimportdialog.hh patternimportdialog.cc patternimportdialog.ui)
 
 qt_add_resources(anytone-emu-gui "codeplugs"
   PREFIX "/codeplugs"
   BASE "${CMAKE_SOURCE_DIR}/codeplugs/"
   FILES "${CMAKE_SOURCE_DIR}/codeplugs/catalog.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/d868uve/2.40/codeplug.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/d878uv/3.04/codeplug.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/d868uve/v2.40.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/d878uv/v3.04.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/d878uv2/3.04/codeplug.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/d578uv/1.21/codeplug.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/d578uv2/2.03/codeplug.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/d578uv2/2.08/codeplug.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/2.10/codeplug.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/v2.10.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv2/1.10/codeplug.xml")
 
 
@@ -87,7 +88,7 @@ generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
   ICONS application-exit dialog-ok dialog-cancel document-new document-save document-save-as
         edit edit-annotate edit-clear edit-delete edit-erase edit-split-element edit-copy edit-paste
-        insert-child insert-above insert-below
+        insert-child insert-above insert-below document-import
         none show-diff-single show-diff-multiple show-hexdump inspect
         help-about help-contents show-log window-close mark-done
   THEMES light dark

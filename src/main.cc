@@ -9,6 +9,7 @@
 #include <QSerialPort>
 #include <QXmlStreamReader>
 #include <QMessageBox>
+#include <QStyleHints>
 
 #include "mainwindow.hh"
 
@@ -18,11 +19,21 @@ main(int argc, char *argv[])
   QTextStream err(stderr);
   Logger::get().addHandler(new StreamLogHandler(err, LogMessage::DEBUG, true));
 
+  QApplication::setStyle("fusion");
   Application app(argc, argv);
-  if (app.palette().window().color().lightness() < app.palette().windowText().color().lightness())
+
+#if QT_VERSION >= QT_VERSION_CHECK(6,5,0)
+  bool darkMode = Qt::ColorScheme::Dark == app.styleHints()->colorScheme();
+#else
+  bool darkMode = (app.palette().text().color().lightness() >
+                   app.palette().window().color().lightness());
+#endif
+
+  if (darkMode) {
     QIcon::setThemeName("dark");
-  else
+  } else {
     QIcon::setThemeName("light");
+  }
 
   while (true) {
     SetupDialog setup;
@@ -39,6 +50,7 @@ main(int argc, char *argv[])
     }
 
     device->setHandler(new ImageCollectionAdapter(app.collection()));
+    app.setCatalog(setup.catalog());
     app.setDevice(device);
 
     MainWindow  mainwindow;
