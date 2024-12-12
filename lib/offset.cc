@@ -213,7 +213,7 @@ Size::Size(const Offset &offset)
 
 bool
 Size::isValid() const {
-  return std::numeric_limits<unsigned long>::max() != _value;
+  return std::numeric_limits<uint64_t>::max() != _value;
 }
 
 Size

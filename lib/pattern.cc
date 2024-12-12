@@ -962,8 +962,8 @@ ElementPattern::addChildPattern(AbstractPattern *pattern) {
     addr = _content.back()->address() + _content.back()->size();
   // If a offset is set -> check it
   if (pattern->hasAddress() && (pattern->address() != addr)) {
-    logDebug() << "Cannot append pattern at address " << pattern->address().toString()
-               << ", must be " << addr.toString() << ".";
+    logInfo() << "Cannot append pattern at address " << pattern->address().toString()
+              << ", must be " << addr.toString() << ".";
     return false;
   }
 
