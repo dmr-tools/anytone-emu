@@ -154,7 +154,7 @@ Offset::zero() {
 }
 
 Offset
-Offset::fromByte(unsigned int n, unsigned int bit) {
+Offset::fromByte(int n, int bit) {
   return Offset(8*((int64_t)n) + bit);
 }
 
@@ -213,7 +213,7 @@ Size::Size(const Offset &offset)
 
 bool
 Size::isValid() const {
-  return std::numeric_limits<unsigned long>::max() != _value;
+  return std::numeric_limits<uint64_t>::max() != _value;
 }
 
 Size
