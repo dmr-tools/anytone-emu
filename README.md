@@ -55,7 +55,7 @@ CPSs appear to work with wine.
  | AnyTone D578UV (II)  | 1.18    | not tested | crashes    |                                  |
  | BTECH DMR-6X2UV      | 2.04    | not tested | yes        |                                  |
  | BTECH DMR-6X2UV Pro  | 1.01k   | yes        | not tested |                                  |
-
+ | Alinco DJ-MD5        | 1.13e   | not tested | yes        |                                  |
 
 ## Command line options
   - `--help` -- Obvious help message.

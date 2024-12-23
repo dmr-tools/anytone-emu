@@ -33,23 +33,18 @@ HexDocument::HexDocument(bool darkMode, QObject *parent)
 
   _addressFormat = _baseFormat;
   _addressFormat.setFontWordSpacing(10);
-  //_addressFormat.setForeground(QColor(Qt::darkBlue));
 
   _valueFormat = _baseFormat;
   _valueFormat.setFontFixedPitch(true);
   _valueFormat.setFontWordSpacing(5);
 
   _keepValueFormat = _valueFormat;
-  //_keepValueFormat.setForeground(QColor(Qt::gray));
 
   _addValueFormat = _valueFormat;
-  //_addValueFormat.setForeground(QColor(Qt::darkGreen));
 
   _remValueFormat = _valueFormat;
-  //_remValueFormat.setForeground(QColor(Qt::darkRed));
 
   _unusedValueFormat = _valueFormat;
-  //_unusedValueFormat.setForeground(QColor(Qt::lightGray));
 
   _charsFormat = _baseFormat;
 
@@ -62,12 +57,14 @@ HexDocument::HexDocument(bool darkMode, QObject *parent)
 void
 HexDocument::enableDarkMode(bool enable) {
   if (enable) {
-    _addressFormat.setForeground(QColor(Qt::cyan));
+    _elementTitleFormat.setForeground(QColor(Qt::lightGray));
+    _addressFormat.setForeground(QColor(Qt::magenta));
     _keepValueFormat.setForeground(QColor(Qt::lightGray));
     _addValueFormat.setForeground(QColor(Qt::green));
     _remValueFormat.setForeground(QColor(Qt::red));
     _unusedValueFormat.setForeground(QColor(Qt::gray));
   } else {
+    _elementTitleFormat.setForeground(QColor(Qt::black));
     _addressFormat.setForeground(QColor(Qt::darkBlue));
     _keepValueFormat.setForeground(QColor(Qt::gray));
     _addValueFormat.setForeground(QColor(Qt::darkGreen));
@@ -78,15 +75,12 @@ HexDocument::enableDarkMode(bool enable) {
 
 void
 HexDocument::putElementTitle(const HexElement &element, QTextCursor &cursor) {
-  Application *app = qobject_cast<Application*>(Application::instance());
-
   cursor.insertBlock(_elementTitleFormat);
 
   QTextCharFormat titleFormat = _elementTitleFormat.toCharFormat();
   titleFormat.setFontPointSize(titleFormat.fontPointSize()*1.6);
 
   cursor.insertText(QString("Unknown Element at %1h").arg(element.address(), 0, 16), titleFormat);
-
 }
 
 void

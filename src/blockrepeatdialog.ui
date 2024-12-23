@@ -87,13 +87,6 @@
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QCheckBox" name="minRepetitionUnset">
-          <property name="text">
-           <string>unset</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
       <item row="2" column="0">
@@ -107,15 +100,11 @@
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QSpinBox" name="maxRepetition">
+          <property name="minimum">
+           <number>1</number>
+          </property>
           <property name="maximum">
            <number>1000000000</number>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="maxRepetitionUnset">
-          <property name="text">
-           <string>unset</string>
           </property>
          </widget>
         </item>

@@ -69,8 +69,8 @@ LogMessageList::headerData(int section, Qt::Orientation orientation, int role) c
 
 void
 LogMessageList::addMessage(const LogMessage &message) {
-  beginInsertRows(QModelIndex(), _messages.size(), _messages.size());
-  _messages.append(LogItem(message));
+  beginInsertRows(QModelIndex(), 0, 0);
+  _messages.insert(0, LogItem(message));
   endInsertRows();
 }
 

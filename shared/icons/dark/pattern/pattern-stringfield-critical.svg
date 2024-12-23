@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 135.46666 135.46667"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="pattern-stringfield-critical.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     units="px"
+     width="512px"
+     inkscape:zoom="1.1282353"
+     inkscape:cx="89.963503"
+     inkscape:cy="258.81126"
+     inkscape:window-width="1920"
+     inkscape:window-height="1011"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1" />
+  <defs
+     id="defs2">
+    <rect
+       x="20.887847"
+       y="37.634824"
+       width="470.90964"
+       height="436.64013"
+       id="rect8561" />
+  </defs>
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-size:71.4856px;line-height:322.955px;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.37232;fill:#e5e5e5;fill-opacity:1"
+       x="10.000331"
+       y="92.323959"
+       id="text16433"><tspan
+         sodipodi:role="line"
+         id="tspan16431"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:71.4856px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.37232;fill:#e5e5e5;fill-opacity:1"
+         x="10.000331"
+         y="92.323959">str</tspan></text>
+    <g
+       id="g1222"
+       style="fill:#ff0000;fill-opacity:1"
+       transform="matrix(0.26458333,0,0,0.26458333,10.943101,21.730596)">
+      <circle
+         style="fill:#ff0000;fill-opacity:1;fill-rule:evenodd"
+         id="path280"
+         cx="351.71112"
+         cy="310.93948"
+         r="90.708664" />
+    </g>
+  </g>
+</svg>

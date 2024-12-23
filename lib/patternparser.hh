@@ -1,13 +1,13 @@
-#ifndef CODEPLUGPATTERNPARSER_HH
-#define CODEPLUGPATTERNPARSER_HH
+#ifndef PATTERNPARSER_HH
+#define PATTERNPARSER_HH
 
 #include "xmlparser.hh"
 #include <QObject>
 
 class AbstractPattern;
 
-/** Parser for XML codeplug pattern definitions. */
-class CodeplugPatternParser: public XmlParser
+/** Base class of all parser for XML codeplug pattern definitions. */
+class PatternParser: public XmlParser
 {
   Q_OBJECT
 
@@ -16,14 +16,17 @@ protected:
   enum class State {
     None,            ///< No special state, aka start.
     MetaName,        ///< Parse meta information name.
+    MetaShortName,   ///< Parse meta information short name.
+    MetaBrief,       ///< Parse meta information brief description.
     MetaDescription, ///< Parse meta information description.
     MetaFWVersion    ///< Parse meta information firmware version.
   };
 
-public:
-  /** Default constructor. */
-  explicit CodeplugPatternParser(QObject *parent = nullptr);
+protected:
+  /** Hidden constructor. */
+  explicit PatternParser(QObject *parent = nullptr);
 
+public:
   /** Tests if the top element on the stack can be casted to the template argument. */
   template<class T>
   bool topIs() const {
@@ -60,7 +63,6 @@ public:
   }
 
 protected:
-  bool endDocument();
   bool processText(const QStringView &content);
 
 protected slots:
@@ -72,14 +74,22 @@ protected slots:
   bool beginNameElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of name element. */
   bool endNameElement();
+  /** Handler for start of short name element. */
+  bool beginShortNameElement(const QXmlStreamAttributes &attributes);
+  /** Handler for end of short name element. */
+  bool endShortNameElement();
+  /** Handler for start of brief description element. */
+  bool beginBriefElement(const QXmlStreamAttributes &attributes);
+  /** Handler for end of brief description element. */
+  bool endBriefElement();
   /** Handler for start of description element. */
   bool beginDescriptionElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of description element. */
   bool endDescriptionElement();
   /** Handler for start of version element. */
-  bool beginVersionElement(const QXmlStreamAttributes &attributes);
+  bool beginFirmwareElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of version element. */
-  bool endVersionElement();
+  bool endFirmwareElement();
   /** Handler for start of done element. */
   bool beginDoneElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of done element. */
@@ -92,11 +102,6 @@ protected slots:
   bool beginIncompleteElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of incomplete element. */
   bool endIncompleteElement();
-
-  /** Handler for start of codeplug element. */
-  bool beginCodeplugElement(const QXmlStreamAttributes &attributes);
-  /** Handler for end of codeplug element. */
-  bool endCodeplugElement();
 
   /** Handler for start of repeat element. */
   bool beginRepeatElement(const QXmlStreamAttributes &attributes);
@@ -207,4 +212,4 @@ protected:
   QList<QObject *> _stack;
 };
 
-#endif // CODEPLUGPATTERNPARSER_HH
+#endif // PATTERNPARSER_HH

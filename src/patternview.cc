@@ -3,12 +3,14 @@
 #include "device.hh"
 #include "application.hh"
 #include "patternwrapper.hh"
-#include "logger.hh"
 
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
+#include <QClipboard>
+#include <QContextMenuEvent>
 
+#include "codeplugdialog.hh"
 #include "sparserepeatdialog.hh"
 #include "blockrepeatdialog.hh"
 #include "fixedrepeatdialog.hh"
@@ -17,6 +19,14 @@
 #include "enumfielddialog.hh"
 #include "stringfielddialog.hh"
 #include "unusedfielddialog.hh"
+#include "unknownpatterndialog.hh"
+#include "newpatterndialog.hh"
+#include "splitfieldpatterndialog.hh"
+#include "patternmimedata.hh"
+#include "questiondialog.hh"
+#include "patternimportdialog.hh"
+#include "logger.hh"
+
 
 
 PatternView::PatternView(QWidget *parent)
@@ -28,7 +38,6 @@ PatternView::PatternView(QWidget *parent)
   if (_pattern)
     setModel(new PatternWrapper(_pattern));
 
-  connect(this, &QWidget::customContextMenuRequested, this, &PatternView::onShowContextMenu);
 }
 
 AbstractPattern *
@@ -49,369 +58,510 @@ PatternView::editPattern() {
     return;
   }
 
+  showPatternEditor(pattern);
+}
+
+
+bool
+PatternView::showPatternEditor(AbstractPattern *pattern, const CodeplugPattern *codeplug) {
+  if (pattern->is<CodeplugPattern>()) {
+    CodeplugDialog dialog;
+    dialog.setPattern(pattern->as<CodeplugPattern>());
+    return QDialog::Accepted == dialog.exec();
+  }
+
   if (pattern->is<RepeatPattern>()) {
     SparseRepeatDialog dialog;
-    dialog.setPattern(pattern->as<RepeatPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    dialog.setPattern(pattern->as<RepeatPattern>(), codeplug);
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<BlockRepeatPattern>()) {
+  if (pattern->is<BlockRepeatPattern>()) {
     BlockRepeatDialog dialog;
-    dialog.setPattern(pattern->as<BlockRepeatPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    dialog.setPattern(pattern->as<BlockRepeatPattern>(), codeplug);
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<FixedRepeatPattern>()) {
+  if (pattern->is<FixedRepeatPattern>()) {
     FixedRepeatDialog dialog;
-    dialog.setPattern(pattern->as<FixedRepeatPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    dialog.setPattern(pattern->as<FixedRepeatPattern>(), codeplug);
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<ElementPattern>()) {
+  if (pattern->is<ElementPattern>()) {
     ElementDialog dialog;
-    dialog.setPattern(pattern->as<ElementPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    dialog.setPattern(pattern->as<ElementPattern>(), codeplug);
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<IntegerFieldPattern>()) {
+  if (pattern->is<IntegerFieldPattern>()) {
     IntegerFieldDialog dialog;
-    dialog.setPattern(pattern->as<IntegerFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    dialog.setPattern(pattern->as<IntegerFieldPattern>(), codeplug);
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<EnumFieldPattern>()) {
+  if (pattern->is<EnumFieldPattern>()) {
     EnumFieldDialog dialog;
-    dialog.setPattern(pattern->as<EnumFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    dialog.setPattern(pattern->as<EnumFieldPattern>(), codeplug);
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<StringFieldPattern>()) {
+  if (pattern->is<StringFieldPattern>()) {
     StringFieldDialog dialog;
-    dialog.setPattern(pattern->as<StringFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
+    dialog.setPattern(pattern->as<StringFieldPattern>(), codeplug);
+    return QDialog::Accepted == dialog.exec();
+  }
 
-    }
-  } else if (pattern->is<UnusedFieldPattern>()) {
+  if (pattern->is<UnusedFieldPattern>()) {
     UnusedFieldDialog dialog;
-    dialog.setPattern(pattern->as<UnusedFieldPattern>());
-    if (QDialog::Accepted == dialog.exec()) {
-
-    }
+    dialog.setPattern(pattern->as<UnusedFieldPattern>(), codeplug);
+    return QDialog::Accepted == dialog.exec();
   }
+
+  if (pattern->is<UnknownFieldPattern>()) {
+    UnknownPatternDialog dialog;
+    dialog.setPattern(pattern->as<UnknownFieldPattern>(), codeplug);
+    return QDialog::Accepted == dialog.exec();
+  }
+
+  return false;
 }
 
-void
-PatternView::addSparseRepeat() {
-  AbstractPattern *parent = selectedPattern();
-  if ((nullptr == parent) || (! parent->is<GroupPattern>())) {
-    QMessageBox::information(nullptr, tr("Select a group pattern first."),
-                             tr("To add a sparse repeat pattern, select a group pattern first."));
-    return;
-  }
-
-  StructuredPattern *structure = parent->as<StructuredPattern>();
-  auto sr = new RepeatPattern();
-  sr->meta().setName("New sparse repeat");
-  sr->meta().setFlags(PatternMeta::Flags::Incomplete);
-  sr->setAddress(Address::fromByte(0));
-
-  if (! structure->addChildPattern(sr)) {
-    logWarn() << "Cannot add sparse repeat pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete sr;
-  }
-}
 
 void
-PatternView::addBlockRepeat() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new BlockRepeatPattern();
-  pattern->meta().setName("New block repeat");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add block-repeat pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addFixedRepeat() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new FixedRepeatPattern();
-  pattern->meta().setName("New fixed repeat");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add fixed repeat pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addElement() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new ElementPattern();
-  pattern->meta().setName("New element");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add element pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addInteger() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new IntegerFieldPattern();
-  pattern->meta().setName("New integer");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add integer pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addBit() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new IntegerFieldPattern();
-  pattern->meta().setName("New bit");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  pattern->setWidth(Size::fromBits(1));
-  pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
-  pattern->setEndian(IntegerFieldPattern::Endian::Little);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add bit pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addUInt8() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new IntegerFieldPattern();
-  pattern->meta().setName("New uint8");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  pattern->setWidth(Size::fromBits(8));
-  pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
-  pattern->setEndian(IntegerFieldPattern::Endian::Little);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add uint8 pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addInt8() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new IntegerFieldPattern();
-  pattern->meta().setName("New int8");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  pattern->setWidth(Size::fromBits(8));
-  pattern->setFormat(IntegerFieldPattern::Format::Signed);
-  pattern->setEndian(IntegerFieldPattern::Endian::Little);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add int8 pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addUInt16() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new IntegerFieldPattern();
-  pattern->meta().setName("New uint16");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  pattern->setWidth(Size::fromBits(16));
-  pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
-  pattern->setEndian(IntegerFieldPattern::Endian::Little);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add uint16 pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addInt16() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new IntegerFieldPattern();
-  pattern->meta().setName("New int16");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  pattern->setWidth(Size::fromBits(16));
-  pattern->setFormat(IntegerFieldPattern::Format::Signed);
-  pattern->setEndian(IntegerFieldPattern::Endian::Little);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add int16 pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addUInt32() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new IntegerFieldPattern();
-  pattern->meta().setName("New uint32");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  pattern->setWidth(Size::fromBits(32));
-  pattern->setFormat(IntegerFieldPattern::Format::Unsigned);
-  pattern->setEndian(IntegerFieldPattern::Endian::Little);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add uint32 pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addInt32() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new IntegerFieldPattern();
-  pattern->meta().setName("New int32");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  pattern->setWidth(Size::fromBits(32));
-  pattern->setFormat(IntegerFieldPattern::Format::Signed);
-  pattern->setEndian(IntegerFieldPattern::Endian::Little);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add int32 pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addBCD8() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new IntegerFieldPattern();
-  pattern->meta().setName("New BCD8");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  pattern->setWidth(Size::fromBits(32));
-  pattern->setFormat(IntegerFieldPattern::Format::BCD);
-  pattern->setEndian(IntegerFieldPattern::Endian::Big);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add bcd8 pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addEnum() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new EnumFieldPattern();
-  pattern->meta().setName("New enum");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add enum pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addString() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new StringFieldPattern();
-  pattern->meta().setName("New string");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add string pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addUnused() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new UnusedFieldPattern();
-  pattern->meta().setName("New unused data pattern");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add unused data pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::addUnknown() {
-  if (! selectedPattern()->is<StructuredPattern>())
-    return;
-
-  auto *pattern = new UnusedFieldPattern();
-  pattern->meta().setName("New unknown data pattern");
-  pattern->meta().setFlags(PatternMeta::Flags::Incomplete);
-  if (! selectedPattern()->as<StructuredPattern>()->addChildPattern(pattern)) {
-    logWarn() << "Cannot add unknonw data pattern to " << selectedPattern()->metaObject()->className()
-              << " '" << selectedPattern()->meta().name() << "'.";
-    delete pattern;
-    return;
-  }
-}
-
-void
-PatternView::removeSelected() {
-  if (nullptr == selectedPattern())
-    return;
-
-  StructuredPattern *parent = dynamic_cast<StructuredPattern *>(selectedPattern()->parent());
+PatternView::appendNewPattern() {
+  AbstractPattern *parent = selectedParent();
   if (nullptr == parent)
     return;
 
+  NewPatternDialog dialog(parent, Address(), nullptr);
+  if (QDialog::Accepted != dialog.exec())
+    return;
+
+  AbstractPattern *newPattern = dialog.create();
+
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! dynamic_cast<StructuredPattern*>(parent)->addChildPattern(newPattern)) {
+    QMessageBox::information(nullptr, tr("Cannot append pattern."),
+                             tr("Cannot append pattern to %1.").arg(parent->meta().name()));
+    newPattern->deleteLater();
+    return;
+  }
+}
+
+
+void
+PatternView::insertNewPatternAbove() {
+  auto nextSibling = selectedSibling();
+  if (nullptr == nextSibling)
+    return;
+  auto parent = qobject_cast<ElementPattern *>(nextSibling->parent());
+
+  Address insertionAddress = nextSibling->address();
+  unsigned int insertionIndex = parent->indexOf(nextSibling);
+
+  NewPatternDialog dialog(parent, insertionAddress, nullptr);
+  if (QDialog::Accepted != dialog.exec())
+    return;
+
+  auto newPattern = dialog.create()->as<FixedPattern>();
+
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! parent->insertChildPattern(newPattern, insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    newPattern->deleteLater();
+    return;
+  }
+}
+
+
+void
+PatternView::insertNewPatternBelow() {
+  auto prevSibling = selectedSibling();
+  auto parent = qobject_cast<ElementPattern *>(prevSibling->parent());
+
+  Address insertionAddress = prevSibling->address();
+  if (FixedPattern *fixed = prevSibling->as<FixedPattern>())
+    insertionAddress += fixed->size();
+  unsigned int insertionIndex = parent->indexOf(prevSibling) + 1;
+
+  NewPatternDialog dialog(parent, insertionAddress, nullptr);
+  if (QDialog::Accepted != dialog.exec())
+    return;
+
+  auto newPattern = dialog.create()->as<FixedPattern>();
+
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! parent->insertChildPattern(newPattern, insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    newPattern->deleteLater();
+    return;
+  }
+}
+
+
+void
+PatternView::appendImportedPattern() {
+  auto parent = selectedParent();
+  if (nullptr == parent)
+    return;
+
+  PatternImportDialog dialog(Application::instance()->catalog());
+  if (QDialog::Accepted != dialog.exec())
+    return;
+
+  AbstractPattern *newPattern = dialog.copy();
+  newPattern->setAddress(Address());
+  newPattern->setParent(parent);
+
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! parent->as<StructuredPattern>()->addChildPattern(newPattern)) {
+    QMessageBox::information(nullptr, tr("Cannot append pattern."),
+                             tr("Cannot append pattern to %1.").arg(parent->meta().name()));
+    newPattern->deleteLater();
+    return;
+  }
+}
+
+
+void
+PatternView::insertImportedPatternAbove() {
+  auto nextSibling = selectedSibling();
+  if (nullptr == nextSibling)
+    return;
+  auto parent = qobject_cast<ElementPattern *>(nextSibling->parent());
+
+  Address insertionAddress = nextSibling->address();
+  unsigned int insertionIndex = parent->indexOf(nextSibling);
+
+  PatternImportDialog dialog(Application::instance()->catalog());
+  if (QDialog::Accepted != dialog.exec())
+    return;
+
+  AbstractPattern *newPattern = dialog.copy();
+  newPattern->setAddress(Address());
+  newPattern->setParent(parent);
+
+  if (! newPattern->is<FixedPattern>()) {
+    QMessageBox::critical(nullptr, tr("Canont import pattern to element."),
+                          tr("Can only import fixed element."));
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! parent->insertChildPattern(newPattern->as<FixedPattern>(), insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    newPattern->deleteLater();
+    return;
+  }
+}
+
+
+void
+PatternView::insertImportedPatternBelow(){
+  auto prevSibling = selectedSibling();
+  auto parent = qobject_cast<ElementPattern *>(prevSibling->parent());
+
+  Address insertionAddress = prevSibling->address();
+  if (FixedPattern *fixed = prevSibling->as<FixedPattern>())
+    insertionAddress += fixed->size();
+  unsigned int insertionIndex = parent->indexOf(prevSibling) + 1;
+
+  PatternImportDialog dialog(Application::instance()->catalog());
+  if (QDialog::Accepted != dialog.exec())
+    return;
+
+  AbstractPattern *newPattern = dialog.copy();
+  newPattern->setAddress(Address());
+  newPattern->setParent(parent);
+
+  if (! newPattern->is<FixedPattern>()) {
+    QMessageBox::critical(nullptr, tr("Canont import pattern to element."),
+                          tr("Can only import fixed element."));
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! showPatternEditor(newPattern, parent->codeplug())) {
+    newPattern->deleteLater();
+    return;
+  }
+
+  if (! parent->insertChildPattern(newPattern->as<FixedPattern>(), insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    newPattern->deleteLater();
+    return;
+  }
+}
+
+
+void
+PatternView::pastePatternAsChild() {
+  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
+  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
+    return;
+
+  auto parent = selectedParent();
+  if (nullptr == parent)
+    return;
+
+  auto pattern = mimeData->pattern();
+  pattern->setParent(parent);
+  QGuiApplication::clipboard()->clear();
+  pattern->setAddress(Address());
+
+  if (! showPatternEditor(pattern, parent->codeplug()))
+    return;
+
+  if (! parent->as<StructuredPattern>()->addChildPattern(pattern)) {
+    QMessageBox::information(nullptr, tr("Cannot append pattern."),
+                             tr("Cannot append pattern to {}.").arg(parent->meta().name()));
+    pattern->deleteLater();
+    return;
+  }
+
+  QGuiApplication::clipboard()->clear();
+}
+
+
+void
+PatternView::pastePatternAbove() {
+  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
+  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
+    return;
+
+  auto nextSibling = selectedSibling();
+  if (nullptr == nextSibling)
+    return;
+
+  auto parent = qobject_cast<ElementPattern *>(nextSibling->parent());
+  auto pattern = mimeData->pattern();
+  pattern->setParent(parent);
+  QGuiApplication::clipboard()->clear();
+
+  Address insertionAddress = nextSibling->address();
+  unsigned int insertionIndex = parent->indexOf(nextSibling);
+  pattern->setAddress(insertionAddress);
+
+  if (! pattern->is<FixedPattern>()) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Can onyl add fixed-sized patterns to an element pattern."));
+    pattern->deleteLater();
+    return;
+  }
+
+  if (! showPatternEditor(pattern, parent->codeplug())) {
+    pattern->deleteLater();
+    return;
+  }
+
+  if (! parent->insertChildPattern(pattern->as<FixedPattern>(), insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    pattern->deleteLater();
+    return;
+  }
+
+  QGuiApplication::clipboard()->clear();
+}
+
+
+void
+PatternView::pastePatternBelow() {
+  auto mimeData = qobject_cast<const PatternMimeData *>(QGuiApplication::clipboard()->mimeData());
+  if ((nullptr == mimeData) || (nullptr == mimeData->pattern()))
+    return;
+
+  auto prevSibling = selectedSibling();
+  if (nullptr == prevSibling)
+    return;
+
+  auto parent = qobject_cast<ElementPattern *>(prevSibling->parent());
+  auto pattern = mimeData->pattern();
+  pattern->setParent(parent);
+  QGuiApplication::clipboard()->clear();
+
+  Address insertionAddress = prevSibling->address() + prevSibling->size();
+  unsigned int insertionIndex = parent->indexOf(prevSibling) + 1;
+  pattern->setAddress(insertionAddress);
+
+  if (! pattern->is<FixedPattern>()) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Can only add fixed-sized patterns to an element pattern."));
+    pattern->deleteLater();
+    return;
+  }
+
+  if (! showPatternEditor(pattern, parent->codeplug())) {
+    pattern->deleteLater();
+    return;
+  }
+
+  if (! parent->insertChildPattern(pattern->as<FixedPattern>(), insertionIndex)) {
+    QMessageBox::information(nullptr, tr("Cannot add pattern to element."),
+                             tr("Element pattern rejected child."));
+    pattern->deleteLater();
+    return;
+  }
+
+  QGuiApplication::clipboard()->clear();
+}
+
+
+void
+PatternView::splitFieldPattern() {
+  // Get pattern to be replaced ...
+  AbstractPattern *replaced = selectedPattern();
+  // ... and check its type.
+  if ((nullptr == replaced) || (! replaced->is<UnknownFieldPattern>())) {
+    QMessageBox::information(nullptr, tr("Select an unknown field first."),
+                             tr("To split an unknown field, select one first."));
+    return;
+  }
+
+  // Check type of parent pattern
+  AbstractPattern *parent = qobject_cast<AbstractPattern *>(replaced->parent());
+  if ((nullptr == parent) || (! parent->is<ElementPattern>())) {
+    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
+                             tr("The parent of the selected pattern must be an element pattern."));
+    return;
+  }
+  ElementPattern *parentElement = parent->as<ElementPattern>();
+
+  // Get address, size and location of replaced field pattern
+  Address startAddress = replaced->address();
+  Offset originalSize = replaced->as<FieldPattern>()->size();
+  unsigned int insertionIndex = parentElement->indexOf(replaced);
+
+  // Get type and address of inserted pattern
+  SplitFieldPatternDialog dialog(replaced->as<UnknownFieldPattern>());
+  if (QDialog::Accepted != dialog.exec())
+    return;
+  Address insertionAddr = dialog.address();
+  FixedPattern *inserted = dialog.createPattern();
+
+  // Allow user to configure pattern
+  if (! showPatternEditor(inserted, parent->codeplug())) {
+    inserted->deleteLater();
+    return;
+  }
+
+  // compute size of head and tail unknown fields:
+  Offset headFieldSize = insertionAddr - startAddress;
+  // check size of inserted field
+  if ((! inserted->size().isValid()) || (0 == inserted->size().bits())) {
+    QMessageBox::information(
+          nullptr, tr("Inserted field has no size"),
+          tr("The newly inserted field should have some size."));
+    inserted->deleteLater();
+    return;
+  } else if (originalSize < (headFieldSize + inserted->size())) {
+    QMessageBox::information(
+          nullptr, tr("Inserted field too large."),
+          tr("The size inserted field and its offset extends beyond the split field."));
+    inserted->deleteLater();
+    return;
+  }  
+  Offset tailFieldSize = Offset::fromBits(
+        originalSize.bits() - headFieldSize.bits() - inserted->size().bits());
+
+  // Remove "old" unknown field
+  parentElement->deleteChild(insertionIndex);
+  // Insert an unknown field, if needed
+  if (headFieldSize.bits()) {
+    auto head = new UnknownFieldPattern(); head->setWidth(headFieldSize);
+    parentElement->insertChildPattern(head, insertionIndex++);
+  }
+
+  // Insert the replacement
+  inserted->setAddress(Address());
+  parentElement->insertChildPattern(inserted, insertionIndex++);
+
+  // Insert a tail field, if needed
+  if (tailFieldSize.bits()) {
+    auto tail = new UnknownFieldPattern(); tail->setWidth(tailFieldSize);
+    parentElement->insertChildPattern(tail, insertionIndex++);
+  }
+
+  // done
+}
+
+
+void
+PatternView::copySelected() {
+  if ((nullptr == selectedPattern()) || (selectedPattern()->is<CodeplugPattern>())) {
+    QMessageBox::information(nullptr, tr("Select a pattern first"),
+                             tr("Select the pattern to copy."));
+    return;
+  }
+
+  QGuiApplication::clipboard()->setMimeData(new PatternMimeData(selectedPattern()->clone()));
+}
+
+
+void
+PatternView::removeSelected() {
+  if (nullptr == selectedPattern()) {
+    QMessageBox::information(nullptr, tr("Select a pattern first"),
+                             tr("Select the pattern to remove."));
+    return;
+  }
+
+  StructuredPattern *parent = dynamic_cast<StructuredPattern *>(selectedPattern()->parent());
+  if (nullptr == parent) {
+    QMessageBox::information(nullptr, tr("Cannot remove pattern"),
+                             tr("The parent of the selected pattern is not a structured pattern."));
+    return;
+  }
+
+  auto res = QuestionDialog::ask(
+        "patternViewDeleteSelected", tr("Delete pattern?"),
+        tr("You are abot to delete the pattern '%1'. "
+           "The cannot be undone. Do you want to proceed?").arg(selectedPattern()->meta().name()));
+  if (QMessageBox::Yes != res)
+    return;
+
   parent->deleteChild(parent->indexOf(selectedPattern()));
+}
+
+
+void
+PatternView::markAsUpdated() {
+  if (nullptr == selectedPattern()) {
+    QMessageBox::information(nullptr, tr("Select a pattern first"),
+                             tr("Select the pattern to mark as updated."));
+    return;
+  }
+
+  selectedPattern()->meta().setFlags(PatternMeta::Flags::Done);
+  const CodeplugPattern *codeplug = selectedPattern()->codeplug();
+  if ((nullptr != codeplug) && codeplug->meta().hasFirmwareVersion())
+    selectedPattern()->meta().setFirmwareVersion(codeplug->meta().firmwareVersion());
 }
 
 
@@ -421,90 +571,152 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
 
   if (0 == selected.indexes().size()) {
     emit canEdit(false);
-    emit canAddSparse(false);
-    emit canAddBlock(false);
-    emit canAddFixed(false);
+    emit canAppendPattern(false);
+    emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
+    emit canInsertPatternBelow(false);
     emit canRemove(false);
+    emit canView(false);
+    emit canMarkUpdated(false);
     return;
   }
 
   AbstractPattern *pattern = reinterpret_cast<AbstractPattern *>(
         selected.indexes().back().internalPointer());
-  if (pattern)
-    emit canEdit(true);
-
-  if (! pattern->is<StructuredPattern>()) {
-    emit canAddSparse(false);
-    emit canAddBlock(false);
-    emit canAddFixed(false);
-    emit canRemove(true);
+  if (nullptr == pattern) {
+    emit canEdit(false);
+    emit canAppendPattern(false);
+    emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
+    emit canInsertPatternBelow(false);
+    emit canRemove(false);
+    emit canView(false);
+    emit canMarkUpdated(false);
     return;
   }
 
+  emit canEdit(true);
+  emit canMarkUpdated(! pattern->is<UnknownFieldPattern>());
+
   if (pattern->is<CodeplugPattern>()) {
-    emit canAddSparse(true);
-    emit canAddBlock(true);
-    emit canAddFixed(true);
+    emit canAppendPattern(true);
+    emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
+    emit canInsertPatternBelow(false);
     emit canRemove(false);
-  } else if (pattern->is<RepeatPattern>()) {
-    emit canAddSparse(0 == pattern->as<StructuredPattern>()->numChildPattern());
-    emit canAddBlock(0 == pattern->as<StructuredPattern>()->numChildPattern());
-    emit canAddFixed(0 == pattern->as<StructuredPattern>()->numChildPattern());
-    emit canRemove(true);
-  } else if (pattern->is<BlockRepeatPattern>() || pattern->is<FixedRepeatPattern>()) {
-    emit canAddSparse(false);
-    emit canAddBlock(false);
-    emit canAddFixed(0 == pattern->as<StructuredPattern>()->numChildPattern());
-    emit canRemove(true);
-  } else if (pattern->is<FixedPattern>() || pattern->is<BlockPattern>()) {
-    emit canAddSparse(false);
-    emit canAddBlock(false);
-    emit canAddFixed(true);
-    emit canRemove(true);
+    emit canView(false);
+    return;
+  }
+
+  AbstractPattern *parent = qobject_cast<AbstractPattern*>(pattern->parent());
+  if (nullptr == parent) {
+    emit canAppendPattern(false);
+    emit canInsertPatternAbove(false);
+    emit canSplitFieldPattern(false);
+    emit canInsertPatternBelow(false);
+    emit canRemove(false);
+    emit canView(false);
+    return;
+  }
+
+  emit canRemove(true);
+
+  if (pattern->is<RepeatPattern>() || pattern->is<BlockRepeatPattern>() || pattern->is<FixedRepeatPattern>()) {
+    emit canAppendPattern(0 == pattern->as<StructuredPattern>()->numChildPattern());
+    emit canSplitFieldPattern(false);
+    emit canView(false);
+  } else if (pattern->is<ElementPattern>()) {
+    emit canAppendPattern(true);
+    emit canSplitFieldPattern(false);
+    emit canView(true);
+  } else {
+    emit canView(true);
+    emit canAppendPattern(false);
+  }
+
+  if (parent->is<ElementPattern>()) {
+    emit canInsertPatternAbove(true);
+    emit canInsertPatternBelow(true);
+    if (pattern->is<UnknownFieldPattern>())
+      emit canSplitFieldPattern(true);
+    else
+      emit canSplitFieldPattern(false);
+  } else {
+    emit canInsertPatternAbove(false);
+    emit canInsertPatternBelow(false);
+    emit canSplitFieldPattern(false);
   }
 }
 
+
 void
-PatternView::onShowContextMenu(const QPoint &point) {
-  Application *app = qobject_cast<Application *>(Application::instance());
-
-  QMenu contextMenu(this);
-  contextMenu.addAction(app->findObject<QAction>("actionEdit_pattern"));
+PatternView::contextMenuEvent(QContextMenuEvent *event) {
+  QMenu contextMenu;
+  contextMenu.addActions({ parent()->findChild<QAction*>("actionViewElement"),
+                           parent()->findChild<QAction*>("actionEditPattern")});
   contextMenu.addSeparator();
-
-  QMenu *repeatMenu = new QMenu(tr("Add repeat"));
-  repeatMenu->addAction(app->findObject<QAction>("actionAdd_sparse_repeat"));
-  repeatMenu->addAction(app->findObject<QAction>("actionAdd_block_repeat"));
-  repeatMenu->addAction(app->findObject<QAction>("actionAdd_fixed_repeat"));
-  contextMenu.addMenu(repeatMenu);
-
-  contextMenu.addAction(app->findObject<QAction>("actionAdd_element"));
-
-  QMenu *intMenu = new QMenu(tr("Add integer"));
-  intMenu->addAction(app->findObject<QAction>("actionAdd_bit"));
-  intMenu->addAction(app->findObject<QAction>("actionAdd_uint8"));
-  intMenu->addAction(app->findObject<QAction>("actionAdd_int8"));
-  intMenu->addAction(app->findObject<QAction>("actionAdd_uint16"));
-  intMenu->addAction(app->findObject<QAction>("actionAdd_int16"));
-  intMenu->addAction(app->findObject<QAction>("actionAdd_uint32"));
-  intMenu->addAction(app->findObject<QAction>("actionAdd_int32"));
-  intMenu->addAction(app->findObject<QAction>("actionAdd_BCD8"));
-  contextMenu.addMenu(intMenu);
-
-  contextMenu.addAction(app->findObject<QAction>("actionAdd_enum"));
-  contextMenu.addAction(app->findObject<QAction>("actionAdd_string"));
-  contextMenu.addAction(app->findObject<QAction>("actionAdd_unused"));
-  contextMenu.addAction(app->findObject<QAction>("actionAdd_unknown"));
+  contextMenu.addActions({ parent()->findChild<QAction*>("actionAppendNewPattern"),
+                           parent()->findChild<QAction*>("actionInsertNewPatternAbove"),
+                           parent()->findChild<QAction*>("actionSplitUnknownField"),
+                           parent()->findChild<QAction*>("actionInsertNewPatternBelow") });
   contextMenu.addSeparator();
-  contextMenu.addAction(app->findObject<QAction>("actionDelete_pattern"));
-
-  contextMenu.exec(mapToGlobal(point));
+  contextMenu.addActions({ parent()->findChild<QAction*>("actionAppendImportedPattern"),
+                           parent()->findChild<QAction*>("actionInsertImportedPatternAbove"),
+                           parent()->findChild<QAction*>("actionInsertImportedPatternBelow") });
+  contextMenu.addSeparator();
+  contextMenu.addActions({ parent()->findChild<QAction*>("actionCopyPattern"),
+                           parent()->findChild<QAction*>("actionPastePatternAsChild"),
+                           parent()->findChild<QAction*>("actionPastePatternAbove"),
+                           parent()->findChild<QAction*>("actionPastePatternBelow") });
+  contextMenu.addSeparator();
+  contextMenu.addAction(parent()->findChild<QAction*>("actionMarkPatternAsUpdated"));
+  contextMenu.addSeparator();
+  contextMenu.addActions({ parent()->findChild<QAction*>("actionMarkFieldAsUnknown"),
+                           parent()->findChild<QAction*>("actionDeletePattern") });
+  contextMenu.exec(event->globalPos());
 }
+
+
+AbstractPattern *
+PatternView::selectedParent() const {
+  AbstractPattern *parent = selectedPattern();
+  if ((nullptr == parent) || (! parent->is<StructuredPattern>())) {
+    QMessageBox::information(nullptr, tr("Select a structured pattern first."),
+                             tr("To append a child pattern, select a structured pattern first."));
+    return nullptr;
+  }
+
+  return parent;
+}
+
+
+FixedPattern *
+PatternView::selectedSibling() const {
+  AbstractPattern *nextSibling = selectedPattern();
+
+  if ((nullptr == nextSibling) || (! nextSibling->is<FixedPattern>())) {
+    QMessageBox::information(nullptr, tr("Select a sibling first."),
+                             tr("To insert a pattern above another pattern, select a fixed pattern first."));
+    return nullptr;
+  }
+
+  AbstractPattern *parent = qobject_cast<AbstractPattern *>(nextSibling->parent());
+  if ((nullptr == parent) || (! parent->is<ElementPattern>())) {
+    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
+                             tr("The parent of the selected pattern must be an element pattern."));
+    return nullptr;
+  }
+
+  return nextSibling->as<FixedPattern>();
+}
+
 
 void
 PatternView::save() {
-  if (nullptr == _pattern)
+  if (nullptr == _pattern) {
+    logWarn() << "Cannot save pattern, there is none.";
     return;
+  }
 
   if (_pattern->source().isFile() && _pattern->source().isWritable()) {
     if (! _pattern->save()) {

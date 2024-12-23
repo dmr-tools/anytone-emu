@@ -23,6 +23,9 @@ public:
    * use one of the factory methods @c fromByte() or @c zero(). */
   Address();
 
+  /** Constructor from (bit) offset. */
+  explicit Address(const Offset &offset);
+
   /** Copy constructor. */
   inline Address(const Address &other): _value(other._value) {}
   /** Copying assignment operator. */
@@ -86,6 +89,8 @@ public:
 protected:
   /** The address in bits. */
   uint64_t _value;
+
+  friend class Offset;
 };
 
 
@@ -102,6 +107,8 @@ public:
   Offset();
   /** Copy/cast constructor from size. */
   Offset(const Size &other);
+  /** Copy/cast constructor from address. */
+  Offset(const Address &other);
   /** Copy constructor. */
   inline Offset(const Offset &other): _value(other._value) {}
   /** Copying assignment operator. */
@@ -113,7 +120,7 @@ public:
   /** Factorry method to construct a zero offset. */
   static Offset zero();
   /** Factorry method to construct an offset from bytes and bits. */
-  static Offset fromByte(unsigned int n, unsigned bit=0);
+  static Offset fromByte(int n, int bit=0);
   /** Factorry method to construct an offset from bits. */
   static Offset fromBits(unsigned long n);
   /** Parses an offset. */

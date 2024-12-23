@@ -1,7 +1,7 @@
 #include "d868uve.hh"
 
 D868UVE::D868UVE(QIODevice *interface, Model *model, QObject *parent)
-  : Device{interface, model, parent}
+  : AnyToneDevice{interface, model, parent}
 {
   // pass...
 }

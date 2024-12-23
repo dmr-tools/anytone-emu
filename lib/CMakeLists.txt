@@ -6,20 +6,6 @@ elseif(WIN32)
   set(PTY_HEADER pseudoterminalwindows.hh)
 endif(UNIX)
 
-set(libanytone-emu_SOURCES
-    request.cc response.cc hexdump.cc xmlparser.cc offset.cc
-    device.cc ${PTY_SOURCE} logger.cc model.cc image.cc
-    d868uv.cc d868uve.cc d878uv.cc d878uv2.cc d578uv.cc d578uv2.cc
-    dmr6x2uv.cc dmr6x2uv2.cc
-    djmd5.cc djmd5x.cc
-    pattern.cc patternparser.cc annotation.cc)
-set(libanytone-emu_HEADERS pseudoterminal.hh
-    request.hh response.hh hexdump.hh xmlparser.hh offset.hh
-    device.hh ${PTY_HEADER} logger.hh model.hh image.hh
-    d868uv.hh d868uve.hh d878uv.hh d878uv2.hh d578uv.hh d578uv2.hh
-    dmr6x2uv.hh dmr6x2uv2.hh
-    djmd5.hh djmd5x.hh
-    pattern.hh patternparser.hh annotation.hh)
 
 set_property(SOURCE pseudoterminal.hh PROPERTY SKIP_AUTOGEN ON)
 set_property(SOURCE request.hh PROPERTY SKIP_AUTOGEN ON)
@@ -27,10 +13,40 @@ set_property(SOURCE response.hh PROPERTY SKIP_AUTOGEN ON)
 set_property(SOURCE hexdump.hh PROPERTY SKIP_AUTOGEN ON)
 set_property(SOURCE xmlparser.hh PROPERTY SKIP_AUTOGET ON)
 set_property(SOURCE offset.hh PROPERTY SKIP_AUTOGET ON)
+set_property(SOURCE errorstack.hh PROPERTY SKIP_AUTOGET ON)
+set_property(SOURCE modelrom.hh PROPERTY SKIP_AUTOGET ON)
 
 configure_file(config.hh.in ${PROJECT_BINARY_DIR}/lib/config.hh)
 
-qt_add_library(libanytone-emu STATIC ${libanytone-emu_SOURCES})
+qt_add_library(libanytone-emu STATIC ${libanytone-emu_SOURCES}
+  hexdump.hh hexdump.cc
+  xmlparser.hh xmlparser.cc
+  offset.hh offset.cc
+  device.hh device.cc
+  ${PTY_HEADER} ${PTY_SOURCE}
+  logger.hh logger.cc
+  model.hh model.cc
+  image.hh image.cc
+  pattern.hh pattern.cc
+  patternparser.hh patternparser.cc
+  codeplugpatternparser.hh codeplugpatternparser.cc
+  patternfragmentparser.hh patternfragmentparser.cc
+  patternmimedata.hh patternmimedata.cc
+  annotation.hh annotation.cc
+  errorstack.hh errorstack.cc
+  modelrom.hh modelrom.cc
+  modeldefinition.hh modeldefinition.cc
+  modelparser.hh modelparser.cc
+  anytoneprotocol.hh anytoneprotocol.cc
+  anytonedevice.hh anytonedevice.cc
+  anytonemodeldefinition.hh anytonemodeldefinition.cc
+  anytonemodelparser.hh anytonemodelparser.cc
+  opengd77protocol.hh opengd77protocol.cc
+  opengd77device.hh opengd77device.cc
+  opengd77modeldefinition.hh opengd77modeldefinition.cc
+  opengd77modelparser.hh opengd77modelparser.cc
+  )
+
 set_target_properties(libanytone-emu PROPERTIES
 	MACOSX_RPATH TRUE
   OUTPUT_NAME anytone-emu

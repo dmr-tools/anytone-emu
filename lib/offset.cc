@@ -17,6 +17,12 @@ Address::Address()
   // pass...
 }
 
+Address::Address(const Offset &offset)
+  : _value(offset.bits())
+{
+  // pass...
+}
+
 bool
 Address::isValid() const {
   return std::numeric_limits<uint64_t>().max() != _value;
@@ -131,6 +137,12 @@ Offset::Offset(const Size &size)
   // pass...
 }
 
+Offset::Offset(const Address &addr)
+  : _value(addr._value)
+{
+  // pass...
+}
+
 bool
 Offset::isValid() const {
   return std::numeric_limits<int64_t>::max() != _value;
@@ -142,7 +154,7 @@ Offset::zero() {
 }
 
 Offset
-Offset::fromByte(unsigned int n, unsigned int bit) {
+Offset::fromByte(int n, int bit) {
   return Offset(8*((int64_t)n) + bit);
 }
 
@@ -201,7 +213,7 @@ Size::Size(const Offset &offset)
 
 bool
 Size::isValid() const {
-  return std::numeric_limits<unsigned long>::max() != _value;
+  return std::numeric_limits<uint64_t>::max() != _value;
 }
 
 Size

@@ -3,6 +3,8 @@
 
 #include <QDialog>
 class UnusedFieldPattern;
+class CodeplugPattern;
+
 
 namespace Ui {
   class UnusedFieldDialog;
@@ -18,7 +20,7 @@ public:
   ~UnusedFieldDialog();
 
 public slots:
-  void setPattern(UnusedFieldPattern *pattern);
+  void setPattern(UnusedFieldPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
 
 private:

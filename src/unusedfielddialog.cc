@@ -18,7 +18,7 @@ UnusedFieldDialog::~UnusedFieldDialog()
 
 
 void
-UnusedFieldDialog::setPattern(UnusedFieldPattern *pattern) {
+UnusedFieldDialog::setPattern(UnusedFieldPattern *pattern, const CodeplugPattern *codeplug) {
   _pattern = pattern;
   if (pattern->hasImplicitAddress() && !pattern->hasAddress()) {
     ui->address->setText("implicit");
@@ -30,11 +30,14 @@ UnusedFieldDialog::setPattern(UnusedFieldPattern *pattern) {
     ui->address->setText(pattern->address().toString());
   }
 
-  ui->size->setText(_pattern->size().toString());
+  if (_pattern->size().isValid())
+    ui->size->setText(_pattern->size().toString());
+  else
+    ui->size->clear();
 
   ui->value->setText(_pattern->content().toHex());
 
-  ui->metaEdit->setPatternMeta(&pattern->meta());
+  ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
 

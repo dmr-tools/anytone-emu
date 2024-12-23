@@ -3,6 +3,7 @@
 
 #include <QDialog>
 class RepeatPattern;
+class CodeplugPattern;
 
 namespace Ui {
   class SparseRepeatDialog;
@@ -17,7 +18,7 @@ public:
   ~SparseRepeatDialog();
 
 public slots:
-  void setPattern(RepeatPattern *pattern);
+  void setPattern(RepeatPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
 
 private:

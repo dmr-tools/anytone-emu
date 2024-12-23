@@ -18,6 +18,10 @@ Element::Element(const Address &address, const QByteArray &data, QObject *parent
   // pass...
 }
 
+Element::~Element() {
+  // pass...
+}
+
 bool
 Element::operator<=(const Element &other) const {
   return this->address() <= other.address();
@@ -97,6 +101,11 @@ Element::addAnnotation(AbstractAnnotation *annotation) {
   AnnotationCollection::addAnnotation(annotation);
 }
 
+void
+Element::clearAnnotations() {
+  AnnotationCollection::clearAnnotations();
+}
+
 
 
 /* ********************************************************************************************* *
@@ -113,7 +122,7 @@ Image::count() const {
   return _elements.size();
 }
 
-const Element *
+Element *
 Image::element(unsigned int n) const {
   return _elements.at(n);
 }
@@ -224,6 +233,16 @@ Image::findInsertionIndex(const Address &address, unsigned int a, unsigned int b
   return findInsertionIndex(address, m, b);
 }
 
+Image::const_iterator
+Image::begin() const {
+  return _elements.begin();
+}
+
+Image::const_iterator
+Image::end() const {
+  return _elements.end();
+}
+
 
 /* ********************************************************************************************* *
  * Implementation of Collection
@@ -255,7 +274,24 @@ Collection::append(Image *image) {
   image->setParent(this);
   connect(image, &QObject::destroyed, this, &Collection::onImageDeleted);
   connect(image, &Image::annotated, this, &Collection::onImageAnnotated);
+
   emit imageAdded(_images.size()-1);
+}
+
+void
+Collection::deleteImage(unsigned int idx) {
+  if (idx >= _images.count())
+    return;
+
+  auto image = _images.at(idx);
+  _images.remove(idx);
+
+  disconnect(image, &Image::annotated, this, &Collection::onImageAnnotated);
+  disconnect(image, &QObject::destroyed, this, &Collection::onImageDeleted);
+
+  emit imageRemoved(idx);
+
+  delete image;
 }
 
 void

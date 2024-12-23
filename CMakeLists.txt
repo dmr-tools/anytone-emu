@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.0.0)
-project(anytone-emu VERSION 0.1.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.20.0)
+project(anytone-emu VERSION 0.1.1 LANGUAGES CXX)
 
-option(BUILD_TESTS    "Build test programs" OFF)
+option(BUILD_TESTS    "Build test programs" ON)
 option(BUILD_API_DOCS "Build API documentation" OFF)
 option(BUILD_MANUAL   "Build man page for dmrconf" OFF)
 
@@ -17,6 +17,7 @@ include(GNUInstallDirs)
 include(GenerateIcons)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets SerialPort Test)
+find_program(CONVERT_CMD rsvg-convert DOC "SVG conversion tool (librsvg)." REQUIRED)
 
 if (BUILD_MANUAL)
   find_package(DocBookXSL REQUIRED)
@@ -46,7 +47,9 @@ message(STATUS "Build version ${PROJECT_VERSION}")
 add_subdirectory(lib)
 add_subdirectory(cli)
 add_subdirectory(src)
-add_subdirectory(test)
+if (BUILD_TESTS)
+  add_subdirectory(test)
+endif()
 add_subdirectory(doc)
 
 # Source distribution packages:

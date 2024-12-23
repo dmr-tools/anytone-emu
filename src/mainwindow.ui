@@ -32,101 +32,49 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
-       <widget class="QWidget" name="imagesPage">
+       <widget class="ImageWidget" name="imageWidget">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>389</width>
-          <height>495</height>
+          <width>155</width>
+          <height>520</height>
          </rect>
         </property>
+        <attribute name="icon">
+         <iconset theme="camera-photo">
+          <normaloff>.</normaloff>.</iconset>
+        </attribute>
         <attribute name="label">
          <string>Images</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QTreeView" name="images">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="selectionMode">
-            <enum>QAbstractItemView::ExtendedSelection</enum>
-           </property>
-           <property name="headerHidden">
-            <bool>false</bool>
-           </property>
-           <attribute name="headerVisible">
-            <bool>true</bool>
-           </attribute>
-          </widget>
-         </item>
-        </layout>
        </widget>
-       <widget class="QWidget" name="patternPage">
+       <widget class="PatternWidget" name="patternPage">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>389</width>
-          <height>495</height>
+          <width>155</width>
+          <height>520</height>
          </rect>
         </property>
+        <attribute name="icon">
+         <iconset>
+          <normaloff>ui-&gt;actionElementEditorSplitUnknownField-&gt;setIcon(QIcon::fromTheme(&quot;edit-split-unknown&quot;));</normaloff>ui-&gt;actionElementEditorSplitUnknownField-&gt;setIcon(QIcon::fromTheme(&quot;edit-split-unknown&quot;));</iconset>
+        </attribute>
         <attribute name="label">
          <string>Pattern</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="PatternView" name="patterns">
-           <property name="alternatingRowColors">
-            <bool>true</bool>
-           </property>
-           <attribute name="headerStretchLastSection">
-            <bool>false</bool>
-           </attribute>
-          </widget>
-         </item>
-        </layout>
        </widget>
       </widget>
       <widget class="QSplitter" name="horizontalSplitter">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
+       </property>
+       <property name="childrenCollapsible">
+        <bool>false</bool>
        </property>
        <widget class="QTabWidget" name="tabs">
         <property name="currentIndex">
@@ -188,107 +136,31 @@
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>800</width>
-     <height>23</height>
-    </rect>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
    </property>
-   <widget class="QMenu" name="menuSession">
-    <property name="title">
-     <string>Session</string>
-    </property>
-    <addaction name="actionSave_as"/>
-    <addaction name="separator"/>
-    <addaction name="actionRestart"/>
-   </widget>
-   <widget class="QMenu" name="menuView">
-    <property name="title">
-     <string>View</string>
-    </property>
-    <widget class="QMenu" name="menuOn_new_Codeplug">
-     <property name="title">
-      <string>On new Codeplug</string>
-     </property>
-     <addaction name="actionAutoViewNone"/>
-     <addaction name="actionAutoViewHexDump"/>
-     <addaction name="actionAutoViewHexDiffFirst"/>
-     <addaction name="actionAutoViewHexDiffPrev"/>
-    </widget>
-    <addaction name="menuOn_new_Codeplug"/>
-    <addaction name="separator"/>
-    <addaction name="actionShowHexDump"/>
-    <addaction name="actionShowHexDiff"/>
-    <addaction name="separator"/>
-    <addaction name="actionCloseTab"/>
-    <addaction name="separator"/>
-    <addaction name="actionShow_Log"/>
-   </widget>
-   <widget class="QMenu" name="menuAnnotations">
-    <property name="title">
-     <string>Annotations</string>
-    </property>
-    <addaction name="actionAnnotate"/>
-    <addaction name="actionClear_annotations"/>
-   </widget>
-   <widget class="QMenu" name="menuHelp">
-    <property name="title">
-     <string>Help</string>
-    </property>
-    <addaction name="actionAbout"/>
-    <addaction name="actionManual"/>
-   </widget>
-   <widget class="QMenu" name="menuPattern">
-    <property name="title">
-     <string>Pattern</string>
-    </property>
-    <widget class="QMenu" name="menuAdd_repeat">
-     <property name="title">
-      <string>Add repeat</string>
-     </property>
-     <addaction name="actionAdd_sparse_repeat"/>
-     <addaction name="actionAdd_block_repeat"/>
-     <addaction name="actionAdd_fixed_repeat"/>
-    </widget>
-    <widget class="QMenu" name="menuAdd_integer">
-     <property name="title">
-      <string>Add integer</string>
-     </property>
-     <property name="icon">
-      <iconset theme="pattern-integer">
-       <normaloff>.</normaloff>.</iconset>
-     </property>
-     <addaction name="actionAdd_bit"/>
-     <addaction name="actionAdd_uint8"/>
-     <addaction name="actionAdd_int8"/>
-     <addaction name="actionAdd_uint16"/>
-     <addaction name="actionAdd_int16"/>
-     <addaction name="actionAdd_uint32"/>
-     <addaction name="actionAdd_int32"/>
-     <addaction name="actionAdd_BCD8"/>
-    </widget>
-    <addaction name="actionEdit_pattern"/>
-    <addaction name="separator"/>
-    <addaction name="menuAdd_repeat"/>
-    <addaction name="actionAdd_element"/>
-    <addaction name="menuAdd_integer"/>
-    <addaction name="actionAdd_enum"/>
-    <addaction name="actionAdd_string"/>
-    <addaction name="actionAdd_unknown"/>
-    <addaction name="actionAdd_unused"/>
-    <addaction name="separator"/>
-    <addaction name="actionDelete_pattern"/>
-    <addaction name="separator"/>
-    <addaction name="actionSave_pattern"/>
-   </widget>
-   <addaction name="menuSession"/>
-   <addaction name="menuView"/>
-   <addaction name="menuAnnotations"/>
-   <addaction name="menuPattern"/>
-   <addaction name="menuHelp"/>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>LeftToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionShow_Log"/>
+   <addaction name="separator"/>
+   <addaction name="actionManual"/>
+   <addaction name="actionAbout"/>
+   <addaction name="separator"/>
+   <addaction name="actionRestart"/>
   </widget>
   <action name="actionSave_as">
    <property name="icon">
@@ -297,6 +169,9 @@
    </property>
    <property name="text">
     <string>Save as ...</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionRestart">
@@ -314,97 +189,16 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionAutoViewNone">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>None</string>
-   </property>
-   <property name="toolTip">
-    <string>No action is performed, when a new codeplug is received.</string>
-   </property>
-  </action>
-  <action name="actionAutoViewHexDump">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>HexDump</string>
-   </property>
-   <property name="toolTip">
-    <string>Automatically generates a HexDump of a newly received codeplug.</string>
-   </property>
-  </action>
-  <action name="actionAutoViewHexDiffFirst">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>HexDiff first vs. last</string>
-   </property>
-   <property name="toolTip">
-    <string>Automatically shows the difference between the first and last codeplug, once a codeplug is received.</string>
-   </property>
-  </action>
-  <action name="actionAutoViewHexDiffPrev">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>HexDiff previous vs. last</string>
-   </property>
-  </action>
-  <action name="actionShowHexDump">
-   <property name="text">
-    <string>Show HexDump</string>
-   </property>
-  </action>
-  <action name="actionShowHexDiff">
-   <property name="text">
-    <string>Show HexDiff</string>
-   </property>
-  </action>
-  <action name="actionCloseTab">
-   <property name="icon">
-    <iconset theme="window-close">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Close</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+W</string>
-   </property>
-  </action>
   <action name="actionShow_Log">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
-    <iconset theme="show-log">
+    <iconset>
      <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Show Log</string>
-   </property>
-  </action>
-  <action name="actionAnnotate">
-   <property name="icon">
-    <iconset theme="edit-annotate">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Annotate</string>
-   </property>
-  </action>
-  <action name="actionClear_annotations">
-   <property name="icon">
-    <iconset theme="edit-clear">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Clear annotations</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -425,201 +219,19 @@
     <string>Manual</string>
    </property>
   </action>
-  <action name="actionAdd_element">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset theme="list-add">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add element</string>
-   </property>
-  </action>
-  <action name="actionAdd_enum">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset theme="pattern-enum">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add enum</string>
-   </property>
-  </action>
-  <action name="actionAdd_unknown">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset theme="pattern-unknown">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add unknown</string>
-   </property>
-  </action>
-  <action name="actionAdd_unused">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset theme="pattern-unused">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add unused</string>
-   </property>
-  </action>
-  <action name="actionDelete_pattern">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset theme="edit-delete">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Delete pattern</string>
-   </property>
-  </action>
-  <action name="actionAdd_sparse_repeat">
-   <property name="icon">
-    <iconset theme="pattern-sparserepeat">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add sparse repeat</string>
-   </property>
-  </action>
-  <action name="actionAdd_block_repeat">
-   <property name="icon">
-    <iconset theme="pattern-blockrepeat">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add block repeat</string>
-   </property>
-  </action>
-  <action name="actionAdd_fixed_repeat">
-   <property name="icon">
-    <iconset theme="pattern-fixedrepeat">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add fixed repeat</string>
-   </property>
-  </action>
-  <action name="actionAdd_bit">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add bit</string>
-   </property>
-  </action>
-  <action name="actionAdd_uint8">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add uint8</string>
-   </property>
-  </action>
-  <action name="actionAdd_int8">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add int8</string>
-   </property>
-  </action>
-  <action name="actionAdd_uint16">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add uint16</string>
-   </property>
-  </action>
-  <action name="actionAdd_int16">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add int16</string>
-   </property>
-  </action>
-  <action name="actionAdd_uint32">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add uint32</string>
-   </property>
-  </action>
-  <action name="actionAdd_int32">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add int32</string>
-   </property>
-  </action>
-  <action name="actionAdd_BCD8">
-   <property name="icon">
-    <iconset theme="pattern-integer">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add BCD8</string>
-   </property>
-  </action>
-  <action name="actionEdit_pattern">
-   <property name="icon">
-    <iconset theme="edit">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Edit pattern</string>
-   </property>
-  </action>
-  <action name="actionAdd_string">
-   <property name="icon">
-    <iconset theme="pattern-stringfield">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Add string</string>
-   </property>
-  </action>
-  <action name="actionSave_pattern">
-   <property name="icon">
-    <iconset theme="document-save">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>Save pattern</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PatternView</class>
-   <extends>QTreeView</extends>
-   <header>patternview.hh</header>
+   <class>ImageWidget</class>
+   <extends>QWidget</extends>
+   <header>imagewidget.hh</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PatternWidget</class>
+   <extends>QWidget</extends>
+   <header>patternwidget.hh</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

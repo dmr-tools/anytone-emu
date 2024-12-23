@@ -1,5 +1,5 @@
 #include "pattern_parser_test.hh"
-#include "patternparser.hh"
+#include "codeplugpatternparser.hh"
 #include <QXmlStreamReader>
 #include "pattern.hh"
 #include <QBuffer>
@@ -38,8 +38,9 @@ PatternParserTest::parseCodeplugMetaTest() {
       R"(<codeplug>)"
       R"(  <meta>)"
       R"(    <name>Example Codeplug</name>)"
+      R"(    <short-name>ExCp</short-name>)"
       R"(    <description>An Example Codeplug</description>)"
-      R"(    <version>1.0.0-1</version>)"
+      R"(    <firmware>1.0.0-1</firmware>)"
       R"(  </meta>)"
       R"(</codeplug>)";
 
@@ -52,6 +53,7 @@ PatternParserTest::parseCodeplugMetaTest() {
 
   CodeplugPattern *codeplug = parser.popAs<CodeplugPattern>();
   QCOMPARE(codeplug->meta().name(), "Example Codeplug");
+  QCOMPARE(codeplug->meta().shortName(), "ExCp");
   QCOMPARE(codeplug->meta().description(), "An Example Codeplug");
   QCOMPARE(codeplug->meta().firmwareVersion(), "1.0.0-1");
 }

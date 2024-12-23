@@ -4,7 +4,6 @@
 #include <QApplication>
 #include <QPalette>
 #include <QFont>
-#include "logger.hh"
 
 
 PatternWrapper::PatternWrapper(CodeplugPattern *pattern, QObject *parent)
@@ -139,26 +138,34 @@ PatternWrapper::getTooltip(const AbstractPattern *pattern, int column) const {
 
 QVariant
 PatternWrapper::getIcon(const AbstractPattern *pattern) const {
-  if (pattern->is<CodeplugPattern>())
-    return QIcon::fromTheme("pattern-codeplug");
-  else if (pattern->is<RepeatPattern>())
-    return QIcon::fromTheme("pattern-sparserepeat");
+  QString suffix;
+  switch (pattern->combinedFlags()) {
+  case PatternMeta::Flags::Done: suffix ="-okay"; break;
+  case PatternMeta::Flags::NeedsReview: suffix ="-warning"; break;
+  case PatternMeta::Flags::Incomplete: suffix ="-critical"; break;
+  default: break;
+  }
+
+  if (pattern->is<CodeplugPattern>()) {
+    return QIcon::fromTheme(QString("pattern-codeplug%1").arg(suffix));
+  }else if (pattern->is<RepeatPattern>())
+    return QIcon::fromTheme(QString("pattern-sparserepeat%1").arg(suffix));
   else if (pattern->is<BlockRepeatPattern>())
-    return QIcon::fromTheme("pattern-blockrepeat");
+    return QIcon::fromTheme(QString("pattern-blockrepeat%1").arg(suffix));
   else if (pattern->is<FixedRepeatPattern>())
-    return QIcon::fromTheme("pattern-fixedrepeat");
+    return QIcon::fromTheme(QString("pattern-fixedrepeat%1").arg(suffix));
   else if (pattern->is<ElementPattern>())
-    return QIcon::fromTheme("pattern-element");
+    return QIcon::fromTheme(QString("pattern-element%1").arg(suffix));
   else if (pattern->is<IntegerFieldPattern>())
-    return QIcon::fromTheme("pattern-integer");
+    return QIcon::fromTheme(QString("pattern-integer%1").arg(suffix));
   else if (pattern->is<EnumFieldPattern>())
-    return QIcon::fromTheme("pattern-enum");
+    return QIcon::fromTheme(QString("pattern-enum%1").arg(suffix));
   else if (pattern->is<StringFieldPattern>())
-    return QIcon::fromTheme("pattern-stringfield");
+    return QIcon::fromTheme(QString("pattern-stringfield%1").arg(suffix));
   else if (pattern->is<UnusedFieldPattern>())
-    return QIcon::fromTheme("pattern-unused");
+    return QIcon::fromTheme(QString("pattern-unused%1").arg(suffix));
   else if (pattern->is<UnknownFieldPattern>())
-    return QIcon::fromTheme("pattern-unknown");
+    return QIcon::fromTheme(QString("pattern-unknown%1").arg(suffix));
   return QVariant();
 }
 
@@ -166,7 +173,10 @@ QVariant
 PatternWrapper::getAddress(const AbstractPattern *pattern) const {
   if (pattern->hasImplicitAddress() && !pattern->hasAddress())
     return tr("variable");
-  if (pattern->hasAddress() && 7 == pattern->address().bit())
+  if ( pattern->hasAddress() && (7 == pattern->address().bit()) &&
+      ((! pattern->is<FixedPattern>())
+       || (! pattern->as<FixedPattern>()->hasSize())
+       || (0 == (pattern->as<FixedPattern>()->size().bits() % 8))) )
     return QString("%1  ").arg(pattern->address().byte(), 0, 16);
   if (pattern->hasAddress())
     return QString("%1:%2").arg(pattern->address().byte(), 0, 16).arg(pattern->address().bit());

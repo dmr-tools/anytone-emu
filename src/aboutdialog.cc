@@ -6,7 +6,7 @@ AboutDialog::AboutDialog(QWidget *parent) :
   ui(new Ui::AboutDialog)
 {
   ui->setupUi(this);
-  ui->iconLabel->setPixmap(QIcon::fromTheme("application-anyton-emu").pixmap(QSize(64,64)));
+  ui->iconLabel->setPixmap(QIcon::fromTheme("application-anytone-emu").pixmap(QSize(64,64)));
 }
 
 AboutDialog::~AboutDialog()

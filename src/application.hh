@@ -16,6 +16,9 @@ public:
 
   Collection *collection();
 
+  void setCatalog(const QString &filename);
+  const QString &catalog() const;
+
   void setDevice(Device *device);
   const Device *device() const;
 
@@ -28,10 +31,13 @@ public:
     return nullptr;
   }
 
+  static Application *instance();
+
 signals:
   void patternModified();
 
 protected:
+  QString _catalog;
   Device *_device;
   Collection *_collection;
 };

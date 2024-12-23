@@ -53,7 +53,7 @@ EnumFieldDialog::done(int res) {
 
 
 void
-EnumFieldDialog::setPattern(EnumFieldPattern *pattern) {
+EnumFieldDialog::setPattern(EnumFieldPattern *pattern, const CodeplugPattern *codeplug) {
   _pattern = pattern;
   if (pattern->hasImplicitAddress() && !pattern->hasAddress()) {
     ui->address->setText("implicit");
@@ -68,7 +68,7 @@ EnumFieldDialog::setPattern(EnumFieldPattern *pattern) {
   ui->width->setValue(_pattern->size().bits());
   ui->items->setModel(new EnumFieldPatternWrapper(pattern));
 
-  ui->metaEdit->setPatternMeta(&pattern->meta());
+  ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
 

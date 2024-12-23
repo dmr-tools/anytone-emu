@@ -7,12 +7,13 @@
 #include <QObject>
 #include <QFileInfo>
 #include "offset.hh"
+#include "errorstack.hh"
 
 class Image;
 class Element;
 class QXmlStreamWriter;
 class QFileInfo;
-
+class CodeplugPattern;
 
 /** Holds some meta information about the pattern.
  * @ingroup pattern */
@@ -22,16 +23,22 @@ class PatternMeta: public QObject
 
   /** The name property. */
   Q_PROPERTY(QString name READ name WRITE setName)
+  /** The optional short name of the pattern. */
+  Q_PROPERTY(QString shortName READ shortName WRITE setShortName)
+  /** The breif description property. */
+  Q_PROPERTY(QString brief READ briefDescription WRITE setBriefDescription)
   /** The description property. */
   Q_PROPERTY(QString description READ description WRITE setDescription)
   /** The firmware version property. */
   Q_PROPERTY(QString firmwareVersion READ firmwareVersion WRITE setFirmwareVersion)
+  /** Pattern flags. */
+  Q_PROPERTY(Flags flags READ flags WRITE setFlags)
 
 public:
   /** It is possible to flag a pattern. */
   enum class Flags {
-    None,        ///< Not flags set.
     Done,        ///< Pattern is considered complete.
+    None,        ///< Not flags set.
     NeedsReview, ///< Pattern needs review.
     Incomplete   ///< Pattern needs work. I.e., contains unknwon memory sections.
   };
@@ -50,6 +57,20 @@ public:
   const QString &name() const;
   /** Sets the name of the pattern. */
   void setName(const QString &name);
+
+  /** Returns @c true, if the pattern has a short name. */
+  bool hasShortName() const;
+  /** Returns the optional short name of the pattern. */
+  const QString &shortName() const;
+  /** Sets the short name of the pattern. */
+  void setShortName(const QString &name);
+
+  /** Returns @c true if the pattern has a brief description. */
+  bool hasBriefDescription() const;
+  /** Returns the brief description of the pattern. */
+  const QString &briefDescription() const;
+  /** Sets the brief description of the pattern. */
+  void setBriefDescription(const QString &text);
 
   /** Returns @c true if the pattern has a description. */
   bool hasDescription() const;
@@ -77,6 +98,10 @@ signals:
 protected:
   /** Holds the name. */
   QString _name;
+  /** Holds the short name. */
+  QString _shortName;
+  /** Holds the brief description. */
+  QString _brief;
   /** Holds the description. */
   QString _description;
   /** Holds the firmware version. */
@@ -85,6 +110,10 @@ protected:
   Flags   _flags;
 };
 
+/** Combine flags. */
+PatternMeta::Flags operator+(PatternMeta::Flags a, PatternMeta::Flags b);
+/** Combine flags. */
+PatternMeta::Flags &operator+=(PatternMeta::Flags &a, PatternMeta::Flags b);
 
 
 /** Base class of all pattern definitions.
@@ -105,6 +134,9 @@ public:
   /** Serialzes the pattern to the given XML stream. */
   virtual bool serialize(QXmlStreamWriter &writer) const = 0;
 
+  /** Creates a clone of the instance. */
+  virtual AbstractPattern *clone() const;
+
   /** Returns @c true, if the pattern has an absolute or relative address. */
   bool hasAddress() const;
   /** Returns @c true, if the pattern has an implicit address. That is, its address can be computed
@@ -115,10 +147,16 @@ public:
   /** Sets the address of the pattern. */
   void setAddress(const Address &offset);
 
+  /** Returns the combined flags of the pattern.
+   * That is, the worst flag of this pattern and its children, if there are any. */
+  virtual PatternMeta::Flags combinedFlags() const;
   /** Returns the meta information. */
   const PatternMeta &meta() const;
   /** Returns the meta information. */
   PatternMeta &meta();
+
+  /** Returns the codeplug, this pattern is part of. */
+  virtual const CodeplugPattern *codeplug() const;
 
   /** Returns @c true if the pattern can be casted to the template argument. */
   template <class T>
@@ -180,8 +218,37 @@ public:
   virtual bool addChildPattern(AbstractPattern *pattern) = 0;
   /** Returns the n-th sub-pattern. */
   virtual AbstractPattern *childPattern(unsigned int n) const = 0;
+  /** Takes the n-th sub-pattern. */
+  virtual AbstractPattern *takeChild(unsigned int n) = 0;
   /** Removes the n-th sub-pattern. */
-  virtual bool deleteChild(unsigned int n) = 0;
+  virtual bool deleteChild(unsigned int n);
+};
+
+
+/** A PatternFragment is just a container to hold a single pattern, that can be serialized and
+ * de-serialized. This container is used to implement copy-and-paste.
+ *
+ * @ingroup pattern */
+class PatternFragment: public QObject, public StructuredPattern
+{
+  Q_OBJECT
+
+public:
+  /** Default constructor. */
+  Q_INVOKABLE explicit PatternFragment(QObject *parent=nullptr);
+
+  /** Serializes the fragment into XML. */
+  virtual bool serialize(QXmlStreamWriter &writer) const;
+
+  virtual int indexOf(const AbstractPattern *pattern) const;
+  virtual unsigned int numChildPattern() const;
+  virtual bool addChildPattern(AbstractPattern *pattern);
+  virtual AbstractPattern *childPattern(unsigned int n) const;
+  virtual AbstractPattern *takeChild(unsigned int n);
+
+protected:
+  /** Holds and owns the pattern. */
+  AbstractPattern *_pattern;
 };
 
 
@@ -189,6 +256,7 @@ public:
  *
  * Each sub-pattern must have an explicit or implicit position, as groups are considered to be
  * sparse.
+ *
  * @ingroup pattern */
 class GroupPattern: public AbstractPattern, public StructuredPattern
 {
@@ -197,6 +265,9 @@ class GroupPattern: public AbstractPattern, public StructuredPattern
 protected:
   /** Hidden constructor. */
   explicit GroupPattern(QObject *parent = nullptr);
+
+public:
+  PatternMeta::Flags combinedFlags() const;
 };
 
 
@@ -211,21 +282,25 @@ class CodeplugPattern: public GroupPattern
 
 public:
   /** Desfault constructor. */
-  explicit CodeplugPattern(QObject *parent = nullptr);
+  Q_INVOKABLE explicit CodeplugPattern(QObject *parent = nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
+
+  AbstractPattern *clone() const;
 
   int indexOf(const AbstractPattern *pattern) const;
   unsigned int numChildPattern() const;
   bool addChildPattern(AbstractPattern *pattern);
   AbstractPattern *childPattern(unsigned int n) const;
-  bool deleteChild(unsigned int n);
+  AbstractPattern *takeChild(unsigned int n);
+
+  const CodeplugPattern *codeplug() const;
 
   /** Retruns @c true if the codeplug was modified since the last save. */
   bool isModified() const;
   /** Loads a codeplug from the given file. */
-  static CodeplugPattern *load(const QString &filename);
+  static CodeplugPattern *load(const QString &filename, const ErrorStack &err = ErrorStack());
   /** Saves the codeplug into the last used file. */
   bool save();
   /** Saves the codeplug into the given file. */
@@ -264,10 +339,12 @@ class RepeatPattern: public GroupPattern
 
 public:
   /** Default constructor. */
-  explicit RepeatPattern(QObject *parent = nullptr);
+  Q_INVOKABLE explicit RepeatPattern(QObject *parent = nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
+
+  AbstractPattern *clone() const;
 
   /** Retunrs @c true, if a minimum repetition number is specified. */
   bool hasMinRepetition() const;
@@ -293,7 +370,7 @@ public:
   /** Retunrs the one child pattern, the sub pattern. */
   AbstractPattern *subpattern() const;
   AbstractPattern *childPattern(unsigned int n) const;
-  bool deleteChild(unsigned int n);
+  AbstractPattern *takeChild(unsigned int n);
 
 protected:
   /** The minimum number of prepetitions, @c std::numeric_limits<unsigned int>::max() if not set. */
@@ -333,6 +410,8 @@ protected:
 public:
   bool verify() const;
 
+  AbstractPattern *clone() const;
+
   /** Returns @c true, if a size is set. */
   bool hasSize() const;
   /** Returns the size. */
@@ -362,23 +441,24 @@ class BlockRepeatPattern: public BlockPattern, public StructuredPattern
 
 public:
   /** Default constructor. */
-  explicit BlockRepeatPattern(QObject *parent=nullptr);
+  Q_INVOKABLE explicit BlockRepeatPattern(QObject *parent=nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
 
-  /** Retunrs @c true, if a minimum repetition number is specified. */
-  bool hasMinRepetition() const;
+  AbstractPattern *clone() const;
+
   /** Returns the minimum number of repetitions of the sub-pattern. */
   unsigned int minRepetition() const;
   /** Sets the minimum number of repetitions of the sub-pattern. */
   void setMinRepetition(unsigned int rep);
-  /** Retunrs @c true, if a maximum repetition number is specified. */
-  bool hasMaxRepetition() const;
+
   /** Returns the maximum number of repetitions of the sub-pattern. */
   unsigned int maxRepetition() const;
   /** Sets the maximum number of repetitions of the sub-pattern. */
   void setMaxRepetition(unsigned int rep);
+
+  PatternMeta::Flags combinedFlags() const;
 
   int indexOf(const AbstractPattern *pattern) const;
   unsigned int numChildPattern() const;
@@ -386,7 +466,7 @@ public:
   FixedPattern *subpattern() const;
   AbstractPattern *childPattern(unsigned int n) const;
   bool addChildPattern(AbstractPattern *subpattern);
-  bool deleteChild(unsigned int n);
+  AbstractPattern *takeChild(unsigned int n);
 
 protected:
   /** The minimum number of prepetitions, @c std::numeric_limits<unsigned int>::max() if not set. */
@@ -407,16 +487,23 @@ class ElementPattern : public FixedPattern, public StructuredPattern
 
 public:
   /** Default constructor. */
-  explicit ElementPattern(QObject *parent = nullptr);
+  Q_INVOKABLE explicit ElementPattern(QObject *parent = nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
 
+  AbstractPattern *clone() const;
+
+  PatternMeta::Flags combinedFlags() const;
+
   bool addChildPattern(AbstractPattern *pattern);
+  /** Insert the given pattern at the specified index.
+   * Also updates all addresses. */
+  bool insertChildPattern(FixedPattern *pattern, unsigned int idx);
   unsigned int numChildPattern() const;
   AbstractPattern *childPattern(unsigned int n) const;
   int indexOf(const AbstractPattern *pattern) const;
-  bool deleteChild(unsigned int n);
+  AbstractPattern *takeChild(unsigned int n);
 
 private slots:
   /** Gets called, if a sub-patern is resized. Then updates the relative addresses of all
@@ -437,15 +524,19 @@ class FixedRepeatPattern: public FixedPattern, public StructuredPattern
 
 public:
   /** Default constructor. */
-  explicit FixedRepeatPattern(QObject *parent = nullptr);
+  Q_INVOKABLE explicit FixedRepeatPattern(QObject *parent = nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
+
+  AbstractPattern *clone() const;
 
   /** Returns the number of repetition. */
   unsigned int repetition() const;
   /** Sets the number of repetition. */
   void setRepetition(unsigned int n);
+
+  PatternMeta::Flags combinedFlags() const;
 
   int indexOf(const AbstractPattern *pattern) const;
   unsigned int numChildPattern() const;
@@ -453,7 +544,7 @@ public:
   FixedPattern *subpattern() const;
   AbstractPattern *childPattern(unsigned int n) const;
   bool addChildPattern(AbstractPattern *pattern);
-  bool deleteChild(unsigned int n);
+  AbstractPattern *takeChild(unsigned int n);
 
 private slots:
   /** Gets called, if the sub-pattern resizes. This also updates the size of this pattern. */
@@ -491,7 +582,7 @@ class UnknownFieldPattern: public FieldPattern
 
 public:
   /** Default constructor. */
-  explicit UnknownFieldPattern(QObject *parent=nullptr);
+  Q_INVOKABLE explicit UnknownFieldPattern(QObject *parent=nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
@@ -512,10 +603,12 @@ class UnusedFieldPattern: public FieldPattern
 
 public:
   /** Default constructor. */
-  explicit UnusedFieldPattern(QObject *parent=nullptr);
+  Q_INVOKABLE explicit UnusedFieldPattern(QObject *parent=nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
+
+  AbstractPattern *clone() const;
 
   /** Returns the expected content of the field. */
   const QByteArray &content() const;
@@ -559,10 +652,12 @@ public:
 
 public:
   /** Default constructor. */
-  explicit IntegerFieldPattern(QObject *parent=nullptr);
+  Q_INVOKABLE explicit IntegerFieldPattern(QObject *parent=nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
+
+  AbstractPattern *clone() const;
 
   /** Sets the width of the integer field. */
   void setWidth(const Offset &width);
@@ -635,9 +730,12 @@ class EnumFieldPatternItem: public PatternMeta
 
 public:
   /** Default constructor. */
-  explicit EnumFieldPatternItem(QObject *parent = nullptr);
+  Q_INVOKABLE explicit EnumFieldPatternItem(QObject *parent = nullptr);
 
   bool serialize(QXmlStreamWriter &writer) const;
+
+  /** Returns a copy of the item. */
+  EnumFieldPatternItem *clone() const;
 
   /** Returns @c true, if a value is assigned to the enum entry. */
   bool hasValue() const;
@@ -664,10 +762,12 @@ class EnumFieldPattern: public FieldPattern
 
 public:
   /** Default constructor. */
-  explicit EnumFieldPattern(QObject *parent=nullptr);
+  Q_INVOKABLE explicit EnumFieldPattern(QObject *parent=nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
+
+  AbstractPattern *clone() const;
 
   /** Adds an item to the enum. Takes ownership. */
   bool addItem(EnumFieldPatternItem *item);
@@ -715,10 +815,12 @@ public:
 
 public:
   /** Default constructor. */
-  explicit StringFieldPattern(QObject *parent = nullptr);
+  Q_INVOKABLE explicit StringFieldPattern(QObject *parent = nullptr);
 
   bool verify() const;
   bool serialize(QXmlStreamWriter &writer) const;
+
+  AbstractPattern *clone() const;
 
   /** Decodes the string in the given element at the specified address. */
   QVariant value(const Element *element, const Address &address) const;

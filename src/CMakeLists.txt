@@ -1,66 +1,81 @@
-SET(anytone-emu-gui_SOURCES
-  main.cc
-  setupdialog.cc setupdialog.ui
-  application.cc
-  patternwrapper.cc patternview.cc patternmetaeditor.cc patternmetaeditor.ui
-  sparserepeatdialog.cc sparserepeatdialog.ui
-  blockrepeatdialog.cc blockrepeatdialog.ui
-  fixedrepeatdialog.cc fixedrepeatdialog.ui
-  elementdialog.cc elementdialog.ui
-  integerfielddialog.cc integerfielddialog.ui
-  enumfielddialog.cc enumfielddialog.ui enumfieldpatternwrapper.cc
-  stringfielddialog.cc stringfielddialog.ui
-  unusedfielddialog.cc unusedfielddialog.ui
-  imagecollectionadapter.cc imagecollectionwrapper.cc
-  heximagedocument.cc heximagedumpdocument.cc hexelementdumpdocument.cc heximagediffdocument.cc
-  logmessagelist.cc
-  mainwindow.cc mainwindow.ui
-  aboutdialog.cc aboutdialog.ui
-)
-
-SET(anytone-emu-gui_HEADERS
-  setupdialog.hh
-  application.hh
-  patternwrapper.hh patternview.hh patternmetaeditor.hh
-  sparserepeatdialog.hh
-  blockrepeatdialog.hh
-  fixedrepeatdialog.hh
-  elementdialog.hh
-  integerfielddialog.hh
-  enumfielddialog.hh enumfieldpatternwrapper.hh
-  stringfielddialog.hh
-  unusedfielddialog.hh
-  imagecollectionadapter.hh imagecollectionwrapper.hh
-  heximagedocument.hh heximagedumpdocument.hh hexelementdumpdocument.hh heximagediffdocument.hh
-  logmessagelist.hh
-  mainwindow.hh
-  aboutdialog.hh)
-
 
 qt_add_executable(anytone-emu-gui WIN32
-  ${anytone-emu-gui_SOURCES})
+  main.cc
+  application.hh application.cc
+  mainwindow.hh mainwindow.cc mainwindow.ui
+  aboutdialog.hh aboutdialog.cc aboutdialog.ui
+  setupdialog.hh setupdialog.cc setupdialog.ui
+  codeplugdialog.hh codeplugdialog.cc codeplugdialog.ui
+  patternmetaeditor.hh patternmetaeditor.cc patternmetaeditor.ui
+  sparserepeatdialog.hh sparserepeatdialog.cc sparserepeatdialog.ui
+  blockrepeatdialog.hh blockrepeatdialog.cc blockrepeatdialog.ui
+  fixedrepeatdialog.hh fixedrepeatdialog.cc fixedrepeatdialog.ui
+  elementdialog.hh elementdialog.cc elementdialog.ui
+  integerfielddialog.hh integerfielddialog.cc integerfielddialog.ui
+  enumfielddialog.hh enumfielddialog.cc enumfielddialog.ui
+  stringfielddialog.hh stringfielddialog.cc stringfielddialog.ui
+  unusedfielddialog.hh unusedfielddialog.cc unusedfielddialog.ui
+  unknownpatterndialog.hh unknownpatterndialog.cc unknownpatterndialog.ui
+  patternselectionwidget.hh patternselectionwidget.cc patternselectionwidget.ui
+  newpatterndialog.hh newpatterndialog.cc newpatterndialog.ui
+  splitfieldpatterndialog.hh splitfieldpatterndialog.cc splitfieldpatterndialog.ui
+  newpatterndialog.hh newpatterndialog.cc newpatterndialog.ui
+  splitfieldpatterndialog.hh splitfieldpatterndialog.cc splitfieldpatterndialog.ui
+  codeplugdialog.hh codeplugdialog.cc codeplugdialog.ui
+  unknownpatterndialog.hh unknownpatterndialog.cc unknownpatterndialog.ui
+  elementpatterneditor.hh elementpatterneditor.cc elementpatterneditor.ui
+  imagewidget.hh imagewidget.cc imagewidget.ui
+  patternwidget.hh patternwidget.cc patternwidget.ui
+  patternview.hh patternview.cc
+  patternwrapper.hh patternwrapper.cc
+  enumfieldpatternwrapper.hh enumfieldpatternwrapper.cc
+  imagecollectionadapter.hh imagecollectionadapter.cc
+  imagecollectionwrapper.hh imagecollectionwrapper.cc
+  heximagedocument.hh heximagedocument.cc
+  heximagedumpdocument.hh heximagedumpdocument.cc
+  hexelementdumpdocument.hh hexelementdumpdocument.cc
+  heximagediffdocument.hh heximagediffdocument.cc
+  logmessagelist.hh logmessagelist.cc
+  elementpatternview.hh elementpatternview.cc
+  questiondialog.cc questiondialog.hh
+  patternimportdialog.hh patternimportdialog.cc patternimportdialog.ui)
 
 qt_add_resources(anytone-emu-gui "codeplugs"
   PREFIX "/codeplugs"
   BASE "${CMAKE_SOURCE_DIR}/codeplugs/"
-  FILES "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/codeplug.xml")
+  FILES "${CMAKE_SOURCE_DIR}/codeplugs/catalog.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/d868uve/v2.40.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/d878uv/v3.04.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/d878uv2/3.04/codeplug.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/d578uv/1.21/codeplug.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/d578uv2/2.03/codeplug.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/d578uv2/2.08/codeplug.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/v2.10.xml"
+        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv2/1.10/codeplug.xml")
 
 
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
-  ICONS pattern-codeplug pattern-sparserepeat pattern-blockrepeat pattern-fixedrepeat
-        pattern-element pattern-integer pattern-enum pattern-stringfield pattern-unused
-        pattern-unknown
+  ICONS pattern-codeplug pattern-codeplug-okay pattern-codeplug-warning pattern-codeplug-critical
+        pattern-sparserepeat pattern-sparserepeat-okay pattern-sparserepeat-warning pattern-sparserepeat-critical
+        pattern-blockrepeat pattern-blockrepeat-okay pattern-blockrepeat-warning pattern-blockrepeat-critical
+        pattern-fixedrepeat pattern-fixedrepeat-okay pattern-fixedrepeat-warning pattern-fixedrepeat-critical
+        pattern-element pattern-element-okay pattern-element-warning pattern-element-critical
+        pattern-integer pattern-integer-okay pattern-integer-warning pattern-integer-critical
+        pattern-enum pattern-enum-okay pattern-enum-warning pattern-enum-critical
+        pattern-stringfield pattern-stringfield-okay pattern-stringfield-warning pattern-stringfield-critical
+        pattern-unused pattern-unused-okay pattern-unused-warning pattern-unused-critical
+        pattern-unknown pattern-unknown-okay pattern-unknown-warning pattern-unknown-critical
   THEMES light dark
   CONTEXT pattern
   SIZES 16 32 64)
 
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
-  ICONS settings-interface
+  ICONS settings-interface camera-photo
   THEMES light dark
   CONTEXT categories
-  SIZES 64)
+  SIZES 16 48 64)
 
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
@@ -71,9 +86,11 @@ generate_icons(
 
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
-  ICONS application-exit dialog-ok dialog-cancel document-save document-save-as
-        edit edit-annotate edit-clear edit-delete edit-erase
-        help-about help-contents show-log window-close
+  ICONS application-exit dialog-ok dialog-cancel document-new document-save document-save-as
+        edit edit-annotate edit-clear edit-delete edit-erase edit-split-element edit-copy edit-paste
+        insert-child insert-above insert-below document-import
+        none show-diff-single show-diff-multiple show-hexdump inspect
+        help-about help-contents show-log window-close mark-done
   THEMES light dark
   CONTEXT actions
   SIZES 16)
