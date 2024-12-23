@@ -1,11 +1,3 @@
-configure_file("docbook-fo.xslt.in" "${CMAKE_CURRENT_BINARY_DIR}/docbook-fo.xslt")
-
-if (BUILD_MANUAL)
-  add_docbook(TARGET manual
-    DOCUMENT manual/manual.xml
-    SOURCES manual/pattern/fileformat.xml)
-endif()
-
 if (BUILD_API_DOCS)
   set(DOXYGEN_PROJECT_NAME "libanytone-emu")
   set(DOXYGEN_PROJECT_BRIEF "A library emulate and reverse engineer AnyTone radios.")
