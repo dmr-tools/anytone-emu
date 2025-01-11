@@ -65,6 +65,7 @@ OpenGD77CommandRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStac
   case RENDER_CPS: return OpenGD77RenderScreenRequest::fromBuffer(buffer, ok, err);
   case CLOSE_CPS_SCREEN: return OpenGD77ResetScreenRequest::fromBuffer(buffer, ok, err);
   case COMMAND: return OpenGD77ControlRequest::fromBuffer(buffer, ok, err);
+  case ENABLE_GPS:
   case PING: return OpenGD77PingRequest::fromBuffer(buffer, ok, err);
   default:
     break;
@@ -135,13 +136,16 @@ OpenGD77DisplayRequest::OpenGD77DisplayRequest(uint8_t x, uint8_t y, uint8_t fon
   : OpenGD77CommandRequest(),
     _x(x), _y(y), _font(font), _alignment(alignment), _inverted(inverted), _message(text)
 {
-  // pass...
+  logDebug() << "Got display request at (" << _x << ", " << _y << "), alignment="
+             << _alignment << ", inverted=" << _inverted << ", font=" << _font
+             << " of '" << _message << "' (" << _message.size() << ").";
 }
 
 OpenGD77Request *
 OpenGD77DisplayRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
   uint8_t x = buffer.at(2), y = buffer.at(3), font = buffer.at(4), alignment = buffer.at(5);
   bool inverted = buffer.at(6);
+
   QByteArray text = buffer.mid(7);
 
   buffer.clear();
@@ -203,7 +207,7 @@ OpenGD77ControlRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStac
   Q_UNUSED(err);
   Option opt = (Option) buffer.at(2);
   logDebug() << "Control request " << opt << ".";
-  buffer.remove(0, 3);
+  buffer.clear();
   return new OpenGD77ControlRequest(opt);
 }
 

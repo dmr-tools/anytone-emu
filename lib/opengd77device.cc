@@ -71,7 +71,8 @@ OpenGD77Device::handle(OpenGD77Request *request) {
       emit startProgram();
     else if (request->is<OpenGD77ControlRequest>() &&
              ( (OpenGD77ControlRequest::REBOOT == request->as<OpenGD77ControlRequest>()->option()) |
-               (OpenGD77ControlRequest::SAVE_SETTINGS_NOT_VFOS == request->as<OpenGD77ControlRequest>()->option())) )
+               (OpenGD77ControlRequest::SAVE_SETTINGS_NOT_VFOS == request->as<OpenGD77ControlRequest>()->option()) |
+               (OpenGD77ControlRequest::SET_DATETIME == request->as<OpenGD77ControlRequest>()->option())) )
       emit endProgram();
 
     return new OpenGD77CommandResponse(true);

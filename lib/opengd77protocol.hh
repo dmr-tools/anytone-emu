@@ -71,6 +71,7 @@ public:
     RENDER_CPS       = 3,
     CLOSE_CPS_SCREEN = 5,
     COMMAND          = 6,
+    ENABLE_GPS       = 7,
     PING             = 0xfe
   };
 
@@ -174,7 +175,11 @@ public:
     REBOOT = 1,
     SAVE_SETTINGS_AND_VFOS = 2,
     FLASH_GREEN_LED = 3,
-    FLASH_RED_LED = 4
+    FLASH_RED_LED = 4,
+    RESET_INTERNAL_BUFFER = 5,
+    RESET_SOUND_BUFFER = 6,
+    SET_DATETIME = 7,
+    SAVE_SOME_OTHER_STUFF = 10
   };
 
 protected:
