@@ -9,40 +9,50 @@ SparseRepeatDialog::SparseRepeatDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-sparserepeat").pixmap(QSize(64,64)));
+  connect(ui->minRepetitionUnset, &QCheckBox::toggled,
+          [this](bool checked) {ui->minRepetition->setEnabled(! checked);});
+  connect(ui->maxRepetitionUnset, &QCheckBox::toggled,
+          [this](bool checked) {ui->maxRepetition->setEnabled(! checked);});
 }
 
 
 void
 SparseRepeatDialog::setPattern(RepeatPattern *pattern, const CodeplugPattern *codeplug) {
   _pattern = pattern;
-  ui->address->setText(pattern->address().toString());
-  ui->offset->setText(pattern->step().toString());
+  if (pattern->address().isValid())
+    ui->address->setText(pattern->address().toString());
+
+  if (pattern->step().isValid())
+    ui->offset->setText(pattern->step().toString());
+
   ui->minRepetitionUnset->setChecked(! pattern->hasMinRepetition());
+  ui->minRepetition->setEnabled(! ui->minRepetitionUnset->isChecked());
   if (pattern->hasMinRepetition())
     ui->minRepetition->setValue(pattern->minRepetition());
+
   ui->maxRepetitionUnset->setChecked(! pattern->hasMaxRepetition());
+  ui->maxRepetition->setEnabled(! ui->maxRepetitionUnset->isChecked());
   if (pattern->hasMaxRepetition())
     ui->maxRepetition->setValue(pattern->maxRepetition());
+
   ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
 
 void
 SparseRepeatDialog::accept() {
-  if (! _pattern->hasImplicitAddress()) {
-    Address addr = Address::fromString(ui->address->text());
-    if (! addr.isValid()) {
-      QMessageBox::critical(nullptr, tr("Invalid address format."),
-                            tr("Invalid address format '%1'.").arg(ui->address->text()));
-      return;
-    }
-    _pattern->setAddress(addr);
+  Address addr = Address::fromString(ui->address->text());
+  if (! addr.isValid()) {
+    QMessageBox::critical(nullptr, tr("Invalid address format."),
+                          tr("You must set a valid address '%1'.").arg(ui->address->text()));
+    return;
   }
+  _pattern->setAddress(addr);
 
   Offset step = Offset::fromString(ui->offset->text());
   if (! step.isValid()) {
     QMessageBox::critical(nullptr, tr("Invalid offset format."),
-                          tr("Invalid offset format '%1'.").arg(ui->offset->text()));
+                          tr("You must set a valid offset '%1'.").arg(ui->offset->text()));
     return;
   }
   _pattern->setStep(step);
