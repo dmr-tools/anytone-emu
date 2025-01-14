@@ -97,11 +97,14 @@ ElementPatternView::paintEvent(QPaintEvent *event) {
                      QTextOption(Qt::AlignHCenter | Qt::AlignBottom));
   }
 
-  if (_pattern.isNull())
+  if (_pattern.isNull() || (!_pattern->size().isValid()))
     return;
 
   for (unsigned int idx=0; idx < _pattern->numChildPattern(); idx++) {
     FixedPattern *pattern = _pattern->childPattern(idx)->as<FixedPattern>();
+    // skip invalid sized pattern
+    if (! pattern->size().isValid())
+      continue;
     unsigned int row = Offset(pattern->address()).bits()/32,
         col=Offset(pattern->address()).bits()%32,
         width=pattern->size().bits();

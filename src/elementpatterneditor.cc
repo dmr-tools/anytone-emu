@@ -173,7 +173,7 @@ ElementPatternEditor::onMarkAsUnknown() {
 
   // Get address, size and location of replaced field pattern
   Address startAddress = replaced->address();
-  Offset originalSize = replaced->as<FieldPattern>()->size();
+  Offset originalSize = replaced->as<FixedPattern>()->size();
   unsigned int insertionIndex = parentElement->indexOf(replaced);
 
   auto res = QuestionDialog::ask(
@@ -184,7 +184,7 @@ ElementPatternEditor::onMarkAsUnknown() {
     return;
 
   auto inserted = new UnknownFieldPattern();
-  inserted->meta().setName("Unused data");
+  inserted->meta().setName("Unknown data");
   if (parentElement->codeplug() && parentElement->codeplug()->meta().hasFirmwareVersion())
     inserted->meta().setFirmwareVersion(
           parentElement->codeplug()->meta().firmwareVersion());
