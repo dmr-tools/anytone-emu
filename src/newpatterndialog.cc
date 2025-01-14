@@ -1,6 +1,7 @@
 #include "newpatterndialog.hh"
 #include "ui_newpatterndialog.h"
 #include "pattern.hh"
+#include <QMessageBox>
 
 
 NewPatternDialog::NewPatternDialog(AbstractPattern *parentPattern, const Address &addr, QWidget *parent)
@@ -11,7 +12,8 @@ NewPatternDialog::NewPatternDialog(AbstractPattern *parentPattern, const Address
   if (nullptr == parentPattern)
     return;
 
-  ui->address->setText(addr.toString());
+  if (addr.isValid())
+    ui->address->setText(addr.toString());
   ui->address->setEnabled(parentPattern->is<CodeplugPattern>());
 
   int pattern = (int)PatternSelectionWidget::PatternType::None;
@@ -46,5 +48,17 @@ NewPatternDialog::create() const {
   }
 
   return pattern;
+}
+
+void
+NewPatternDialog::accept() {
+  auto addr = Address::fromString(ui->address->text().simplified());
+  if (ui->address->isEnabled() && (! addr.isValid())) {
+    QMessageBox::information(
+          nullptr, "Invalid address", "You have to set a valid address for the pattern.");
+    return;
+  }
+
+  QDialog::accept();
 }
 

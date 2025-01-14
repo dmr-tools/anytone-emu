@@ -22,6 +22,9 @@ public:
 
   AbstractPattern *create() const;
 
+public slots:
+  void accept();
+
 private:
   Ui::NewPatternDialog *ui;
 };

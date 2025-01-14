@@ -43,7 +43,11 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="address"/>
+       <widget class="QLineEdit" name="address">
+        <property name="placeholderText">
+         <string>unset</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

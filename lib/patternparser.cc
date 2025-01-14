@@ -243,22 +243,13 @@ PatternParser::beginRepeatElement(const QXmlStreamAttributes &attributes) {
       return false;
     }
 
-    // Check if max-repeat is there
-    if (std::numeric_limits<unsigned int>().max() == max) {
-      raiseError("<repeat> requires a 'max' attribute.");
-      return false;
-    }
-    // Check if min-repeat is there
-    if (std::numeric_limits<unsigned int>().max() == min) {
-      raiseError("<repeat> requires a 'min' attribute.");
-      return false;
-    }
-
     // Assemble with mandatory settings
     RepeatPattern *pattern = new RepeatPattern();
     pattern->setStep(step);
-    pattern->setMaxRepetition(max);
-    pattern->setMinRepetition(min);
+    if (attributes.hasAttribute("max"))
+      pattern->setMaxRepetition(max);
+    if (attributes.hasAttribute("min"))
+      pattern->setMinRepetition(min);
 
     push(pattern);
 
