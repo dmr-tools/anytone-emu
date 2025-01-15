@@ -45,7 +45,7 @@ PatternImportDialog::copy() {
   if (nullptr == pattern)
     return nullptr;
 
-  return pattern->clone();
+  return markNeedsReview(pattern->clone());
 }
 
 
@@ -95,3 +95,18 @@ PatternImportDialog::onFirmwareSelected(int index) {
   ui->elementSelection->setModel(wrapper);
   ui->elementSelection->setEnabled(true);
 }
+
+
+AbstractPattern *
+PatternImportDialog::markNeedsReview(AbstractPattern *pattern) {
+  pattern->meta().setFlags(PatternMeta::Flags::NeedsReview);
+  pattern->meta().setFirmwareVersion("");
+  if (pattern->is<StructuredPattern>()) {
+    auto strpat = pattern->as<StructuredPattern>();
+    for (unsigned int i=0; i<strpat->numChildPattern(); i++)
+      markNeedsReview(strpat->childPattern(i));
+  }
+
+  return pattern;
+}
+

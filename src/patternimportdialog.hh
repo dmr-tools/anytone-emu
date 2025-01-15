@@ -25,6 +25,9 @@ protected slots:
   void onModelSelected(int index);
   void onFirmwareSelected(int index);
 
+protected:
+  AbstractPattern *markNeedsReview(AbstractPattern *pattern);
+
 private:
   Ui::PatternImportDialog *ui;
   ModelCatalog _catalog;
