@@ -272,6 +272,17 @@ ImageAnnotator::annotate(const Image *image, const CodeplugPattern *pattern) {
     if (child->is<RepeatPattern>()) {
       if (! annotate(image, child->as<RepeatPattern>(), child->address()))
         return false;
+    } else if (child->is<BlockRepeatPattern>()) {
+      Element *el = image->find(child->address());
+      if ((nullptr == el) && child->as<BlockRepeatPattern>()->minRepetition()) {
+        AnnotationIssue issue(child->address(), AnnotationIssue::Error);
+        issue << "Cannot annotate non-optional block-repeat pattern '" << child->meta().name()
+              << "': No element found for address " << child->address().toString() << ".";
+        logWarn() << "At " << issue.address().toString() << ": " << issue.message();
+        return false;
+      }
+      if (nullptr != el)
+        annotate(*el, el, child->as<BlockPattern>(), child->address());
     } else if (child->is<BlockPattern>()) {
       Element *el = image->find(child->address());
       if (nullptr == el) {
