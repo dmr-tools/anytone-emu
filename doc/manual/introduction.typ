@@ -86,9 +86,18 @@ To see something, fire up the CPS and write some codeplug to the emulator. If ev
 As usual, each line of the hexdump contains up to 16 bytes. On the left, the ASCII representation of printable characters is shown. The address of the line is shown on the left. 
 
 #figure(
-  image("fig/gui-hexdump-element.png", width: 75%),
-  caption: [Received image and hexdump of the first element of that image. Obviously, it is related to the channel settings.]
-)
+```hex
+00800000 43 55 25 00 00 01 00 00 1c 00 15 15 13 00 13 00  CU%.............
+00800010 26 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00  &...............
+00800020 01 00 00 43 68 61 6e 6e 65 6c 20 31 00 00 00 00  ...Channel 1....
+00800030 00 00 00 00 00 00 00 ff ff ff ff ff ff ff 00 00  ................
+00800040 43 63 25 00 00 01 00 00 1d 00 15 15 13 00 13 00  Cc%.............
+00800050 26 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00  &...............
+00800060 01 00 00 43 68 61 6e 6e 65 6c 20 32 00 00 00 00  ...Channel 2....
+00800070 00 00 00 00 00 00 00 ff ff ff ff ff ff ff 00 00  ................
+```,
+caption: [The beginning of the hex-dump of the first memory block, written by the CPS. Obviously, it is all about channels.],
+) <code-hexdump-example>
 
 From that first element of the first image, we learned, that (at least some part) of the channels are encoded at a memory section starting at address `800000h`. We may now proceed to reverse engineer the encoding of a first channel feature. 
 
@@ -101,11 +110,11 @@ If we now select the two images and hit the _show difference_ button #box(image(
 A hex difference is quiet similar to the hex dump but compares two 16-byte lines side-by-side.
 
 #figure(
-  image("fig/gui-hexdiff-element.png", width: 75%),
-  caption: [
-    Hexdiff between two codeplugs highlighting the changes between the two. 
-  ], 
-) <fig-hexdiff-example>
+```hex
+00800000 43 55 25 00 00 00 00 00 1c 00 15 15 13 00 13 00  43 51 23 45 00 04 01 55 5c 00 15 15 13 00 13 00  CU%............. CQ#E...U\.......
+```,
+caption: [Hex diff example.],
+) <code-hexdiff-example>
 
 The left column is always the _old_ codeplug. E.g., the one selected first,while the second column is the _new_ one. The bytes of the _old_ codeplug that have changed are marked red, while the ones changed in the new codeplug are marked green. Unchanged bytes are not highlighted. 
 
@@ -115,11 +124,14 @@ The _readability_ of the frequencies is not a coincidence. Each hex-digit takes 
 
 We now reverse engineered the first field of a channel. The RX frequency. Having a look at the channel dialog, let us realize, that we still have a long way ahead of us.
 
+==== Automatic hex differences 
+There are means to automatically create and show the hex differences between received codeplugs...
+
 
 == Differential analysis
 What you just performed is called a _differential analysis_. You change one aspect in the CPS and observe, what changes in the memory written to the emulator. Usually, only one or a few bytes change and thus it is easy to correlate the changes made to the memory addresses affected. 
 
-Sometime, your changes have side effects too. An example for that is the change of the RX frequency above shown in @fig-hexdiff-example. The first four bytes encode the RX frequency directly. However, the change of the RX frequency also affected bytes `800005h-800008h`. Again 4 bytes. One may speculate, that this memory section is related to the transmit frequency. Although we did not change it, it is not encoded directly as a BCD number. Maybe, it is encoded as an offset from the RX frequency.
+Sometime, your changes have side effects too. An example for that is the change of the RX frequency above shown in @code-hexdiff-example. The first four bytes encode the RX frequency directly. However, the change of the RX frequency also affected bytes `800005h-800008h`. Again 4 bytes. One may speculate, that this memory section is related to the transmit frequency. Although we did not change it, it is not encoded directly as a BCD number. Maybe, it is encoded as an offset from the RX frequency.
 
 To verify this suspicion, we may write three different codeplugs to the emulator. One where the RX and TX frequencies are equal, one where the TX frequency is a fixed amount above the RX frequency and one last codeplug, where the TX frequency is a fixed amount below the RX frequency. One obtains
 

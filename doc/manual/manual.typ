@@ -10,6 +10,8 @@
   tools that assist in that effort, by taking some of the pain out of it.]
 )
 
+#show raw: set text(size: 0.71em)
+
 #include "motivation.typ"
 
 #include "introduction.typ"
