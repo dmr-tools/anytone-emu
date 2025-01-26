@@ -16,6 +16,8 @@ private slots:
   void annotateIntTest();
   void annotateFixedRepeatTest();
   void annotateBlockRepeatTest();
+  /** Regression test for #76. */
+  void annotateEmptyBlockRepeatTest();
   void annotateSparseRepeatTest();
 };
 

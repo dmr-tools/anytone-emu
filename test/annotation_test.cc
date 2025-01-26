@@ -216,6 +216,36 @@ AnnotationTest::annotateBlockRepeatTest() {
 
 
 void
+AnnotationTest::annotateEmptyBlockRepeatTest() {
+  const char *content =
+      R"(<?xml version="1.0"?>)"
+      R"(<codeplug>)"
+      R"(  <repeat at="0" min="0" max="3">)"
+      R"(    <element>)"
+      R"(      <uint8/>)"
+      R"(      <uint16be/>)"
+      R"(    </element>)"
+      R"(  </repeat>)"
+      R"(</codeplug>)";
+
+  Image image;
+
+  QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
+  CodeplugPatternParser parser;
+
+  if (! parser.parse(reader)) {
+    QFAIL(parser.errorMessage().toLatin1().constData());
+  }
+
+  QVERIFY(parser.topIs<CodeplugPattern>());
+  CodeplugPattern *codeplug = parser.popAs<CodeplugPattern>();
+  QVERIFY(codeplug->verify());
+
+  // Should not fail
+  QVERIFY(image.annotate(codeplug));
+}
+
+void
 AnnotationTest::annotateSparseRepeatTest() {
   const char *content =
       R"(<?xml version="1.0"?>)"
