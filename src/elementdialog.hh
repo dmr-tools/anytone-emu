@@ -23,6 +23,7 @@ public:
 public slots:
   void setPattern(ElementPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
+  void done(int res);
 
 private:
   Ui::ElementDialog *ui;

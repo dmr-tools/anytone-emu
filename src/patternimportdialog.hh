@@ -21,12 +21,17 @@ public:
 
   AbstractPattern *copy();
 
+public slots:
+  void done(int res);
+  void accept();
+
 protected slots:
   void onModelSelected(int index);
   void onFirmwareSelected(int index);
 
 protected:
   AbstractPattern *markNeedsReview(AbstractPattern *pattern);
+  void closeEvent(QCloseEvent *evt);
 
 private:
   Ui::PatternImportDialog *ui;

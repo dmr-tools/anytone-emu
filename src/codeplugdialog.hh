@@ -22,6 +22,7 @@ public:
 public slots:
   void setPattern(CodeplugPattern *pattern);
   void accept();
+  void done(int res);
 
 private:
   Ui::CodeplugDialog *ui;

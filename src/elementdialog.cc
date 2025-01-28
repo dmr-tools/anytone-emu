@@ -1,7 +1,9 @@
 #include "elementdialog.hh"
 #include "ui_elementdialog.h"
 #include "pattern.hh"
+
 #include <QMessageBox>
+#include <QSettings>
 
 
 ElementDialog::ElementDialog(QWidget *parent) :
@@ -10,12 +12,26 @@ ElementDialog::ElementDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-element").pixmap(QSize(64,64)));
+  setWindowIcon(QIcon::fromTheme("pattern-element"));
+
+  QSettings settings;
+  if (settings.contains("layout/elementDialogSize"))
+    restoreGeometry(settings.value("layout/elementDialogSize").toByteArray());
 }
+
 
 ElementDialog::~ElementDialog()
 {
   delete ui;
 }
+
+
+void
+ElementDialog::done(int res) {
+  QSettings().setValue("layout/elementDialogSize", saveGeometry());
+  QDialog::done(res);
+}
+
 
 void
 ElementDialog::setPattern(ElementPattern *pattern, const CodeplugPattern *codeplug) {
@@ -42,7 +58,6 @@ ElementDialog::accept() {
                             tr("Invalid address format '%1'.").arg(ui->address->text()));
       return;
     }
-
     _pattern->setAddress(addr);
   }
 

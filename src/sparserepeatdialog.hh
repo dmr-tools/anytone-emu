@@ -20,6 +20,7 @@ public:
 public slots:
   void setPattern(RepeatPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
+  void done(int res);
 
 private:
   Ui::SparseRepeatDialog *ui;

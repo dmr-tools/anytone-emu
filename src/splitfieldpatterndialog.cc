@@ -1,13 +1,22 @@
 #include "splitfieldpatterndialog.hh"
 #include "ui_splitfieldpatterndialog.h"
 #include "pattern.hh"
+
 #include <QMessageBox>
+#include <QSettings>
+
 
 
 SplitFieldPatternDialog::SplitFieldPatternDialog(FieldPattern *fieldPattern, QWidget *parent) :
   QDialog(parent), ui(new Ui::SplitFieldPatternDialog), _field(fieldPattern)
 {
   ui->setupUi(this);
+  setWindowIcon(QIcon::fromTheme("edit-split-element"));
+
+  QSettings settings;
+  if (settings.contains("layout/splitFieldPatternDialogSize"))
+    restoreGeometry(settings.value("layout/splitFieldPatternDialogSize").toByteArray());
+
   ui->address->setText(_field->address().toString());
   ui->patternSelection->setPatternTypes((int)PatternSelectionWidget::PatternType::FieldPattern);
   ui->addressRange->setText(tr("Valid range %1 - %2.")
@@ -21,10 +30,19 @@ SplitFieldPatternDialog::~SplitFieldPatternDialog() {
   delete ui;
 }
 
+
+void
+SplitFieldPatternDialog::done(int res) {
+  QSettings().setValue("layout/splitFieldPatternDialogSize", saveGeometry());
+  QDialog::done(res);
+}
+
+
 Address
 SplitFieldPatternDialog::address() const {
   return Address::fromString(ui->address->text());
 }
+
 
 FixedPattern *
 SplitFieldPatternDialog::createPattern() const {

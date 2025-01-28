@@ -1,7 +1,10 @@
 #include "unknownpatterndialog.hh"
 #include "ui_unknownpatterndialog.h"
-#include <QMessageBox>
 #include "pattern.hh"
+
+#include <QMessageBox>
+#include <QSettings>
+
 
 
 UnknownPatternDialog::UnknownPatternDialog(QWidget *parent)
@@ -9,11 +12,24 @@ UnknownPatternDialog::UnknownPatternDialog(QWidget *parent)
 {
   ui->setupUi(this);
   ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-unknown").pixmap(QSize(64,64)));
+  setWindowIcon(QIcon::fromTheme("pattern-unknown"));
+
+  QSettings settings;
+  if (settings.contains("layout/unknownSettingsDialogSize"))
+    restoreGeometry(settings.value("layout/unknownSettingsDialogSize").toByteArray());
 }
 
 UnknownPatternDialog::~UnknownPatternDialog() {
   delete ui;
 }
+
+
+void
+UnknownPatternDialog::done(int res) {
+  QSettings().setValue("layout/unknownSettingsDialogSize", saveGeometry());
+  QDialog::done(res);
+}
+
 
 void
 UnknownPatternDialog::setPattern(UnknownFieldPattern *pattern, const CodeplugPattern *codeplug) {

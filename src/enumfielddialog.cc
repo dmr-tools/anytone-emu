@@ -16,13 +16,11 @@ EnumFieldDialog::EnumFieldDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-enum").pixmap(QSize(64,64)));
+  setWindowIcon(QIcon::fromTheme("pattern-enum"));
 
   QSettings settings;
   if (settings.contains("layout/enumFieldDialogSize"))
     restoreGeometry(settings.value("layout/enumFieldDialogSize").toByteArray());
-  if (settings.contains("layout/enumFieldDialogItemsHeaderState"))
-    ui->items->horizontalHeader()->restoreState(
-          settings.value("layout/enumFieldDialogItemsHeaderState").toByteArray());
 
   QStyledItemDelegate *delegate = new QStyledItemDelegate(ui->items);
   QItemEditorFactory *factory = new QItemEditorFactory;
@@ -45,15 +43,24 @@ EnumFieldDialog::~EnumFieldDialog()
 void
 EnumFieldDialog::done(int res) {
   QSettings settings;
+
   settings.setValue("layout/enumFieldDialogSize", saveGeometry());
-  settings.setValue("layout/enumFieldDialogItemsHeaderState",
-                    ui->items->horizontalHeader()->saveState());
+
+  if (nullptr != ui->items->model())
+    settings.setValue("layout/enumFieldDialogItemsHeaderState",
+                      ui->items->horizontalHeader()->saveState());
+
   QDialog::done(res);
 }
 
 
 void
 EnumFieldDialog::setPattern(EnumFieldPattern *pattern, const CodeplugPattern *codeplug) {
+  QSettings settings;
+  if (nullptr != ui->items->model())
+    settings.setValue("layout/enumFieldDialogItemsHeaderState",
+                      ui->items->horizontalHeader()->saveState());
+
   _pattern = pattern;
   if (pattern->hasImplicitAddress() && !pattern->hasAddress()) {
     ui->address->setText("implicit");
@@ -67,6 +74,10 @@ EnumFieldDialog::setPattern(EnumFieldPattern *pattern, const CodeplugPattern *co
 
   ui->width->setValue(_pattern->size().bits());
   ui->items->setModel(new EnumFieldPatternWrapper(pattern));
+
+  if (settings.contains("layout/enumFieldDialogItemsHeaderState"))
+    ui->items->horizontalHeader()->restoreState(
+          settings.value("layout/enumFieldDialogItemsHeaderState").toByteArray());
 
   ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }

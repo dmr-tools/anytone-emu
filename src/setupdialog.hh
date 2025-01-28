@@ -27,6 +27,9 @@ public:
   QString catalog() const;
   Device *createDevice(const ErrorStack &err=ErrorStack());
 
+public slots:
+  void done(int res);
+
 private slots:
   void onUseBuildinPatternToggled(bool enabled);
   void onSelectCatalogFile();

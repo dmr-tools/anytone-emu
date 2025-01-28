@@ -109,6 +109,8 @@ CollectionWrapper::data(const QModelIndex &index, int role) const {
     return formatFieldValue(obj);
   } else if ((Qt::DecorationRole  == role) && (0 == index.column())) {
     return getIcon(obj);
+  } else if ((Qt::ToolTipRole == role) && (0 == index.column())) {
+    return getTooltip(obj);
   }
 
   return QVariant();
@@ -130,6 +132,8 @@ CollectionWrapper::formatTypeName(const QObject *obj) const {
     return tr("Structure '%1'").arg(el->pattern()->meta().name());
   } else if (auto el = qobject_cast<const FieldAnnotation *>(obj)) {
     return tr("Field '%1'").arg(el->pattern()->meta().name());
+  } else if (auto el = qobject_cast<const UnannotatedSegment*>(obj)) {
+    return tr("Unannotated Segment");
   }
 
   return QVariant();
@@ -181,26 +185,58 @@ CollectionWrapper::getIcon(const QObject *obj) const {
   if (nullptr == el)
     return QVariant();
 
+  QString suffix;
+  if (el->hasIssues() && el->issues().has(AnnotationIssue::Error)) {
+    suffix = "-critical";
+  } else if (el->hasIssues() && el->issues().has(AnnotationIssue::Warning)) {
+    suffix = "-warning";
+  } else if (! el->hasIssues()) {
+    suffix = "-okay";
+  }
+
   auto pattern = el->pattern();
-
+  QString prefix;
   if (pattern->is<BlockRepeatPattern>())
-    return QIcon::fromTheme("pattern-blockrepeat");
+    prefix = "pattern-blockrepeat";
   else if (pattern->is<FixedRepeatPattern>())
-    return QIcon::fromTheme("pattern-fixedrepeat");
+    prefix = "pattern-fixedrepeat";
   else if (pattern->is<ElementPattern>())
-    return QIcon::fromTheme("pattern-element");
+    prefix = "pattern-element";
   else if (pattern->is<IntegerFieldPattern>())
-    return QIcon::fromTheme("pattern-integer");
+    prefix = "pattern-integer";
   else if (pattern->is<EnumFieldPattern>())
-    return QIcon::fromTheme("pattern-enum");
+    prefix = "pattern-enum";
   else if (pattern->is<StringFieldPattern>())
-    return QIcon::fromTheme("pattern-stringfield");
+    prefix = "pattern-stringfield";
   else if (pattern->is<UnusedFieldPattern>())
-    return QIcon::fromTheme("pattern-unused");
+    prefix = "pattern-unused";
   else if (pattern->is<UnknownFieldPattern>())
-    return QIcon::fromTheme("pattern-unknown");
+    prefix = "pattern-unknown";
 
-  return QVariant();
+  return QIcon::fromTheme(prefix+suffix);
+}
+
+
+QVariant
+CollectionWrapper::getTooltip(const QObject *obj) const {
+  if (nullptr == obj)
+    return QVariant();
+
+  auto el = qobject_cast<const AbstractAnnotation *>(obj);
+  if (nullptr == el)
+    return QVariant();
+
+  if (! el->hasIssues())
+    return QVariant();
+
+  QString msg("<h3>Annotation issues:</h3><ul>");
+  AnnotationIssues::const_iterator issue = el->issues().begin();
+  for (; issue != el->issues().end(); issue++) {
+    msg += QString("<li>%1</li>").arg(issue->message());
+  }
+  msg += "</ul>";
+
+  return msg;
 }
 
 

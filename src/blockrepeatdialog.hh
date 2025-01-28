@@ -22,6 +22,7 @@ public:
 public slots:
   void setPattern(BlockRepeatPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
+  void done(int res);
 
 private:
   Ui::BlockRepeatDialog *ui;

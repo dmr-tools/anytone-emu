@@ -24,6 +24,7 @@ public:
 
 public slots:
   void accept();
+  void done(int res);
 
 private:
   Ui::NewPatternDialog *ui;

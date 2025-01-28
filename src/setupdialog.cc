@@ -18,6 +18,9 @@ SetupDialog::SetupDialog(QWidget *parent) :
   setWindowIcon(QIcon::fromTheme("application-anytone-emu"));
   ui->iconLabel->setPixmap(QIcon::fromTheme("settings-interface").pixmap(QSize(64,64)));
 
+  if (settings.contains("layout/setupDialogSize"))
+    restoreGeometry(settings.value("layout/setupDialogSize").toByteArray());
+
   if (settings.contains("catalogFile"))
     ui->catalogFile->setText(settings.value("catalogFile").toString());
   if (settings.contains("useBuildinPatterns"))
@@ -79,6 +82,13 @@ SetupDialog::SetupDialog(QWidget *parent) :
 SetupDialog::~SetupDialog()
 {
   delete ui;
+}
+
+
+void
+SetupDialog::done(int res) {
+  QSettings().setValue("layout/setupDialogSize", saveGeometry());
+  QDialog::done(res);
 }
 
 

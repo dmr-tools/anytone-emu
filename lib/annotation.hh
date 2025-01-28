@@ -36,6 +36,8 @@ public:
   };
 
 public:
+  /** Default constructor. */
+  AnnotationIssue();
   /** Constructs a new issue at the given address with the given severity and message.
    * The message can be altered later on. */
   AnnotationIssue(const Address &address, Severity severity, const QString &message="");
@@ -43,6 +45,9 @@ public:
   AnnotationIssue(const AnnotationIssue &other);
   /** Default copying assignment operator. */
   AnnotationIssue &operator=(const AnnotationIssue &other);
+
+  /** Returns @c true, if the issue is valid. */
+  bool isValid() const;
 
   /** Returns the address. */
   const Address &address() const;
@@ -61,13 +66,14 @@ private:
 };
 
 
+
 /** A list of annotation issues.
  * @ingroup annotation */
 class AnnotationIssues
 {
 public:
   /** An iterator over the issues. It is a const iterator, as issues are read-only. */
-  typedef QList<AnnotationIssue>::const_iterator iterator;
+  typedef QList<AnnotationIssue>::const_iterator const_iterator;
 
 public:
   /** Default constructor. */
@@ -85,9 +91,9 @@ public:
   bool has(AnnotationIssue::Severity severity) const;
 
   /** Returns an iterator, pointing to the first issue. */
-  iterator begin() const;
+  const_iterator begin() const;
   /** Returns an iterator, pointing past the last issue. */
-  iterator end() const;
+  const_iterator end() const;
 
 protected:
   /** The list of issues. */
@@ -226,6 +232,7 @@ public:
 };
 
 
+
 /** Annotates an atomic section of memory. E.g., a value.
  * @ingroup annotation */
 class FieldAnnotation: public AbstractAnnotation
@@ -234,8 +241,7 @@ class FieldAnnotation: public AbstractAnnotation
 
 public:
   /** Constructs a new field annotation for the given pattern, address and value. */
-  explicit FieldAnnotation(const FieldPattern *pattern, const Address &addr,
-                           const QVariant &value, QObject *parent = nullptr);
+  explicit FieldAnnotation(const FieldPattern *pattern, const Element *element, const Address &addr, QObject *parent = nullptr);
 
   /** Resolves to this instance, if the address is contained. */
   const FieldAnnotation *resolve(const Address &addr) const;
@@ -247,6 +253,19 @@ protected:
   /** The decoded value. */
   QVariant _value;
 };
+
+
+
+/** Represents an unannotated memory segment. */
+class UnannotatedSegment: public AbstractAnnotation
+{
+  Q_OBJECT
+
+public:
+  /** Constructs a new unannotated segment annotation. */
+  explicit UnannotatedSegment(const Address &addr, const Size &size, QObject *parent = nullptr);
+};
+
 
 
 /** Just a namespace for all annotation functions.

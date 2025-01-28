@@ -6,6 +6,12 @@
 /* ********************************************************************************************* *
  * Implementation of AnnotationIssue
  * ********************************************************************************************* */
+AnnotationIssue::AnnotationIssue()
+  : QTextStream(), _address(), _severity(), _message()
+{
+  this->setString(&_message, QIODeviceBase::ReadWrite);
+}
+
 AnnotationIssue::AnnotationIssue(const Address &address, Severity severity, const QString &message)
   : QTextStream(), _address(address), _severity(severity), _message(message)
 {
@@ -24,6 +30,11 @@ AnnotationIssue::operator =(const AnnotationIssue &other) {
   _severity = other._severity;
   _message = other._message;
   return *this;
+}
+
+bool
+AnnotationIssue::isValid() const {
+  return _address.isValid();
 }
 
 const Address &
@@ -53,6 +64,8 @@ AnnotationIssues::AnnotationIssues()
 
 void
 AnnotationIssues::add(const AnnotationIssue &issue) {
+  if (! issue.isValid())
+    return;
   _issues.append(issue);
 }
 
@@ -74,12 +87,12 @@ AnnotationIssues::has(AnnotationIssue::Severity severity) const {
   return false;
 }
 
-AnnotationIssues::iterator
+AnnotationIssues::const_iterator
 AnnotationIssues::begin() const {
   return _issues.begin();
 }
 
-AnnotationIssues::iterator
+AnnotationIssues::const_iterator
 AnnotationIssues::end() const {
   return _issues.end();
 }
@@ -199,6 +212,11 @@ AbstractAnnotation::path() const {
   return path;
 }
 
+bool
+AbstractAnnotation::hasIssues() const {
+  return 0 != _issues.numIssues();
+}
+
 const AnnotationIssues &
 AbstractAnnotation::issues() const {
   return _issues;
@@ -215,11 +233,13 @@ AbstractAnnotation::onPatternDeleted() {
 }
 
 
+
 /* ********************************************************************************************* *
  * Implementation of FieldAnnotation
  * ********************************************************************************************* */
-FieldAnnotation::FieldAnnotation(const FieldPattern *pattern, const Address& addr, const QVariant &value, QObject *parent)
-  : AbstractAnnotation{pattern, addr, pattern->size(), parent}, _value(value)
+FieldAnnotation::FieldAnnotation(const FieldPattern *pattern, const Element *element, const Address& addr, QObject *parent)
+  : AbstractAnnotation{pattern, addr, pattern->size(), parent},
+    _value(pattern->value(element, addr, this))
 {
   // pass...
 }
@@ -235,6 +255,18 @@ FieldAnnotation::resolve(const Address &addr) const {
     return this;
   return nullptr;
 }
+
+
+
+/* ********************************************************************************************* *
+ * Implementation of UnannotatedSegment
+ * ********************************************************************************************* */
+UnannotatedSegment::UnannotatedSegment(const Address &addr, const Size &size, QObject *parent)
+  : AbstractAnnotation(nullptr, addr, size, parent)
+{
+  // pass...
+}
+
 
 
 /* ********************************************************************************************* *
@@ -295,6 +327,7 @@ ImageAnnotator::annotate(const Image *image, const CodeplugPattern *pattern) {
       annotate(*el, el, child->as<BlockPattern>(), child->address());
     }
   }
+
   return true;
 }
 
@@ -440,6 +473,6 @@ ImageAnnotator::annotate(AnnotationCollection &parent, const Element *element, c
     return false;
   }
 
-  parent.addAnnotation(new FieldAnnotation(pattern, address, pattern->value(element, address)));
+  parent.addAnnotation(new FieldAnnotation(pattern, element, address));
   return true;
 }

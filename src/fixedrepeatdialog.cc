@@ -1,7 +1,10 @@
 #include "fixedrepeatdialog.hh"
 #include "ui_fixedrepeatdialog.h"
 #include "pattern.hh"
+
 #include <QMessageBox>
+#include <QSettings>
+
 
 
 FixedRepeatDialog::FixedRepeatDialog(QWidget *parent) :
@@ -9,12 +12,24 @@ FixedRepeatDialog::FixedRepeatDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-fixedrepeat").pixmap(QSize(64,64)));
+  setWindowIcon(QIcon::fromTheme("pattern-fixedrepeat"));
+  QSettings settings;
+  if (settings.contains("layout/fixedRepeatDialogSize"))
+    restoreGeometry(settings.value("layout/fixedRepeatDialogSize").toByteArray());
 }
 
 FixedRepeatDialog::~FixedRepeatDialog()
 {
   delete ui;
 }
+
+
+void
+FixedRepeatDialog::done(int res) {
+  QSettings().setValue("layout/fixedRepeatDialogSize", saveGeometry());
+  QDialog::done(res);
+}
+
 
 void
 FixedRepeatDialog::setPattern(FixedRepeatPattern *pattern, const CodeplugPattern *codeplug) {
