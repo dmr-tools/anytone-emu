@@ -23,8 +23,13 @@ CollectionWrapper::index(int row, int column, const QModelIndex &parent) const {
     return createIndex(row, column, _collection->image(row));
   }
 
-  auto parentObj = reinterpret_cast<const QObject *>(parent.constInternalPointer());
-  return createIndex(row, column, parentObj->children().at(row));
+  auto object = reinterpret_cast<const QObject *>(parent.constInternalPointer());
+  if (auto parentIm = qobject_cast<const Image *>(object))
+    return createIndex(row, column, parentIm->element(row));
+  else if (auto parentEl = qobject_cast<const Element *>(object))
+    return createIndex(row, column, parentEl->annotation(row));
+  else if (auto parentAn = qobject_cast<const StructuredAnnotation *>(object))
+    return createIndex(row, column, parentAn->annotation(row));
 
   return QModelIndex();
 }
@@ -86,6 +91,8 @@ CollectionWrapper::flags(const QModelIndex &index) const {
   const QObject *obj = reinterpret_cast<const QObject *>(index.constInternalPointer());
   Qt::ItemFlags flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
   if (auto el = qobject_cast<const FieldAnnotation*>(obj))
+    flags |= Qt::ItemNeverHasChildren;
+  if (auto el = qobject_cast<const UnannotatedSegment*>(obj))
     flags |= Qt::ItemNeverHasChildren;
   return flags;
 }
@@ -153,6 +160,10 @@ CollectionWrapper::formatAddress(const QObject *obj) const {
     if ((7 == el->address().bit()) && (0 == (el->size().bits() % 8)))
       return QString("%1h  ").arg(el->address().byte(), 0, 16);
     return QString("%1h:%2").arg(el->address().byte(), 0, 16).arg(el->address().bit(),0,8);
+  } else if (auto el = qobject_cast<const UnannotatedSegment *>(obj)) {
+    if ((7 == el->address().bit()) && (0 == (el->size().bits() % 8)))
+      return QString("%1h  ").arg(el->address().byte(), 0, 16);
+    return QString("%1h:%2").arg(el->address().byte(), 0, 16).arg(el->address().bit(),0,8);
   }
 
   return QVariant();
@@ -170,6 +181,8 @@ CollectionWrapper::formatSize(const QObject *obj) const {
     return el->size().toString();
   } else if (auto el = qobject_cast<const FieldAnnotation *>(obj)) {
     return el->size().toString();
+  } else if (auto el = qobject_cast<const UnannotatedSegment *>(obj)) {
+    return el->size().toString();
   }
 
   return QVariant();
@@ -181,37 +194,47 @@ CollectionWrapper::getIcon(const QObject *obj) const {
   if (nullptr == obj)
     return QVariant();
 
-  auto el = qobject_cast<const AbstractAnnotation *>(obj);
-  if (nullptr == el)
-    return QVariant();
-
-  QString suffix;
-  if (el->hasIssues() && el->issues().has(AnnotationIssue::Error)) {
-    suffix = "-critical";
-  } else if (el->hasIssues() && el->issues().has(AnnotationIssue::Warning)) {
-    suffix = "-warning";
-  } else if (! el->hasIssues()) {
-    suffix = "-okay";
+  QString suffix, prefix;
+  AnnotationIssue::Severity severity = AnnotationIssue::None;
+  if (auto image = qobject_cast<const Image *>(obj)) {
+    prefix = "image";
+    severity = image->annotationSeverity();
+  } else if (auto element = qobject_cast<const Element *>(obj)) {
+    prefix = "element";
+    severity = element->severity();
+  } else if (auto anno = qobject_cast<const AbstractAnnotation *>(obj)) {
+    severity = anno->issues().severity();
+    if (auto st = anno->as<StructuredAnnotation>()) {
+      auto pattern = st->pattern();
+      if (pattern->is<BlockRepeatPattern>())
+        prefix = "pattern-blockrepeat";
+      else if (pattern->is<FixedRepeatPattern>())
+        prefix = "pattern-fixedrepeat";
+      else if (pattern->is<ElementPattern>())
+        prefix = "pattern-element";
+    } else if (auto fld = anno->as<FieldAnnotation>()) {
+      auto pattern = fld->pattern();
+      if (pattern->is<IntegerFieldPattern>())
+        prefix = "pattern-integer";
+      else if (pattern->is<EnumFieldPattern>())
+        prefix = "pattern-enum";
+      else if (pattern->is<StringFieldPattern>())
+        prefix = "pattern-stringfield";
+      else if (pattern->is<UnusedFieldPattern>())
+        prefix = "pattern-unused";
+      else if (pattern->is<UnknownFieldPattern>())
+        prefix = "pattern-unknown";
+    } else if (anno->is<UnannotatedSegment>()) {
+      prefix = "annotation-unannotated";
+      severity = AnnotationIssue::Error;
+    }
   }
 
-  auto pattern = el->pattern();
-  QString prefix;
-  if (pattern->is<BlockRepeatPattern>())
-    prefix = "pattern-blockrepeat";
-  else if (pattern->is<FixedRepeatPattern>())
-    prefix = "pattern-fixedrepeat";
-  else if (pattern->is<ElementPattern>())
-    prefix = "pattern-element";
-  else if (pattern->is<IntegerFieldPattern>())
-    prefix = "pattern-integer";
-  else if (pattern->is<EnumFieldPattern>())
-    prefix = "pattern-enum";
-  else if (pattern->is<StringFieldPattern>())
-    prefix = "pattern-stringfield";
-  else if (pattern->is<UnusedFieldPattern>())
-    prefix = "pattern-unused";
-  else if (pattern->is<UnknownFieldPattern>())
-    prefix = "pattern-unknown";
+  switch (severity) {
+  case AnnotationIssue::None: suffix = "-okay"; break;
+  case AnnotationIssue::Warning: suffix = "-warning"; break;
+  case AnnotationIssue::Error: suffix = "-critical"; break;
+  }
 
   return QIcon::fromTheme(prefix+suffix);
 }

@@ -169,8 +169,13 @@ Image::setLabel(const QString &label) {
 bool
 Image::annotate(const CodeplugPattern *pattern) {
  bool ok = ImageAnnotator::annotate(this, pattern);
+ if (! ok)
+   return ok;
+
+ ok = ImageAnnotator::markUnannotated(this);
  if (ok)
    emit annotated(this);
+
  return ok;
 }
 
@@ -242,6 +247,17 @@ Image::const_iterator
 Image::end() const {
   return _elements.end();
 }
+
+
+AnnotationIssue::Severity
+Image::annotationSeverity() const {
+  AnnotationIssue::Severity severity = AnnotationIssue::None;
+  foreach (auto element, _elements) {
+    severity = element->severity();
+  }
+  return severity;
+}
+
 
 
 /* ********************************************************************************************* *

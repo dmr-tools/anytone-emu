@@ -97,6 +97,16 @@ AnnotationIssues::end() const {
   return _issues.end();
 }
 
+AnnotationIssue::Severity
+AnnotationIssues::severity() const {
+  AnnotationIssue::Severity severity = AnnotationIssue::None;
+  foreach (auto issue, _issues) {
+    if (issue.severity() > severity)
+      severity = issue.severity();
+  }
+  return severity;
+}
+
 
 /* ********************************************************************************************* *
  * Implementation of AnnotationCollection
@@ -118,6 +128,16 @@ AnnotationCollection::unAnnotated() const {
 unsigned int
 AnnotationCollection::numAnnotations() const {
   return _annotations.size();
+}
+
+const QVector<AbstractAnnotation *> &
+AnnotationCollection::annotations() const {
+  return _annotations;
+}
+
+QVector<AbstractAnnotation *> &
+AnnotationCollection::annotations() {
+  return _annotations;
 }
 
 const AbstractAnnotation *
@@ -170,13 +190,27 @@ AnnotationCollection::annotationAt(const Address &addr) const {
 }
 
 
+AnnotationIssue::Severity
+AnnotationCollection::severity() const {
+  AnnotationIssue::Severity severity = AnnotationIssue::None;
+  foreach (auto annotation, _annotations) {
+    for (auto issue = annotation->issues().begin(); issue != annotation->issues().end(); issue++)
+      if (issue->severity() > severity)
+        severity = issue->severity();
+  }
+  return severity;
+}
+
+
+
 /* ********************************************************************************************* *
  * Implementation of AbstractAnnotation
  * ********************************************************************************************* */
-AbstractAnnotation::AbstractAnnotation(const BlockPattern *pattern, const Address &addr, const Size& size, QObject *parent)
-  : QObject{parent}, _address(addr), _size(size), _pattern(pattern), _issues()
+AbstractAnnotation::AbstractAnnotation(const Address &addr,
+                                       const Size& size, QObject *parent)
+  : QObject{parent}, _address(addr), _size(size), _issues()
 {
-  connect(_pattern, &QObject::destroyed, this, &AbstractAnnotation::onPatternDeleted);
+  // pass...
 }
 
 const Address &
@@ -196,22 +230,6 @@ AbstractAnnotation::contains(const Address& addr) const {
   return addr < (_address+size());
 }
 
-const BlockPattern *
-AbstractAnnotation::pattern() const {
-  return _pattern;
-}
-
-QStringList
-AbstractAnnotation::path() const {
-  QStringList path;
-  const AbstractPattern *pattern = _pattern;
-  while (nullptr != pattern) {
-    path.append(pattern->meta().name());
-    pattern = qobject_cast<AbstractPattern*>(pattern->parent());
-  }
-  return path;
-}
-
 bool
 AbstractAnnotation::hasIssues() const {
   return 0 != _issues.numIssues();
@@ -227,9 +245,24 @@ AbstractAnnotation::issues() {
   return _issues;
 }
 
-void
-AbstractAnnotation::onPatternDeleted() {
-  delete this;
+
+
+
+
+/* ********************************************************************************************* *
+ * Implementation of AtomicAnnotation
+ * ********************************************************************************************* */
+AtomicAnnotation::AtomicAnnotation(const Address& addr, const Size &size, QObject *parent)
+  : AbstractAnnotation{addr, size, parent}
+{
+  // pass...
+}
+
+const AtomicAnnotation *
+AtomicAnnotation::resolve(const Address &addr) const {
+  if (this->contains(addr))
+    return this;
+  return nullptr;
 }
 
 
@@ -238,7 +271,7 @@ AbstractAnnotation::onPatternDeleted() {
  * Implementation of FieldAnnotation
  * ********************************************************************************************* */
 FieldAnnotation::FieldAnnotation(const FieldPattern *pattern, const Element *element, const Address& addr, QObject *parent)
-  : AbstractAnnotation{pattern, addr, pattern->size(), parent},
+  : AtomicAnnotation{addr, pattern->size(), parent}, _pattern(pattern),
     _value(pattern->value(element, addr, this))
 {
   // pass...
@@ -249,11 +282,21 @@ FieldAnnotation::value() const {
   return _value;
 }
 
-const FieldAnnotation *
-FieldAnnotation::resolve(const Address &addr) const {
-  if (this->contains(addr))
-    return this;
-  return nullptr;
+
+const FieldPattern *
+FieldAnnotation::pattern() const {
+  return _pattern;
+}
+
+QStringList
+FieldAnnotation::path() const {
+  QStringList path;
+  const AbstractPattern *pattern = _pattern;
+  while (nullptr != pattern) {
+    path.append(pattern->meta().name());
+    pattern = qobject_cast<AbstractPattern*>(pattern->parent());
+  }
+  return path;
 }
 
 
@@ -262,7 +305,7 @@ FieldAnnotation::resolve(const Address &addr) const {
  * Implementation of UnannotatedSegment
  * ********************************************************************************************* */
 UnannotatedSegment::UnannotatedSegment(const Address &addr, const Size &size, QObject *parent)
-  : AbstractAnnotation(nullptr, addr, size, parent)
+  : AtomicAnnotation(addr, size, parent)
 {
   // pass...
 }
@@ -273,7 +316,8 @@ UnannotatedSegment::UnannotatedSegment(const Address &addr, const Size &size, QO
  * Implementation of StructuredAnnotation
  * ********************************************************************************************* */
 StructuredAnnotation::StructuredAnnotation(const BlockPattern *pattern, const Address &addr, QObject *parent)
-  : AbstractAnnotation{pattern, addr, Size::zero(), parent}, AnnotationCollection()
+  : AbstractAnnotation{addr, Size::zero(), parent}, AnnotationCollection(),
+    _pattern(pattern)
 {
   // pass...
 }
@@ -285,13 +329,30 @@ StructuredAnnotation::addAnnotation(AbstractAnnotation *child) {
   AnnotationCollection::addAnnotation(child);
 }
 
-const FieldAnnotation *
+const AtomicAnnotation *
 StructuredAnnotation::resolve(const Address &addr) const {
   const AbstractAnnotation *element = annotationAt(addr);
   if (nullptr != element)
     return element->resolve(addr);
   return nullptr;
 }
+
+const BlockPattern *
+StructuredAnnotation::pattern() const {
+  return _pattern;
+}
+
+QStringList
+StructuredAnnotation::path() const {
+  QStringList path;
+  const AbstractPattern *pattern = _pattern;
+  while (nullptr != pattern) {
+    path.append(pattern->meta().name());
+    pattern = qobject_cast<AbstractPattern*>(pattern->parent());
+  }
+  return path;
+}
+
 
 
 /* ********************************************************************************************* *
@@ -325,6 +386,36 @@ ImageAnnotator::annotate(const Image *image, const CodeplugPattern *pattern) {
         return false;
       }
       annotate(*el, el, child->as<BlockPattern>(), child->address());
+    }
+  }
+
+  return true;
+}
+
+
+bool
+ImageAnnotator::markUnannotated(const Image *image) {
+  for (auto element = image->begin(); element != image->end(); element++){
+    Address address = (*element)->address();
+    QVector<AbstractAnnotation *> &annotations = (*element)->annotations();
+    for (int i=0; i<annotations.size(); i++) {
+      if (address == annotations.at(i)->address()) {
+        address += annotations.at(i)->size();
+        continue;
+      }
+
+      // address does not match -> add unannotated annotation
+      auto unan = new UnannotatedSegment(address, annotations.at(i)->address() - address);
+      annotations.insert(i, unan);
+      unan->setParent(*element);
+      address += unan->size();
+    }
+
+    if (address != ((*element)->address() + (*element)->size())) {
+      auto unan = new UnannotatedSegment(
+            address, ((*element)->address()+(*element)->size()) - address);
+      annotations.append(unan);
+      unan->setParent(*element);
     }
   }
 
