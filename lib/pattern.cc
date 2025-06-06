@@ -755,11 +755,11 @@ AbstractPattern *
 BlockRepeatPattern::clone() const {
   auto pattern = BlockPattern::clone()->as<BlockRepeatPattern>();
 
-  if (nullptr != _subpattern)
-    pattern->addChildPattern(_subpattern->clone());
-
   pattern->_minRepetition = _minRepetition;
   pattern->_maxRepetition = _maxRepetition;
+
+  if (nullptr != _subpattern)
+    pattern->addChildPattern(_subpattern->clone());
 
   return pattern;
 }
@@ -885,6 +885,11 @@ FixedPattern::size() const {
 }
 
 void
+FixedPattern::resetSize() {
+  setSize(Size());
+}
+
+void
 FixedPattern::setSize(const Size &size) {
   _size = size;
   emit resized(this, _size);
@@ -935,6 +940,7 @@ AbstractPattern *
 ElementPattern::clone() const {
   auto pattern = FixedPattern::clone()->as<ElementPattern>();
 
+  pattern->resetSize();
   foreach(FixedPattern *child, _content)
     pattern->addChildPattern(child->clone());
 
