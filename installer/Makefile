@@ -14,7 +14,7 @@ DEPS   = $(addprefix $(DATA), $(DLLS) $(ICONS))
 .PHONY: installer deploy
 
 all: installer
-	
+
 installer: anytone-emu-$(VERSION).exe
 
 anytone-emu-$(VERSION).exe: $(DEPS) deploy 
