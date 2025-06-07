@@ -1,6 +1,8 @@
 #include "opengd77protocol.hh"
 #include <QtEndian>
+#include <QTimeZone>
 #include "logger.hh"
+
 
 
 /* ********************************************************************************************* *
@@ -204,11 +206,48 @@ OpenGD77ControlRequest::option() const {
 
 OpenGD77Request *
 OpenGD77ControlRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
-  Q_UNUSED(err);
   Option opt = (Option) buffer.at(2);
   logDebug() << "Control request " << opt << ".";
+
+  switch (opt) {
+  case SET_DATETIME:
+    return OpenGD77SetDateTimeRequest::fromBuffer(buffer, ok, err);
+  default:
+    break;
+  }
+
   buffer.clear();
   return new OpenGD77ControlRequest(opt);
+}
+
+
+
+/* ********************************************************************************************* *
+ * Implementation of OpenGD77SetDateTimeRequest
+ * ********************************************************************************************* */
+OpenGD77SetDateTimeRequest::OpenGD77SetDateTimeRequest(uint32_t seconds)
+  : OpenGD77ControlRequest(Option::SET_DATETIME),
+    _timestamp(QDateTime::fromSecsSinceEpoch(seconds, QTimeZone::utc()))
+{
+  logInfo() << "Set date time to " << _timestamp.toString() << ".";
+}
+
+
+OpenGD77Request *
+OpenGD77SetDateTimeRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
+  if (buffer.size() < 5) {
+    errMsg(err) << "Cannot unpack timestamp: message too small.";
+    buffer.clear();
+    ok = false;
+    return nullptr;
+  }
+
+  uint32_t timestamp = qFromLittleEndian(*(uint32_t *)(buffer.constData()+3));
+  logDebug() << "Got timestamp " << buffer.slice(3, 4).toHex() << " -> " << timestamp << ".";
+  buffer.clear();
+  ok = true;
+
+  return new OpenGD77SetDateTimeRequest(timestamp);
 }
 
 

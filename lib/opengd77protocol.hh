@@ -1,6 +1,7 @@
 #ifndef OPENGD77PROTOCOL_HH
 #define OPENGD77PROTOCOL_HH
 
+#include <QDateTime>
 #include <QByteArray>
 
 #include "errorstack.hh"
@@ -191,8 +192,25 @@ public:
       QByteArray &buffer, bool &ok, const ErrorStack &err=ErrorStack());
 
   Option option() const;
+
 protected:
   Option _option;
+};
+
+
+class OpenGD77SetDateTimeRequest: public OpenGD77ControlRequest
+{
+protected:
+  OpenGD77SetDateTimeRequest(uint32_t seconds);
+
+public:
+  const QDateTime &dateTime() const;
+
+  static OpenGD77Request *fromBuffer(
+      QByteArray &buffer, bool &ok, const ErrorStack &err=ErrorStack());
+
+protected:
+  QDateTime _timestamp;
 };
 
 
