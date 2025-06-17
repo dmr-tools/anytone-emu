@@ -243,7 +243,7 @@ CollectionWrapper::formatTooltip(const QObject *obj) const {
   if (nullptr == el)
     return QVariant();
 
-  auto pattern = el->pattern()->as<FieldPattern>();
+  auto pattern = el->pattern()->as<BlockPattern>();
   if (nullptr == pattern)
     return QVariant();
 
