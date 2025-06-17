@@ -368,8 +368,12 @@ ElementPatternView::formatTooltip(const FixedPattern *pattern) const {
     res = tr("<h3>Unknown Pattern <i>%1</i> at <tt>%2</tt></h3>")
         .arg(pattern->meta().name())
         .arg(pattern->address().toString());
+
   if (pattern->meta().hasFirmwareVersion())
     res.append(tr("<h5>Firmware version %1</h5>").arg(pattern->meta().firmwareVersion()));
+
+  if (pattern->meta().hasBriefDescription())
+    res.append(tr("<p>%1</p>").arg(pattern->meta().briefDescription()));
 
   if (pattern->meta().hasDescription())
     res.append(tr("<p>%1</p>").arg(pattern->meta().description()));

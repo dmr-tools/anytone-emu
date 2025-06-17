@@ -109,6 +109,8 @@ CollectionWrapper::data(const QModelIndex &index, int role) const {
     return formatFieldValue(obj);
   } else if ((Qt::DecorationRole  == role) && (0 == index.column())) {
     return getIcon(obj);
+  } else if ((Qt::ToolTipRole == role) && (0==index.column())) {
+    return formatTooltip(obj);
   }
 
   return QVariant();
@@ -229,6 +231,23 @@ CollectionWrapper::formatFieldValue(const QObject *obj) const {
     return QVariant();
 
   return el->value();
+}
+
+
+QVariant
+CollectionWrapper::formatTooltip(const QObject *obj) const {
+  if (nullptr == obj)
+    return QVariant();
+
+  auto el = qobject_cast<const FieldAnnotation *>(obj);
+  if (nullptr == el)
+    return QVariant();
+
+  auto pattern = el->pattern()->as<FieldPattern>();
+  if (nullptr == pattern)
+    return QVariant();
+
+
 }
 
 
