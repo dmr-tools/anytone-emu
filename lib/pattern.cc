@@ -1853,11 +1853,19 @@ StringFieldPattern::value(const Element *element, const Address &address) const 
   Offset offset = address-element->address();
   QByteArray mid = element->data().mid(offset.byte(), size().byte());
 
+  QChar term(_padValue);
+  QString res;
+
   switch (format()) {
-  case Format::ASCII: return QString::fromLocal8Bit(mid);
-  case Format::Unicode: return QString(mid);
+  case Format::ASCII: res = QString::fromLocal8Bit(mid); break;
+  case Format::Unicode: res = QString(mid); break;
   }
-  return QVariant();
+
+  int idx = res.indexOf(term);
+  if (idx >= 0)
+    return res.left(idx);
+
+  return res;
 }
 
 StringFieldPattern::Format
