@@ -32,6 +32,7 @@ public slots:
 
 protected:
   QVariant getIcon(const QObject *obj) const;
+  QVariant formatTooltip(const QObject *obj) const;
   QVariant formatTypeName(const QObject *obj) const;
   QVariant formatAddress(const QObject *obj) const;
   QVariant formatSize(const QObject *obj) const;
