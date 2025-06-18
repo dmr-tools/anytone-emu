@@ -114,3 +114,6 @@ target_include_directories(anytone-emu-gui PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 # Install binary only if not a bundle under MacOS X
 install(TARGETS anytone-emu-gui DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 
+install(FILES ${PROJECT_SOURCE_DIR}/shared/anytone-emu-gui.desktop DESTINATION share/applications/)
+install(FILES ${PROJECT_SOURCE_DIR}/shared/icons/light/apps/application-anytone-emu.svg
+  DESTINATION share/icons/hicolor/scalable/apps/)
