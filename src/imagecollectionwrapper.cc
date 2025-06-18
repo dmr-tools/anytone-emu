@@ -239,15 +239,30 @@ CollectionWrapper::formatTooltip(const QObject *obj) const {
   if (nullptr == obj)
     return QVariant();
 
-  auto el = qobject_cast<const FieldAnnotation *>(obj);
+  auto el = qobject_cast<const AbstractAnnotation *>(obj);
   if (nullptr == el)
     return QVariant();
 
-  auto pattern = el->pattern()->as<BlockPattern>();
-  if (nullptr == pattern)
-    return QVariant();
+  QString tooltip = tr("<h3>%1 <i>%2</i> at <tt>%3</tt></h3>"
+                       "<h5>Size <tt>%4</tt></h5>")
+      .arg(el->pattern()->metaObject()->className())
+      .arg(el->pattern()->meta().name())
+      .arg(el->address().toString())
+      .arg(el->size().toString());
 
+  if (el->pattern()->meta().hasFirmwareVersion())
+    tooltip.append(QString("<h5>Firmware  version %2</h5>")
+                   .arg(el->pattern()->meta().firmwareVersion()));
 
+  if (el->pattern()->meta().hasBriefDescription())
+    tooltip.append(QString("<p>%1</p>")
+                   .arg(el->pattern()->meta().briefDescription()));
+
+  if (el->pattern()->meta().hasDescription())
+    tooltip.append(QString("<p>%1</p>")
+                   .arg(el->pattern()->meta().description()));
+
+  return QVariant(tooltip);
 }
 
 
