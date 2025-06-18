@@ -564,6 +564,62 @@ PatternView::markAsUpdated() {
     selectedPattern()->meta().setFirmwareVersion(codeplug->meta().firmwareVersion());
 }
 
+void
+PatternView::markAllAsUpdated() {
+  if (nullptr == selectedPattern()) {
+    QMessageBox::information(nullptr, tr("Select a pattern first"),
+                             tr("Select the pattern to mark as updated."));
+    return;
+  }
+
+  QString firmwareVersion;
+  const CodeplugPattern *codeplug = selectedPattern()->codeplug();
+  if ((nullptr != codeplug) && codeplug->meta().hasFirmwareVersion())
+    firmwareVersion = codeplug->meta().firmwareVersion();
+
+  QList<AbstractPattern*> queue = {selectedPattern()};
+
+  while (! queue.empty()) {
+    auto pattern = queue.front(); queue.pop_front();
+    pattern->meta().setFlags(PatternMeta::Flags::Done);
+    if (! firmwareVersion.isEmpty())
+      pattern->meta().setFirmwareVersion(firmwareVersion);
+    if (auto structure = pattern->as<StructuredPattern>())
+      for (unsigned int i=0; i<structure->numChildPattern(); i++)
+        queue.append(structure->childPattern(i));
+  }
+}
+
+
+void
+PatternView::markNeedsReview() {
+  if (nullptr == selectedPattern()) {
+    QMessageBox::information(nullptr, tr("Select a pattern first"),
+                             tr("Select the pattern to mark as needs-review."));
+    return;
+  }
+  selectedPattern()->meta().setFlags(PatternMeta::Flags::NeedsReview);
+}
+
+void
+PatternView::markAllNeedsReview() {
+  if (nullptr == selectedPattern()) {
+    QMessageBox::information(nullptr, tr("Select a pattern first"),
+                             tr("Select the pattern to mark as needs-review."));
+    return;
+  }
+
+  QList<AbstractPattern*> queue = {selectedPattern()};
+
+  while (! queue.empty()) {
+    auto pattern = queue.front(); queue.pop_front();
+    pattern->meta().setFlags(PatternMeta::Flags::NeedsReview);
+    if (auto structure = pattern->as<StructuredPattern>())
+      for (unsigned int i=0; i<structure->numChildPattern(); i++)
+        queue.append(structure->childPattern(i));
+  }
+}
+
 
 void
 PatternView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) {
@@ -670,8 +726,13 @@ PatternView::contextMenuEvent(QContextMenuEvent *event) {
                            parent()->findChild<QAction*>("actionPastePatternBelow") });
   contextMenu.addSeparator();
   contextMenu.addAction(parent()->findChild<QAction*>("actionMarkPatternAsUpdated"));
+  QMenu *markMenu = new QMenu(tr("Mark pattern as ..."));
+  markMenu->addActions({ parent()->findChild<QAction*>("actionMarkAllPatternAsUpdated"),
+                         parent()->findChild<QAction*>("actionMarkPatternNeedsReview"),
+                         parent()->findChild<QAction*>("actionMarkAllPatternNeedsReview") });
+  contextMenu.addMenu(markMenu);
   contextMenu.addSeparator();
-  contextMenu.addActions({ parent()->findChild<QAction*>("actionMarkFieldAsUnknown"),
+  contextMenu.addActions({ parent()->findChild<QAction*>("actionTurnIntoUnknown"),
                            parent()->findChild<QAction*>("actionDeletePattern") });
   contextMenu.exec(event->globalPos());
 }

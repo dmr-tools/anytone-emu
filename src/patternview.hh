@@ -47,6 +47,9 @@ public slots:
   void removeSelected();
 
   void markAsUpdated();
+  void markAllAsUpdated();
+  void markNeedsReview();
+  void markAllNeedsReview();
 
 public:
   static bool showPatternEditor(AbstractPattern *pattern, const CodeplugPattern *codeplug=nullptr);
