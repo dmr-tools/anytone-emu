@@ -16,7 +16,7 @@ public:
 
     bool operator<(const Segment &other) const;
     bool operator<(uint32_t address) const;
-    bool contains(uint32_t address, uint8_t size=0) const;
+    bool contains(uint32_t address, uint16_t size=0) const;
   };
 
   typedef QVector<Segment>::iterator iterator;
@@ -32,7 +32,7 @@ public:
   unsigned int segmentCount() const;
 
   void write(uint32_t address, const QByteArray &data);
-  bool read(uint32_t address, uint8_t length, QByteArray &data) const;
+  bool read(uint32_t address, uint16_t length, QByteArray &data) const;
 
   const_iterator begin() const;
   const_iterator end() const;

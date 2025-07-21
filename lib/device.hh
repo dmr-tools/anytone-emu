@@ -25,7 +25,7 @@ protected:
 
 public:
   /** Reads some data from the device and stores it @c payload. */
-  virtual bool read(uint32_t addr, uint8_t len, QByteArray &payload);
+  virtual bool read(uint32_t addr, uint16_t len, QByteArray &payload);
   /** Write some data. */
   virtual bool write(uint32_t addr, const QByteArray &data);
 

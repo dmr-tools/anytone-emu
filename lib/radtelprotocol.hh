@@ -82,6 +82,7 @@ class RadtelReadRequest: public RadtelRequest
 public:
   RadtelReadRequest(uint16_t page);
 
+  uint16_t page() const;
   uint32_t address() const;
 
 protected:
@@ -97,6 +98,7 @@ public:
 
 public:
   uint8_t segment() const;
+  uint16_t page() const;
   uint32_t address() const;
   const QByteArray &payload() const;
 

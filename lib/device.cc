@@ -24,7 +24,7 @@ Device::Device(CodeplugPattern *pattern, ImageCollector *handler, QObject *paren
 
 
 bool
-Device::read(uint32_t address, uint8_t len, QByteArray &buffer) {
+Device::read(uint32_t address, uint16_t len, QByteArray &buffer) {
   if (! rom().read(address, len, buffer)) {
     logError() << "Cannot read " << len
                << "b from ROM at address " << QString::number(address, 16) << "h.";

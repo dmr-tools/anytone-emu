@@ -121,6 +121,11 @@ RadtelReadRequest::RadtelReadRequest(uint16_t page)
 }
 
 
+uint16_t
+RadtelReadRequest::page() const {
+  return _page;
+}
+
 uint32_t
 RadtelReadRequest::address() const {
   return 1024*((uint32_t)_page);
@@ -143,9 +148,14 @@ RadtelWriteRequest::segment() const {
   return _segment;
 }
 
+uint16_t
+RadtelWriteRequest::page() const {
+  return _page;
+}
+
 uint32_t
 RadtelWriteRequest::address() const {
-  return 1024*((uint32_t)_page);
+  return (((uint32_t)_segment) << 28) | 1024*((uint32_t)_page);
 }
 
 const QByteArray &

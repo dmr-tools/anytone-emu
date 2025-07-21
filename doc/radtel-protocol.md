@@ -51,7 +51,6 @@ The address field is not a real memory address but rather a page number. After e
 
 ### Write 
 
-
 #### Request 
 ```
  +-----+-----+-----+-----+.....+-----+-----+
