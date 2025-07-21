@@ -1,25 +1,27 @@
-#include "opengd77modeldefinition.hh"
+#include "radtelmodeldefinition.hh"
+
 
 #include <QXmlStreamReader>
 #include "pattern.hh"
-#include "opengd77device.hh"
+#include "radteldevice.hh"
 
 
 /* ********************************************************************************************* *
- * Implementation of OpenGD77ModelDefinition (nothing to do)
+ * Implementation of RadtelModelDefinition (nothing to do)
  * ********************************************************************************************* */
-OpenGD77ModelDefinition::OpenGD77ModelDefinition(const QString &id, QObject *parent)
+RadtelModelDefinition::RadtelModelDefinition(const QString &id, QObject *parent)
   : ModelDefinition(id, parent)
 {
-  // pass...
+  storeRom(0x00000000, QByteArray(1024, '\0'));
+  storeRom(0x00002000, QByteArray(1024, '\0'));
 }
 
 
 
 /* ********************************************************************************************* *
- * Implementation of OpenGD77ModelFirmwareDefinition
+ * Implementation of RadtelModelFirmwareDefinition
  * ********************************************************************************************* */
-OpenGD77ModelFirmwareDefinition::OpenGD77ModelFirmwareDefinition(const QString &context, OpenGD77ModelDefinition *parent)
+RadtelModelFirmwareDefinition::RadtelModelFirmwareDefinition(const QString &context, RadtelModelDefinition *parent)
   : ModelFirmwareDefinition{context, parent}
 {
   // pass...
@@ -27,15 +29,15 @@ OpenGD77ModelFirmwareDefinition::OpenGD77ModelFirmwareDefinition(const QString &
 
 
 Device *
-OpenGD77ModelFirmwareDefinition::createDevice(QIODevice *interface, const ErrorStack &err) const {
+RadtelModelFirmwareDefinition::createDevice(QIODevice *interface, const ErrorStack &err) const {
   CodeplugPattern *codeplug = CodeplugPattern::load(this->codeplug(), err);
   if (nullptr == codeplug) {
     errMsg(err) << "Cannot parse codeplug file '" << this->codeplug() << "'.";
     return nullptr;
   }
 
-  Device *dev = new OpenGD77Device(interface, codeplug, nullptr);
-  dev->rom() += qobject_cast<OpenGD77ModelDefinition *>(parent())->rom();
+  Device *dev = new RadtelDevice(interface, codeplug, nullptr);
+  dev->rom() += qobject_cast<RadtelModelDefinition *>(parent())->rom();
   dev->rom() += this->rom();
 
   return dev;

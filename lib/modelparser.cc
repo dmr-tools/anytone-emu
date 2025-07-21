@@ -3,6 +3,8 @@
 
 #include "anytonemodelparser.hh"
 #include "opengd77modelparser.hh"
+#include "radtelmodelparser.hh"
+
 
 
 /* ********************************************************************************************** *
@@ -44,6 +46,8 @@ ModelDefinitionParser::beginModelElement(const QXmlStreamAttributes &attributes)
     pushHandler(qobject_cast<ModelDefinitionHandler*>(new AnyToneModelDefinitionHandler(_context, modelId, this)));
   } else if ("OpenGD77" == modelClass) {
     pushHandler(qobject_cast<ModelDefinitionHandler*>(new OpenGD77ModelDefinitionHandler(_context, modelId, this)));
+  } else if ("Radtel" == modelClass) {
+    pushHandler(qobject_cast<ModelDefinitionHandler*>(new RadtelModelDefinitionHandler(_context, modelId, this)));
   } else {
     raiseError(QString("Unknown model class '%1'").arg(modelClass));
     return false;
