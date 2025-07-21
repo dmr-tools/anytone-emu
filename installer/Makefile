@@ -1,4 +1,4 @@
-VERSION = 0.1.2
+VERSION = 0.1.3
 SOURCE = ../
 PREFIX = $(MINGW_PREFIX)
 DATA   = packages/de.darc.dm3mat.anytone_emu_gui/data/

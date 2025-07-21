@@ -1,13 +1,14 @@
 #include "radtelprotocol.hh"
 #include <QtEndian>
+#include "logger.hh"
 
 
 // CRC
 inline bool checkCRC(const QByteArray &buffer) {
   uint8_t b = 0;
   for (qsizetype i=0; i<(buffer.size()-1); i++)
-    b += buffer.at(i);
-  return b == buffer.at(buffer.size()-1);
+    b += (uint8_t)buffer.at(i);
+  return b == (uint8_t)buffer.at(buffer.size()-1);
 }
 
 
@@ -65,9 +66,11 @@ RadtelRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
       ok = false;
       return nullptr;
     }
-    auto segment = 0x0f & buffer.at(0);
+    auto segment = 0x0f & (uint8_t)buffer.at(0);
     auto page = qFromBigEndian(*(uint16_t *)(buffer.constData()+1));
     auto payload = buffer.mid(3, 1024);
+    logDebug() << "Write " << payload.length() << "b at segment " << segment
+               << ", page " << Qt::hex << page << ".";
     buffer.slice(1028);
     return new RadtelWriteRequest(segment, page, payload);
   }
@@ -155,7 +158,7 @@ RadtelWriteRequest::page() const {
 
 uint32_t
 RadtelWriteRequest::address() const {
-  return (((uint32_t)_segment) << 28) | 1024*((uint32_t)_page);
+  return (((uint32_t)_segment) << 24) + (((uint32_t)_page)<<10);
 }
 
 const QByteArray &
