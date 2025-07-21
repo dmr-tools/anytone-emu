@@ -12,7 +12,8 @@
 RadtelModelDefinition::RadtelModelDefinition(const QString &id, QObject *parent)
   : ModelDefinition(id, parent)
 {
-  // pass...
+  storeRom(0x00000000, QByteArray(1024, '\0'));
+  storeRom(0x00002000, QByteArray(1024, '\0'));
 }
 
 

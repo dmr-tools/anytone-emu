@@ -41,10 +41,10 @@ RadtelRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
     }
     uint8_t f1 = buffer.at(2), f2 = buffer.at(3);
     if ((0x05 == f1) && (0x10==f2)) {
-      buffer.slice(5);
+      buffer = buffer.sliced(5);
       return new RadtelCommandRequest(RadtelCommandRequest::EnterProgrammingMode);
     } else if ((0x05 == f1) && (0xee==f2)) {
-      buffer.slice(5);
+      buffer = buffer.sliced(5);
       return new RadtelCommandRequest(RadtelCommandRequest::LeaveProgrammingMode);
     }
   } else if (0x52 == buffer.at(0)) {
@@ -56,7 +56,7 @@ RadtelRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
       return nullptr;
     }
     auto page = qFromBigEndian(*(uint16_t *)(buffer.constData()+1));
-    buffer.slice(4);
+    buffer = buffer.sliced(4);
     return new RadtelReadRequest(page);
   } else if (0x90 == (0xf0 & buffer.at(0))) {
     if (1028 > buffer.size())
@@ -69,14 +69,13 @@ RadtelRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
     auto segment = 0x0f & (uint8_t)buffer.at(0);
     auto page = qFromBigEndian(*(uint16_t *)(buffer.constData()+1));
     auto payload = buffer.mid(3, 1024);
-    logDebug() << "Write " << payload.length() << "b at segment " << segment
-               << ", page " << Qt::hex << page << ".";
-    buffer.slice(1028);
+    buffer = buffer.sliced(1028);
     return new RadtelWriteRequest(segment, page, payload);
   }
 
   errMsg(err) << "Unexpected request: " << buffer << ".";
   ok = false;
+  buffer.clear();
 
   return nullptr;
 }

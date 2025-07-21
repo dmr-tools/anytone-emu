@@ -78,6 +78,7 @@ RadtelDevice::handle(RadtelRequest *request) {
   if (request->is<RadtelReadRequest>()) {
     auto rr = request->as<RadtelReadRequest>();
     QByteArray buffer;
+    logDebug() << "Read 1024b from " << Qt::hex << rr->address() << ".";
     if (! read(rr->address(), 1024, buffer))
       return new RadtelACK();
     return new RadtelReadResonse(rr->page(), buffer);
