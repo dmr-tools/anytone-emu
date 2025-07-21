@@ -3,7 +3,6 @@
 #include <QXmlStreamReader>
 #include "pattern.hh"
 #include "opengd77device.hh"
-#include "codeplugpatternparser.hh"
 
 
 /* ********************************************************************************************* *

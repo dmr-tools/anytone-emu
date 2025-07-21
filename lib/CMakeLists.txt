@@ -45,6 +45,7 @@ qt_add_library(libanytone-emu STATIC ${libanytone-emu_SOURCES}
   opengd77device.hh opengd77device.cc
   opengd77modeldefinition.hh opengd77modeldefinition.cc
   opengd77modelparser.hh opengd77modelparser.cc
+  radtelprotocol.hh radtelprotocol.cc
   )
 
 set_target_properties(libanytone-emu PROPERTIES
