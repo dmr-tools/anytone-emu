@@ -49,6 +49,11 @@ qt_add_library(libanytone-emu STATIC ${libanytone-emu_SOURCES}
   radteldevice.hh radteldevice.cc
   radtelmodeldefinition.hh radtelmodeldefinition.cc
   radtelmodelparser.hh radtelmodelparser.cc
+  md32uvprotocol.hh md32uvprotocol.cc
+  md32uvdevice.hh md32uvdevice.cc
+  genericdevice.hh genericdevice.cc
+  md32uvmodeldefinition.hh md32uvmodeldefinition.cc
+  md32uvmodelparser.hh md32uvmodelparser.cc
   )
 
 set_target_properties(libanytone-emu PROPERTIES
