@@ -18,12 +18,15 @@ MD32UVRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
   ok = true;
 
   if ((buffer.size() >= 1) && (0x06 == buffer.front())) {
+    logDebug() << "Ping.";
     buffer = buffer.sliced(1);
     return new MD32UVPingRequest();
   } else if ((buffer.size() >= 7) && buffer.startsWith("PSEARCH")) {
+    logDebug() << "Detect device.";
     buffer = buffer.sliced(7);
     return new MD32UVSearchRequest();
   } else if ((buffer.size() >= 7) && buffer.startsWith("PASSSTA")) {
+    logDebug() << "Check password.";
     buffer = buffer.sliced(7);
     return new MD32UVPasswordRequest();
   } else if ((buffer.size() >= 7) && buffer.startsWith("SYSINFO")) {
@@ -42,34 +45,38 @@ MD32UVRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
     buffer = buffer.sliced(5);
     return new MD32UVValueRequest(flags, len, field);
   } else if ((buffer.size() >= 6) && buffer.startsWith('G')) {
-    auto flags = qFromLittleEndian(*(uint8_t *)(buffer.constData()+1));
-    auto field = qFromLittleEndian(*(uint16_t *)(buffer.constData()+2));
-    auto len   = qFromLittleEndian(*(uint16_t *)(buffer.constData()+3));
+    auto addr  = ((uint32_t)((uint8_t)buffer.at(1)) << 0) +
+        ((uint32_t)((uint8_t)buffer.at(2)) << 8) +
+        ((uint32_t)((uint8_t)buffer.at(3)) << 16);
+    auto len   = qFromLittleEndian(*(uint16_t *)(buffer.constData()+4));
     logDebug() << "Read " << len << "b from value at address "
-               << Qt::hex << ((((uint32_t)field)<<8) | flags) << ".";
+               << Qt::hex << addr << ".";
     buffer = buffer.sliced(6);
-    return new MD32UVReadInfoRequest(flags, field, len);
+    return new MD32UVReadInfoRequest(addr, len);
   } else if ((buffer.size() >= 6) && buffer.startsWith('R')) {
-    auto flags = qFromLittleEndian(*(uint8_t *)(buffer.constData()+1));
-    auto field = qFromLittleEndian(*(uint16_t *)(buffer.constData()+2));
-    auto len   = qFromLittleEndian(*(uint16_t *)(buffer.constData()+3));
+    auto address = ((uint32_t)((uint8_t)buffer.at(1)) << 0) +
+        ((uint32_t)((uint8_t)buffer.at(2)) << 8) +
+        ((uint32_t)((uint8_t)buffer.at(3)) << 16);
+    auto len = qFromLittleEndian(*(uint16_t *)(buffer.constData()+3));
     logDebug() << "Read " << len << "b from memory at address "
-               << Qt::hex << ((((uint32_t)field)<<8) | flags) << ".";
+               << Qt::hex << address << ".";
     buffer = buffer.sliced(6);
-    return new MD32UVReadRequest(flags, field, len);
+    return new MD32UVReadRequest(address, len);
   } else if ((buffer.size() >= 6) && buffer.startsWith('W')) {
     auto flags = qFromLittleEndian(*(uint8_t *)(buffer.constData()+1));
     auto field = qFromLittleEndian(*(uint16_t *)(buffer.constData()+2));
     auto len   = qFromLittleEndian(*(uint16_t *)(buffer.constData()+3));
-    if (buffer.size() < (len+6))
+    if (buffer.size() < (len+6)) {
+      logDebug() << "Incomplete write request...";
       return nullptr;
+    }
+    logDebug() << "Complete write " << len << "b to " << Qt::hex << ".";
     auto payload = buffer.mid(6,len);
     buffer = buffer.sliced(6+len);
     return new MD32UVWriteRequest(flags, field, payload);
-  } else if ((buffer.size() >= 1) && (-1 == buffer.at(0))) {
-    buffer = buffer.sliced(1);
-  } else if (buffer.size()) {
-    logDebug() << "Left over: " << buffer.toHex(' ');
+  } else if ((buffer.size() >= 5) && buffer.startsWith(QByteArray("\xff\xff\xff\xff\x0c", 5))) {
+    logDebug() << "Ignore unknown data " << buffer.first(5).toHex(' ') << ".";
+    buffer = buffer.sliced(5);
   }
 
   return nullptr;
@@ -221,20 +228,15 @@ MD32UVValueResponse::serialize(QByteArray &buffer) {
 /* ******************************************************************************************** *
  * Implementation of MD-32UV read info request
  * ******************************************************************************************** */
-MD32UVReadInfoRequest::MD32UVReadInfoRequest(uint8_t flags, uint16_t field, uint16_t len)
-  : MD32UVRequest(), _flags(flags), _field(field), _length(len)
+MD32UVReadInfoRequest::MD32UVReadInfoRequest(uint32_t address, uint16_t len)
+  : MD32UVRequest(), _address(address), _length(len)
 {
   // pass...
 }
 
-uint8_t
-MD32UVReadInfoRequest::flags() const {
-  return _flags;
-}
-
-uint16_t
-MD32UVReadInfoRequest::field() const {
-  return _field;
+uint32_t
+MD32UVReadInfoRequest::address() const {
+  return _address;
 }
 
 uint16_t
@@ -246,8 +248,8 @@ MD32UVReadInfoRequest::length() const {
 /* ******************************************************************************************** *
  * Implementation of MD-32UV read info response
  * ******************************************************************************************** */
-MD32UVReadInfoResponse::MD32UVReadInfoResponse(uint8_t flags, uint16_t field, const QByteArray &payload)
-  : GenericResponse(), _flags(flags), _field(field), _payload(payload)
+MD32UVReadInfoResponse::MD32UVReadInfoResponse(uint32_t address, const QByteArray &payload)
+  : GenericResponse(), _address(address), _payload(payload)
 {
   if (_payload.size() > 65535)
     _payload = _payload.first(65535);
@@ -256,10 +258,10 @@ MD32UVReadInfoResponse::MD32UVReadInfoResponse(uint8_t flags, uint16_t field, co
 bool
 MD32UVReadInfoResponse::serialize(QByteArray &buffer) {
   buffer.append('S');
-  buffer.append((char) _flags);
-  uint16_t v = qToLittleEndian(_field);
-  buffer.append((char *)&v, sizeof(uint16_t));
-  v = qToLittleEndian((uint16_t)_payload.size());
+  buffer.append(0xff & (_address >>  0));
+  buffer.append(0xff & (_address >>  8));
+  buffer.append(0xff & (_address >> 16));
+  uint16_t v = qToLittleEndian((uint16_t)_payload.size());
   buffer.append((char *)&v, sizeof(uint16_t));
   buffer.append(_payload);
   return true;
@@ -281,20 +283,15 @@ MD32UVStartProgramRequest::MD32UVStartProgramRequest()
 /* ******************************************************************************************** *
  * Implementation of MD-32UV read request
  * ******************************************************************************************** */
-MD32UVReadRequest::MD32UVReadRequest(uint8_t flags, uint16_t field, uint16_t len)
-  : MD32UVRequest(), _flags(flags), _field(field), _length(len)
+MD32UVReadRequest::MD32UVReadRequest(uint32_t address, uint16_t len)
+  : MD32UVRequest(), _address(address), _length(len)
 {
   // pass...
 }
 
-uint8_t
-MD32UVReadRequest::flags() const {
-  return _flags;
-}
-
-uint16_t
-MD32UVReadRequest::field() const {
-  return _field;
+uint32_t
+MD32UVReadRequest::address() const {
+  return _address;
 }
 
 uint16_t
@@ -306,8 +303,8 @@ MD32UVReadRequest::length() const {
 /* ******************************************************************************************** *
  * Implementation of MD-32UV read response
  * ******************************************************************************************** */
-MD32UVReadResponse::MD32UVReadResponse(uint8_t flags, uint16_t field, const QByteArray &payload)
-  : GenericResponse(), _flags(flags), _field(field), _payload(payload)
+MD32UVReadResponse::MD32UVReadResponse(uint32_t address, const QByteArray &payload)
+  : GenericResponse(), _address(address), _payload(payload)
 {
   if (_payload.size() > 65535)
     _payload = _payload.first(65535);
@@ -316,10 +313,10 @@ MD32UVReadResponse::MD32UVReadResponse(uint8_t flags, uint16_t field, const QByt
 bool
 MD32UVReadResponse::serialize(QByteArray &buffer) {
   buffer.append('W');
-  buffer.append((char) _flags);
-  uint16_t v = qToLittleEndian(_field);
-  buffer.append((char *)&v, sizeof(uint16_t));
-  v = qToLittleEndian((uint16_t)_payload.size());
+  buffer.append((char) 0xff & (_address >>  0));
+  buffer.append((char) 0xff & (_address >>  8));
+  buffer.append((char) 0xff & (_address >> 16));
+  uint16_t v = qToLittleEndian((uint16_t)_payload.size());
   buffer.append((char *)&v, sizeof(uint16_t));
   buffer.append(_payload);
   return true;

@@ -38,6 +38,8 @@ MD32UVDevice::handle(GenericRequest *request) {
     return new MD32UVPasswordResponse();
   else if (request->is<MD32UVStartSystemInfoRequest>())
     return new MD32UVACK();
+  else if (request->is<MD32UVStartProgramRequest>())
+    return new MD32UVACK();
   else if (request->is<MD32UVValueRequest>()) {
     QByteArray payload;
     getValue(request->as<MD32UVValueRequest>()->field(),
@@ -46,25 +48,18 @@ MD32UVDevice::handle(GenericRequest *request) {
     return new MD32UVValueResponse(request->as<MD32UVValueRequest>()->field(), payload);
   } else if (request->is<MD32UVReadInfoRequest>()) {
     QByteArray payload;
-    readInfo(request->as<MD32UVReadInfoRequest>()->flags(),
-             request->as<MD32UVReadInfoRequest>()->field(),
+    readInfo(request->as<MD32UVReadInfoRequest>()->address(),
              request->as<MD32UVReadInfoRequest>()->length(),
              payload);
-    return new MD32UVReadInfoResponse(request->as<MD32UVReadInfoRequest>()->flags(),
-                                      request->as<MD32UVReadInfoRequest>()->field(), payload);
+    return new MD32UVReadInfoResponse(request->as<MD32UVReadInfoRequest>()->address(), payload);
   } else if (request->is<MD32UVReadRequest>()) {
-    auto flags  = request->as<MD32UVReadRequest>()->flags();
-    auto field  = request->as<MD32UVReadRequest>()->field();
+    auto address  = request->as<MD32UVReadRequest>()->address();
     auto length = request->as<MD32UVReadRequest>()->length();
-
-    uint32_t address = (((uint32_t)field)<<8) + flags;
     QByteArray payload;
     read(address, length, payload);
-    return new MD32UVReadResponse(flags, field, payload);
+    return new MD32UVReadResponse(address, payload);
   } else if (request->is<MD32UVWriteRequest>()) {
-    auto flags  = request->as<MD32UVReadRequest>()->flags();
-    auto field  = request->as<MD32UVReadRequest>()->field();
-    uint32_t address = (((uint32_t)field)<<8) + flags;
+    auto address = request->as<MD32UVReadRequest>()->address();
     write(address, request->as<MD32UVWriteRequest>()->payload());
     return new MD32UVACK();
   }
@@ -131,8 +126,8 @@ MD32UVDevice::getValue(uint8_t field, uint8_t length, QByteArray &payload) {
 }
 
 bool
-MD32UVDevice::readInfo(uint8_t flags, uint16_t field, uint16_t length, QByteArray &payload) {
-  if (0 == flags && 0 == field)
+MD32UVDevice::readInfo(uint32_t address, uint16_t length, QByteArray &payload) {
+  if (0 == address)
     payload = QByteArray::fromHex("ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff "
                                   "ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff "
                                   "ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff "

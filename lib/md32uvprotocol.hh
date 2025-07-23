@@ -121,15 +121,13 @@ protected:
 class MD32UVReadInfoRequest: public MD32UVRequest
 {
 public:
-  MD32UVReadInfoRequest(uint8_t flags, uint16_t field, uint16_t len);
+  MD32UVReadInfoRequest(uint32_t address, uint16_t len);
 
-  uint8_t  flags() const;
-  uint16_t field() const;
+  uint32_t address() const;
   uint16_t length() const;
 
 protected:
-  uint8_t  _flags;
-  uint16_t _field;
+  uint32_t  _address;
   uint16_t _length;
 };
 
@@ -137,13 +135,12 @@ protected:
 class MD32UVReadInfoResponse: public GenericResponse
 {
 public:
-  MD32UVReadInfoResponse(uint8_t flags, uint16_t field, const QByteArray &payload);
+  MD32UVReadInfoResponse(uint32_t address, const QByteArray &payload);
 
   bool serialize(QByteArray &buffer);
 
 protected:
-  uint8_t    _flags;
-  uint16_t   _field;
+  uint32_t   _address;
   QByteArray _payload;
 };
 
@@ -161,15 +158,13 @@ public:
 class MD32UVReadRequest: public MD32UVRequest
 {
 public:
-  MD32UVReadRequest(uint8_t flags, uint16_t field, uint16_t len);
+  MD32UVReadRequest(uint32_t address, uint16_t len);
 
-  uint8_t  flags() const;
-  uint16_t field() const;
+  uint32_t address() const;
   uint16_t length() const;
 
 protected:
-  uint8_t  _flags;
-  uint16_t _field;
+  uint32_t _address;
   uint16_t _length;
 };
 
@@ -177,13 +172,12 @@ protected:
 class MD32UVReadResponse: public GenericResponse
 {
 public:
-  MD32UVReadResponse(uint8_t flags, uint16_t field, const QByteArray &payload);
+  MD32UVReadResponse(uint32_t address, const QByteArray &payload);
 
   bool serialize(QByteArray &buffer);
 
 protected:
-  uint8_t    _flags;
-  uint16_t   _field;
+  uint32_t   _address;
   QByteArray _payload;
 };
 

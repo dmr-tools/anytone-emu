@@ -22,7 +22,7 @@ protected:
   GenericResponse *handle(GenericRequest *request) override;
 
   virtual bool getValue(uint8_t field, uint8_t length, QByteArray &payload);
-  virtual bool readInfo(uint8_t flags, uint16_t field, uint16_t length, QByteArray &payload);
+  virtual bool readInfo(uint32_t address, uint16_t length, QByteArray &payload);
 };
 
 
