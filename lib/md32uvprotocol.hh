@@ -155,6 +155,23 @@ public:
 
 
 
+class MD32UVUnknown02Request: public MD32UVRequest
+{
+public:
+  MD32UVUnknown02Request();
+};
+
+
+class MD32UVUnknown02Response: public GenericResponse
+{
+public:
+  MD32UVUnknown02Response();
+
+  bool serialize(QByteArray &buffer);
+};
+
+
+
 class MD32UVReadRequest: public MD32UVRequest
 {
 public:
@@ -186,15 +203,13 @@ protected:
 class MD32UVWriteRequest: public MD32UVRequest
 {
 public:
-  MD32UVWriteRequest(uint8_t flags, uint16_t field, const QByteArray &payload);
+  MD32UVWriteRequest(uint32_t address, const QByteArray &payload);
 
-  uint8_t  flags() const;
-  uint16_t field() const;
+  uint32_t address() const;
   const QByteArray &payload() const;
 
 protected:
-  uint8_t  _flags;
-  uint16_t _field;
+  uint32_t _address;
   QByteArray _payload;
 };
 

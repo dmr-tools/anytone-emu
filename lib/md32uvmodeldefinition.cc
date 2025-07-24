@@ -12,6 +12,12 @@
 MD32UVModelDefinition::MD32UVModelDefinition(const QString &id, QObject *parent)
   : ModelDefinition(id, parent)
 {
+  // Prepare memory layout, because the CPS is shit.
+  for (unsigned int i=0; i<512; i++) {
+    uint32_t addr = 0x1000*i;
+    QByteArray image(0x0fff, '\xff'); image.append((char)i);
+    storeRom(addr, image);
+  }
 }
 
 

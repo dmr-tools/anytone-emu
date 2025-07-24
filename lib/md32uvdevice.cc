@@ -5,15 +5,20 @@
 #include "logger.hh"
 #include "md32uvprotocol.hh"
 
+using namespace std::chrono_literals;
 
 /* ********************************************************************************************* *
  * Implementation of MD32UV Device
  * ********************************************************************************************* */
 MD32UVDevice::MD32UVDevice(
     QIODevice *interface, CodeplugPattern *pattern, ImageCollector *handler, QObject *parent)
-  : GenericDevice{interface, pattern, handler, parent}
+  : GenericDevice{interface, pattern, handler, parent}, _timer(2s)
 {
-  // pass...
+  _timer.setTimerType(Qt::CoarseTimer);
+  _timer.setSingleShot(true);
+  connect(&_timer, &QChronoTimer::timeout, [this]() {
+    emit endProgram();
+  });
 }
 
 
@@ -38,8 +43,12 @@ MD32UVDevice::handle(GenericRequest *request) {
     return new MD32UVPasswordResponse();
   else if (request->is<MD32UVStartSystemInfoRequest>())
     return new MD32UVACK();
-  else if (request->is<MD32UVStartProgramRequest>())
+  else if (request->is<MD32UVStartProgramRequest>()) {
+    _timer.stop(); _timer.start();
+    emit startProgram();
     return new MD32UVACK();
+  } else if (request->is<MD32UVUnknown02Request>())
+    return new MD32UVUnknown02Response();
   else if (request->is<MD32UVValueRequest>()) {
     QByteArray payload;
     getValue(request->as<MD32UVValueRequest>()->field(),
@@ -47,20 +56,25 @@ MD32UVDevice::handle(GenericRequest *request) {
              payload);
     return new MD32UVValueResponse(request->as<MD32UVValueRequest>()->field(), payload);
   } else if (request->is<MD32UVReadInfoRequest>()) {
+    uint32_t address = request->as<MD32UVReadInfoRequest>()->address();
+    uint16_t length = request->as<MD32UVReadInfoRequest>()->length();
     QByteArray payload;
-    readInfo(request->as<MD32UVReadInfoRequest>()->address(),
-             request->as<MD32UVReadInfoRequest>()->length(),
-             payload);
+    if (! readInfo(address, length, payload))
+      payload = QByteArray(length, '\xff');
     return new MD32UVReadInfoResponse(request->as<MD32UVReadInfoRequest>()->address(), payload);
   } else if (request->is<MD32UVReadRequest>()) {
+    _timer.setInterval(2s);
     auto address  = request->as<MD32UVReadRequest>()->address();
     auto length = request->as<MD32UVReadRequest>()->length();
     QByteArray payload;
-    read(address, length, payload);
+    if (! read(address, length, payload))
+      payload = QByteArray(length, '\xff');
     return new MD32UVReadResponse(address, payload);
   } else if (request->is<MD32UVWriteRequest>()) {
-    auto address = request->as<MD32UVReadRequest>()->address();
-    write(address, request->as<MD32UVWriteRequest>()->payload());
+    _timer.setInterval(2s);
+    auto address = request->as<MD32UVWriteRequest>()->address();
+    auto payload = request->as<MD32UVWriteRequest>()->payload();
+    write(address, payload);
     return new MD32UVACK();
   }
 

@@ -37,6 +37,10 @@ MD32UVRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
     logDebug() << "Enter programming mode.";
     buffer = buffer.sliced(7);
     return new MD32UVStartProgramRequest();
+  } else if ((buffer.size() >= 1) && buffer.startsWith("\x02")) {
+    logDebug() << "Some unknown 02h request.";
+    buffer = buffer.sliced(1);
+    return new MD32UVUnknown02Request();
   } else if ((buffer.size() >= 5) && buffer.startsWith("V")) {
     auto flags = qFromLittleEndian(*(uint16_t *)(buffer.constData()+1));
     auto len   = qFromLittleEndian(*(uint8_t *)(buffer.constData()+3));
@@ -57,26 +61,31 @@ MD32UVRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
     auto address = ((uint32_t)((uint8_t)buffer.at(1)) << 0) +
         ((uint32_t)((uint8_t)buffer.at(2)) << 8) +
         ((uint32_t)((uint8_t)buffer.at(3)) << 16);
-    auto len = qFromLittleEndian(*(uint16_t *)(buffer.constData()+3));
+    auto len = qFromLittleEndian(*(uint16_t *)(buffer.constData()+4));
     logDebug() << "Read " << len << "b from memory at address "
                << Qt::hex << address << ".";
     buffer = buffer.sliced(6);
     return new MD32UVReadRequest(address, len);
   } else if ((buffer.size() >= 6) && buffer.startsWith('W')) {
-    auto flags = qFromLittleEndian(*(uint8_t *)(buffer.constData()+1));
-    auto field = qFromLittleEndian(*(uint16_t *)(buffer.constData()+2));
-    auto len   = qFromLittleEndian(*(uint16_t *)(buffer.constData()+3));
+    uint32_t address = uint32_t(uint8_t(buffer.at(1)))
+        + (uint32_t(uint8_t(buffer.at(2))) << 8)
+        + (uint32_t(uint8_t(buffer.at(3))) << 16);
+    auto len = qFromLittleEndian(*(uint16_t *)(buffer.constData()+4));
     if (buffer.size() < (len+6)) {
       logDebug() << "Incomplete write request...";
       return nullptr;
     }
-    logDebug() << "Complete write " << len << "b to " << Qt::hex << ".";
-    auto payload = buffer.mid(6,len);
+    logDebug() << "Complete write " << len << "b to " << Qt::hex << address << ".";
+    auto payload = buffer.mid(6, len);
     buffer = buffer.sliced(6+len);
-    return new MD32UVWriteRequest(flags, field, payload);
+    return new MD32UVWriteRequest(address, payload);
   } else if ((buffer.size() >= 5) && buffer.startsWith(QByteArray("\xff\xff\xff\xff\x0c", 5))) {
     logDebug() << "Ignore unknown data " << buffer.first(5).toHex(' ') << ".";
     buffer = buffer.sliced(5);
+  }
+
+  if (0 != buffer.size()) {
+    logDebug() << "Some left-over bytes: " << buffer.toHex(' ') << ".";
   }
 
   return nullptr;
@@ -281,6 +290,34 @@ MD32UVStartProgramRequest::MD32UVStartProgramRequest()
 
 
 /* ******************************************************************************************** *
+ * Implementation of MD-32UV unknown 02h request
+ * ******************************************************************************************** */
+MD32UVUnknown02Request::MD32UVUnknown02Request()
+  : MD32UVRequest()
+{
+  // pass...
+}
+
+
+
+/* ******************************************************************************************** *
+ * Implementation of MD-32UV unknown 02h response
+ * ******************************************************************************************** */
+MD32UVUnknown02Response::MD32UVUnknown02Response()
+  : GenericResponse()
+{
+  // pass...
+}
+
+bool
+MD32UVUnknown02Response::serialize(QByteArray &buffer) {
+  buffer.append(8, '\xff');
+  return true;
+}
+
+
+
+/* ******************************************************************************************** *
  * Implementation of MD-32UV read request
  * ******************************************************************************************** */
 MD32UVReadRequest::MD32UVReadRequest(uint32_t address, uint16_t len)
@@ -327,20 +364,15 @@ MD32UVReadResponse::serialize(QByteArray &buffer) {
 /* ******************************************************************************************** *
  * Implementation of MD-32UV write request
  * ******************************************************************************************** */
-MD32UVWriteRequest::MD32UVWriteRequest(uint8_t flags, uint16_t field, const QByteArray &payload)
-  : MD32UVRequest(), _flags(flags), _field(field), _payload(payload)
+MD32UVWriteRequest::MD32UVWriteRequest(uint32_t address, const QByteArray &payload)
+  : MD32UVRequest(), _address(address), _payload(payload)
 {
   // pass...
 }
 
-uint8_t
-MD32UVWriteRequest::flags() const {
-  return _flags;
-}
-
-uint16_t
-MD32UVWriteRequest::field() const {
-  return _field;
+uint32_t
+MD32UVWriteRequest::address() const {
+  return _address;
 }
 
 const QByteArray &
