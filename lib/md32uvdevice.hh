@@ -1,7 +1,7 @@
 #ifndef MD32UVDEVICE_HH
 #define MD32UVDEVICE_HH
 
-#include <QChronoTimer>
+#include <QTimer>
 #include "genericdevice.hh"
 
 class MD32UVRequest;
@@ -26,7 +26,7 @@ protected:
   virtual bool readInfo(uint32_t address, uint16_t length, QByteArray &payload);
 
 private:
-  QChronoTimer _timer;
+  QTimer _timer;
 };
 
 

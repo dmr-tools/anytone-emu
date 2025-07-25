@@ -12,11 +12,11 @@ using namespace std::chrono_literals;
  * ********************************************************************************************* */
 MD32UVDevice::MD32UVDevice(
     QIODevice *interface, CodeplugPattern *pattern, ImageCollector *handler, QObject *parent)
-  : GenericDevice{interface, pattern, handler, parent}, _timer(2s)
+  : GenericDevice{interface, pattern, handler, parent}, _timer()
 {
-  _timer.setTimerType(Qt::CoarseTimer);
+  _timer.setInterval(2000);
   _timer.setSingleShot(true);
-  connect(&_timer, &QChronoTimer::timeout, [this]() {
+  connect(&_timer, &QTimer::timeout, [this]() {
     emit endProgram();
   });
 }
@@ -44,7 +44,7 @@ MD32UVDevice::handle(GenericRequest *request) {
   else if (request->is<MD32UVStartSystemInfoRequest>())
     return new MD32UVACK();
   else if (request->is<MD32UVStartProgramRequest>()) {
-    _timer.stop(); _timer.start();
+    _timer.start();
     emit startProgram();
     return new MD32UVACK();
   } else if (request->is<MD32UVUnknown02Request>())
