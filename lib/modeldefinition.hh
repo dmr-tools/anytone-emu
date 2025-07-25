@@ -59,11 +59,9 @@ class ModelDefinition : public QObject
 public:
   typedef QList<ModelFirmwareDefinition *>::const_iterator const_iterator;
 
-protected:
-  /** Hidden constructor. */
+public:
   explicit ModelDefinition(const QString &id, QObject *parent = nullptr);
 
-public:
   const QString &id() const;
 
   const QString &name() const;

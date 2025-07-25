@@ -20,7 +20,6 @@ class OpenGD77DeviceClassPlugin: public QObject, public DeviceClassPluginInterfa
 public:
   Q_INVOKABLE explicit OpenGD77DeviceClassPlugin(QObject *parent = nullptr);
 
-  ModelDefinition *modelDefinition(const QString &id, QObject *parent, const ErrorStack &err=ErrorStack()) override;
   Device *device(QIODevice *interface, const ModelFirmwareDefinition *firmware, ImageCollector *handler,
                  QObject *parent = nullptr, const ErrorStack &err=ErrorStack()) override;
 

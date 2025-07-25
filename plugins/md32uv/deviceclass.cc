@@ -2,8 +2,8 @@
 #include "logger.hh"
 #include "pattern.hh"
 
-#include "definition.hh"
 #include "device.hh"
+#include "modeldefinition.hh"
 
 
 MD32UVDeviceClassPlugin::MD32UVDeviceClassPlugin(QObject *parent)
@@ -12,11 +12,6 @@ MD32UVDeviceClassPlugin::MD32UVDeviceClassPlugin(QObject *parent)
   // pass...
 }
 
-
-ModelDefinition *
-MD32UVDeviceClassPlugin::modelDefinition(const QString &id, QObject *parent, const ErrorStack &err) {
-  return new MD32UVModelDefinition(id, parent);
-}
 
 Device *
 MD32UVDeviceClassPlugin::device(QIODevice *interface, const ModelFirmwareDefinition *firmware,

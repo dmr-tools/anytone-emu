@@ -21,7 +21,9 @@ class DeviceClassPluginInterface
 public:
   virtual ~DeviceClassPluginInterface();
 
-  virtual ModelDefinition *modelDefinition(const QString &id, QObject *parent, const ErrorStack &err=ErrorStack()) = 0;
+  /** By default, returns a generic model definition. */
+  virtual ModelDefinition *modelDefinition(const QString &id, QObject *parent, const ErrorStack &err=ErrorStack());
+
   virtual Device *device(QIODevice *interface, const ModelFirmwareDefinition *firmware,
                          ImageCollector *handler, QObject *parent = nullptr, const ErrorStack &err=ErrorStack()) = 0;
 

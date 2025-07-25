@@ -2,8 +2,8 @@
 #include "logger.hh"
 #include "pattern.hh"
 
-#include "definition.hh"
 #include "device.hh"
+#include "modeldefinition.hh"
 
 
 RadtelDeviceClassPlugin::RadtelDeviceClassPlugin(QObject *parent)
@@ -12,11 +12,6 @@ RadtelDeviceClassPlugin::RadtelDeviceClassPlugin(QObject *parent)
   // pass...
 }
 
-
-ModelDefinition *
-RadtelDeviceClassPlugin::modelDefinition(const QString &id, QObject *parent, const ErrorStack &err) {
-  return new RadtelModelDefinition(id, parent);
-}
 
 Device *
 RadtelDeviceClassPlugin::device(QIODevice *interface, const ModelFirmwareDefinition *firmware,

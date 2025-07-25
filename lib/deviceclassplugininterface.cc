@@ -1,5 +1,6 @@
 #include "deviceclassplugininterface.hh"
 
+#include "modeldefinition.hh"
 #include "modelparser.hh"
 
 
@@ -9,6 +10,11 @@
  * ********************************************************************************************* */
 DeviceClassPluginInterface::~DeviceClassPluginInterface() {
   // pass...
+}
+
+ModelDefinition *
+DeviceClassPluginInterface::modelDefinition(const QString &id, QObject *parent, const ErrorStack &err) {
+  return new ModelDefinition(id, parent);
 }
 
 
