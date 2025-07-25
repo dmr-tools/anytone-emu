@@ -1,13 +1,21 @@
 #include "newpatterndialog.hh"
 #include "ui_newpatterndialog.h"
 #include "pattern.hh"
+
 #include <QMessageBox>
+#include <QSettings>
+
 
 
 NewPatternDialog::NewPatternDialog(AbstractPattern *parentPattern, const Address &addr, QWidget *parent)
   : QDialog(parent), ui(new Ui::NewPatternDialog)
 {
   ui->setupUi(this);
+  setWindowIcon(QIcon::fromTheme("document-new"));
+
+  QSettings settings;
+  if (settings.contains("layout/newPatternDialog"))
+    restoreGeometry(settings.value("layout/newPatternDialog").toByteArray());
 
   if (nullptr == parentPattern)
     return;
@@ -33,9 +41,15 @@ NewPatternDialog::NewPatternDialog(AbstractPattern *parentPattern, const Address
   ui->patternSelection->headLabel()->setText(tr("Select new pattern type:"));
 }
 
-NewPatternDialog::~NewPatternDialog()
-{
+NewPatternDialog::~NewPatternDialog() {
   delete ui;
+}
+
+
+void
+NewPatternDialog::done(int res) {
+  QSettings().setValue("layout/newPatternDialog", saveGeometry());
+  QDialog::done(res);
 }
 
 

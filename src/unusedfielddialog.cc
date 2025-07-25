@@ -1,7 +1,10 @@
 #include "unusedfielddialog.hh"
 #include "ui_unusedfielddialog.h"
 #include "pattern.hh"
+
 #include <QMessageBox>
+#include <QSettings>
+
 
 
 UnusedFieldDialog::UnusedFieldDialog(QWidget *parent) :
@@ -9,11 +12,22 @@ UnusedFieldDialog::UnusedFieldDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-unused").pixmap(QSize(64,64)));
+  setWindowIcon(QIcon::fromTheme("pattern-unused"));
+
+  QSettings settings;
+  if (settings.contains("layout/unusedFieldDialogSize"))
+    restoreGeometry(settings.value("layout/unusedFieldDialogSize").toByteArray());
 }
 
-UnusedFieldDialog::~UnusedFieldDialog()
-{
+UnusedFieldDialog::~UnusedFieldDialog() {
   delete ui;
+}
+
+
+void
+UnusedFieldDialog::done(int res) {
+  QSettings().setValue("layout/unusedFieldDialogSize", saveGeometry());
+  QDialog::done(res);
 }
 
 

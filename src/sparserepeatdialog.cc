@@ -1,7 +1,10 @@
 #include "sparserepeatdialog.hh"
 #include "ui_sparserepeatdialog.h"
 #include "pattern.hh"
+
 #include <QMessageBox>
+#include <QSettings>
+
 
 
 SparseRepeatDialog::SparseRepeatDialog(QWidget *parent) :
@@ -9,10 +12,23 @@ SparseRepeatDialog::SparseRepeatDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-sparserepeat").pixmap(QSize(64,64)));
+  setWindowIcon(QIcon::fromTheme("pattern-sparserepeat"));
+
+  QSettings settings;
+  if (settings.contains("layout/sparseRepeatDialogSize"))
+    restoreGeometry(settings.value("layout/sparseRepeatDialogSize").toByteArray());
+
   connect(ui->minRepetitionUnset, &QCheckBox::toggled,
           [this](bool checked) {ui->minRepetition->setEnabled(! checked);});
   connect(ui->maxRepetitionUnset, &QCheckBox::toggled,
           [this](bool checked) {ui->maxRepetition->setEnabled(! checked);});
+}
+
+
+void
+SparseRepeatDialog::done(int res) {
+  QSettings().setValue("layout/sparseRepeatDialogSize", saveGeometry());
+  QDialog::done(res);
 }
 
 

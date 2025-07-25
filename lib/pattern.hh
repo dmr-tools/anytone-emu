@@ -14,6 +14,8 @@ class Element;
 class QXmlStreamWriter;
 class QFileInfo;
 class CodeplugPattern;
+class FieldAnnotation;
+class AnnotationIssue;
 
 /** Holds some meta information about the pattern.
  * @ingroup pattern */
@@ -572,7 +574,7 @@ protected:
 
 public:
   /** Decodes the given memeory at the specified address. */
-  virtual QVariant value(const Element *element, const Address &address) const = 0;
+  virtual QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const = 0;
 };
 
 
@@ -592,7 +594,7 @@ public:
   /** Sets the size of the field. */
   void setWidth(const Size &size);
 
-  QVariant value(const Element *element, const Address &address) const;
+  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const;
 };
 
 
@@ -621,7 +623,7 @@ public:
 
   /** Returns the section of the element corresponding to this field at the specified address.
    * This value should match the expected content. */
-  QVariant value(const Element *element, const Address &address) const;
+  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const;
 
 protected:
   /** The expected content. */
@@ -702,9 +704,10 @@ public:
   void clearDefaultValue();
 
   /** Decodes an iteger in the given element at the specified address. */
-  QVariant value(const Element *element, const Address &address) const;
+  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const;
 
 protected:
+  long long decode(const Element *element, const Address& address, AnnotationIssue &errmsg) const;
   /** Helper function to decode BCD numbers. */
   static uint16_t fromBCD4(uint16_t bcd);
   /** Helper function to decode BCD numbers. */
@@ -746,9 +749,6 @@ public:
   /** Sets the enum entry value. */
   bool setValue(unsigned int value);
 
-  /** Decodes the enum value within the given element at the specified address. */
-  QVariant value(const Element *element, const Offset &offset) const;
-
 protected:
   /** The value (if set, @c std::numeric_limits<unsigned int>().max() otherwise). */
   unsigned int _value;
@@ -786,13 +786,17 @@ public:
   void setWidth(const Size &size);
 
   /** Decodes the enum value within the given element at the specified address. */
-  QVariant value(const Element *element, const Address &address) const;
+  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const;
 
 signals:
   /** Gets emitted, if an item is added. */
   void itemAdded(unsigned int idx);
   /** Gets emitted, once an item is removed. */
   void itemDeleted(unsigned int idx);
+
+protected:
+  /** Decodes the enum value (e.g., integer). */
+  unsigned int decode(const Element *element, const Address &address, AnnotationIssue &errmsg) const;
 
 protected:
   /** The list of enum entries. */
@@ -825,7 +829,7 @@ public:
   AbstractPattern *clone() const;
 
   /** Decodes the string in the given element at the specified address. */
-  QVariant value(const Element *element, const Address &address) const;
+  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const;
 
   /** Returns the string format. */
   Format format() const;

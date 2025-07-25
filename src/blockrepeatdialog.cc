@@ -1,7 +1,10 @@
 #include "blockrepeatdialog.hh"
 #include "ui_blockrepeatdialog.h"
 #include "pattern.hh"
+
 #include <QMessageBox>
+#include <QSettings>
+
 
 
 BlockRepeatDialog::BlockRepeatDialog(QWidget *parent) :
@@ -9,12 +12,25 @@ BlockRepeatDialog::BlockRepeatDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-blockrepeat").pixmap(QSize(64,64)));
+  setWindowIcon(QIcon::fromTheme("pattern-blockrepeat"));
+
+  QSettings settings;
+  if (settings.contains("layout/blockRepeatDialogSize"))
+    restoreGeometry(settings.value("layout/blockRepeatDialogSize").toByteArray());
 }
 
 BlockRepeatDialog::~BlockRepeatDialog()
 {
   delete ui;
 }
+
+
+void
+BlockRepeatDialog::done(int res) {
+  QSettings().setValue("layout/blockRepeatDialogSize", saveGeometry());
+  QDialog::done(res);
+}
+
 
 void
 BlockRepeatDialog::setPattern(BlockRepeatPattern *pattern, const CodeplugPattern *codeplug) {

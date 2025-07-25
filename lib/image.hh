@@ -132,6 +132,9 @@ public:
   /** Points right after the last element. */
   const_iterator end() const;
 
+  /** Returns the most critical anntoation issue level. */
+  AnnotationIssue::Severity annotationSeverity() const;
+
 signals:
   /** Gets emitted when the image is modified at the specified address. */
   void modified(unsigned int image, uint32_t address);

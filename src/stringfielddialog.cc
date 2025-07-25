@@ -1,7 +1,10 @@
 #include "stringfielddialog.hh"
 #include "ui_stringfielddialog.h"
 #include "pattern.hh"
+
 #include <QMessageBox>
+#include <QSettings>
+
 
 
 StringFieldDialog::StringFieldDialog(QWidget *parent) :
@@ -9,12 +12,25 @@ StringFieldDialog::StringFieldDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-stringfield").pixmap(QSize(64,64)));
+  setWindowIcon(QIcon::fromTheme("pattern-stringfield"));
+
+  QSettings settings;
+  if (settings.contains("layout/stringFieldDialogSize"))
+    restoreGeometry(settings.value("layout/stringFieldDialogSize").toByteArray());
 }
 
-StringFieldDialog::~StringFieldDialog()
-{
+
+StringFieldDialog::~StringFieldDialog() {
   delete ui;
 }
+
+
+void
+StringFieldDialog::done(int res) {
+  QSettings().setValue("layout/stringFieldDialogSize", saveGeometry());
+  QDialog::done(res);
+}
+
 
 void
 StringFieldDialog::setPattern(StringFieldPattern *pattern, const CodeplugPattern *codeplug) {

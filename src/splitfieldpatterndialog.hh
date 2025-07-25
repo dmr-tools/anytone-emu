@@ -25,6 +25,7 @@ public:
 
 public slots:
   void accept() override;
+  void done(int res);
 
 private:
   Ui::SplitFieldPatternDialog *ui;

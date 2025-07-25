@@ -24,6 +24,7 @@ public:
 public slots:
   void setPattern(UnknownFieldPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
+  void done(int res);
 
 private:
   Ui::UnknownPatternDialog *ui;

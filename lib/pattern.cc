@@ -1,6 +1,7 @@
 #include "pattern.hh"
 #include "logger.hh"
 #include "image.hh"
+#include "annotation.hh"
 #include "codeplugpatternparser.hh"
 
 #include <QVariant>
@@ -1288,12 +1289,16 @@ UnknownFieldPattern::setWidth(const Size &size) {
 }
 
 QVariant
-UnknownFieldPattern::value(const Element *element, const Address& address) const {
+UnknownFieldPattern::value(const Element *element, const Address& address, FieldAnnotation *annotation) const {
+  Q_UNUSED(annotation);
+
   if ((address+size()) > (element->address()+element->size()))
     return QVariant();
+
   Offset within = address - element->address();
   return element->data().mid(within.byte(), size().byte());
 }
+
 
 
 /* ********************************************************************************************* *
@@ -1366,7 +1371,9 @@ UnusedFieldPattern::setWidth(const Size &size) {
 }
 
 QVariant
-UnusedFieldPattern::value(const Element *element, const Address& address) const {
+UnusedFieldPattern::value(const Element *element, const Address& address, FieldAnnotation *annotation) const {
+  Q_UNUSED(annotation);
+
   Offset within = address - element->address();
   return element->data().mid(within.byte(), size().byte());
 }
@@ -1430,6 +1437,7 @@ IntegerFieldPattern::serialize(QXmlStreamWriter &writer) const {
   return true;
 }
 
+
 AbstractPattern *
 IntegerFieldPattern::clone() const {
   auto pattern = FieldPattern::clone()->as<IntegerFieldPattern>();
@@ -1442,6 +1450,7 @@ IntegerFieldPattern::clone() const {
 
   return pattern;
 }
+
 
 void
 IntegerFieldPattern::setWidth(const Offset &width) {
@@ -1517,13 +1526,9 @@ IntegerFieldPattern::clearDefaultValue() {
   _defaultValue = std::numeric_limits<long long>().max();
 }
 
-QVariant
-IntegerFieldPattern::value(const Element *element, const Address& address) const {
-  if ((address+size()) >  element->address() + element->size()) {
-    logError() << "Cannot decode integer, extends beyond element bounds.";
-    return QVariant();
-  }
 
+long long
+IntegerFieldPattern::decode(const Element *element, const Address &address, AnnotationIssue &errmsg) const {
   Offset within = address - element->address();
 
   // sub-byte integers should not span multiple bytes
@@ -1531,60 +1536,98 @@ IntegerFieldPattern::value(const Element *element, const Address& address) const
 
   if (size().bits() <= 8) {   // int8_t or smaller
     if ((address.bit()+1)<size().bits()) {
-      logWarn() << "Cannot decode integer, bitpattern extens across bytes.";
-      return QVariant();
+      errmsg << "Cannot decode integer, bitpattern extens across bytes.";
+      return std::numeric_limits<long long>::max();
     }
     unsigned int shift = (address.bit()+1)-size().bits();
     unsigned int mask  = (1<<size().bits())-1;
     uint8_t value = (uint8_t(element->data().at(within.byte())) >> shift) & mask;
-    return QVariant::fromValue((unsigned int)value) ;
+    return value;
   }
 
   if (size().bits() == 16) {
-    if (!address.byteAligned()) {
-      logWarn() << "Cannot decode int16, values does not align with bytes.";
-      return QVariant();
+    if (! address.byteAligned()) {
+      errmsg << "Cannot decode int16, values does not align with bytes.";
+      return std::numeric_limits<long long>::max();
     }
+
     const char *ptr = element->data().mid(within.byte(),2).constData();
     if (Format::Signed == _format) {
       if (Endian::Little == _endian)
-        return QVariant::fromValue(qFromLittleEndian(*((int16_t *)ptr)));
-      return QVariant::fromValue(qFromBigEndian(*((int16_t *)ptr)));
+        return qFromLittleEndian(*((int16_t *)ptr));
+      return qFromBigEndian(*((int16_t *)ptr));
     } else if (Format::Unsigned == _format) {
       if (Endian::Little == _endian)
-        return QVariant::fromValue(qFromLittleEndian(*((uint16_t *)ptr)));
-      return QVariant::fromValue(qFromBigEndian(*((uint16_t *)ptr)));
+        return qFromLittleEndian(*((uint16_t *)ptr));
+      return qFromBigEndian(*((uint16_t *)ptr));
     } else if (Format::BCD == _format) {
       if (Endian::Little == _endian)
-        return QVariant::fromValue(fromBCD4(qFromLittleEndian(*((uint16_t *)ptr))));
-      return QVariant::fromValue(fromBCD4(qFromBigEndian(*((uint16_t *)ptr))));
+        return fromBCD4(qFromLittleEndian(*((uint16_t *)ptr)));
+      return fromBCD4(qFromBigEndian(*((uint16_t *)ptr)));
     }
-    return QVariant();
+
+    errmsg << "Cannot decode integer. Unkown format " << (int)_format << ".";
+    return std::numeric_limits<long long>::max();
   }
 
   if (size().bits() <= 32) {
     if (!address.byteAligned()) {
-      logWarn() << "Cannot decode int32, values does not align with bytes.";
-      return QVariant();
+      errmsg << "Cannot decode int32, values does not align with bytes.";
+      return std::numeric_limits<long long>::max();
     }
     const char *ptr = element->data().mid(within.byte(),4).constData();
     if (Format::Signed == _format) {
       if (Endian::Little == _endian)
-        return QVariant::fromValue(qFromLittleEndian(*((int32_t *)ptr)));
-      return QVariant::fromValue(qFromBigEndian(*((int32_t *)ptr)));
+        return qFromLittleEndian(*((int32_t *)ptr));
+      return qFromBigEndian(*((int32_t *)ptr));
     } else if (Format::Unsigned == _format) {
       if (Endian::Little == _endian)
-        return QVariant::fromValue(qFromLittleEndian(*((uint32_t *)ptr)));
-      return QVariant::fromValue(qFromBigEndian(*((uint32_t *)ptr)));
+        return qFromLittleEndian(*((uint32_t *)ptr));
+      return qFromBigEndian(*((uint32_t *)ptr));
     } else if (Format::BCD == _format) {
       if (Endian::Little == _endian)
-        return QVariant::fromValue(fromBCD8(qFromLittleEndian(*((uint32_t *)ptr))));
-      return QVariant::fromValue(fromBCD8(qFromBigEndian(*((uint32_t *)ptr))));
+        return fromBCD8(qFromLittleEndian(*((uint32_t *)ptr)));
+      return fromBCD8(qFromBigEndian(*((uint32_t *)ptr)));
     }
+
+    errmsg << "Cannot decode integer. Unkown format " << (int)_format << ".";
+    return std::numeric_limits<long long>::max();
+  }
+
+  errmsg << "Cannot decode integer. Unhandle size " << size().bits() << "b.";
+  return std::numeric_limits<long long>::max();
+}
+
+
+QVariant
+IntegerFieldPattern::value(const Element *element, const Address& address, FieldAnnotation *annotation) const {
+  if ((address+size()) >  element->address() + element->size()) {
+    logError() << "Cannot decode integer, extends beyond element bounds.";
     return QVariant();
   }
 
-  return QVariant();
+  AnnotationIssue issue(address, AnnotationIssue::Error);
+  auto val = decode(element, address, issue);
+  if (std::numeric_limits<long long>::max() == val) {
+    annotation->issues().add(issue);
+    return QVariant();
+  }
+
+  if (annotation && hasMinValue() && (val < minValue())) {
+    AnnotationIssue issue(address, AnnotationIssue::Warning);
+    issue << "Value " << val << " of integer " << meta().name()
+          << " exceeds lower bound " << minValue() << ".";
+    annotation->issues().add(issue);
+  }
+
+  if (annotation && hasMaxValue() && (val > maxValue())) {
+    AnnotationIssue issue(address, AnnotationIssue::Warning);
+    issue << "Value " << val << " of integer " << meta().name()
+          << " exceeds upper bound " << maxValue() << ".";
+    annotation->issues().add(issue);
+  }
+
+  return QVariant(val);
 }
 
 
@@ -1772,31 +1815,48 @@ EnumFieldPattern::deleteItem(unsigned int n) {
   return true;
 }
 
-QVariant
-EnumFieldPattern::value(const Element *element, const Address& address) const {
-  logDebug() << "Decode enum '" << meta().name() << "' @" << address.toString()
-             << " in element starting at " << element->address().toString()
-             << " of size " << element->size().toString() << ".";
 
+unsigned int
+EnumFieldPattern::decode(const Element *element, const Address &address, AnnotationIssue &errmsg) const {
   if (! element->contains(address, this->size())) {
-    logError() << "Cannot decode enum '" << meta().name() << "': Outside of element bounds.";
-    return QVariant();
+    errmsg << "Cannot decode enum '" << meta().name() << "': Outside of element bounds.";
+    return std::numeric_limits<unsigned int>::max();
+  }
+
+  if (size().bits() > 8) {
+    errmsg << "Enums are limited to 8 bits in size, got " << size().bits();
+    return std::numeric_limits<unsigned int>::max();
   }
 
   Offset within = address - element->address();
 
-  if (size().bits() <= 8) {   // int8_t or smaller
-    if ((address.bit()+1)<size().bits()) {
-      logWarn() << "Cannot decode integer, bitpattern extens across bytes.";
-      return QVariant();
-    }
-    unsigned int shift = (address.bit()+1)-size().bits();
-    unsigned int mask  = (1<<size().bits())-1;
-    uint8_t value = (uint8_t(element->data().at(within.byte())) >> shift) & mask;
-    return QVariant::fromValue((unsigned int)value) ;
+  if ((address.bit()+1)<size().bits()) {
+    errmsg << "Cannot decode integer, bitpattern extens across bytes.";
+    return std::numeric_limits<unsigned int>::max();
+  }
+  unsigned int shift = (address.bit()+1)-size().bits();
+  unsigned int mask  = (1<<size().bits())-1;
+  return (uint8_t(element->data().at(within.byte())) >> shift) & mask;
+}
+
+
+QVariant
+EnumFieldPattern::value(const Element *element, const Address& address, FieldAnnotation *annotation) const {
+  AnnotationIssue issue(address, AnnotationIssue::Error);
+  unsigned int val = decode(element, address, issue);
+  if (std::numeric_limits<unsigned int>::max() == val) {
+    annotation->issues().add(issue);
+    return QVariant();
   }
 
-  return QVariant();
+  auto item = itemByValue(val);
+  if (nullptr == item) {
+    AnnotationIssue issue(address, AnnotationIssue::Warning);
+    issue << "Unknown enum value " << val << " for enum '" << meta().name() << "'.";
+    annotation->issues().add(issue);
+  }
+
+  return QVariant(val);
 }
 
 
@@ -1837,6 +1897,7 @@ StringFieldPattern::serialize(QXmlStreamWriter &writer) const {
   return true;
 }
 
+
 AbstractPattern *
 StringFieldPattern::clone() const {
   auto pattern = FieldPattern::clone()->as<StringFieldPattern>();
@@ -1846,27 +1907,42 @@ StringFieldPattern::clone() const {
   return pattern;
 }
 
+
 QVariant
-StringFieldPattern::value(const Element *element, const Address &address) const {
-  if (! element->contains(address, size()))
+StringFieldPattern::value(const Element *element, const Address &address, FieldAnnotation *annotation) const {
+  if (! element->contains(address, size())) {
+    AnnotationIssue issue(address, AnnotationIssue::Error);
+    issue << "Cannot decode string: string not contained within element.";
+    annotation->issues().add(issue);
     return QVariant();
+  }
+
   Offset offset = address-element->address();
   QByteArray mid = element->data().mid(offset.byte(), size().byte());
 
-  QChar term(_padValue);
-  QString res;
+  if (Format::ASCII == format()) {
+    bool printable = true;
+    unsigned int len = 0;
+    for (; (len<numChars()) && (mid[len] != padValue()); len++)
+      printable &= ((mid[len]>=32) && (mid[len]<=126));
 
-  switch (format()) {
-  case Format::ASCII: res = QString::fromLocal8Bit(mid); break;
-  case Format::Unicode: res = QString(mid); break;
+    if (! printable) {
+      AnnotationIssue issue(address, AnnotationIssue::Warning);
+      issue << "ASCII string contains non-printable characters.";
+      annotation->issues().add(issue);
+    }
+
+    return QString::fromLatin1(mid.first(len));
+  } else if (Format::Unicode == format()) {
+    return QString(mid);
   }
 
-  int idx = res.indexOf(term);
-  if (idx >= 0)
-    return res.left(idx);
-
-  return res;
+  AnnotationIssue issue(address, AnnotationIssue::Error);
+  issue << "Cannot decode string: unknown format " << (int)format() << ".";
+  annotation->issues().add(issue);
+  return QVariant();
 }
+
 
 StringFieldPattern::Format
 StringFieldPattern::format() const {
@@ -1877,6 +1953,7 @@ StringFieldPattern::setFormat(Format format) {
   _format = format;
   setNumChars(_numChars);
 }
+
 
 unsigned int
 StringFieldPattern::numChars() const {
@@ -1890,6 +1967,7 @@ StringFieldPattern::setNumChars(unsigned int n) {
   case Format::Unicode: setSize(Size::fromByte(_numChars*2)); break;
   }
 }
+
 
 unsigned int
 StringFieldPattern::padValue() const {

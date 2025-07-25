@@ -1,7 +1,10 @@
 #include "integerfielddialog.hh"
 #include "ui_integerfielddialog.h"
 #include "pattern.hh"
+
 #include <QMessageBox>
+#include <QSettings>
+
 
 
 IntegerFieldDialog::IntegerFieldDialog(QWidget *parent) :
@@ -9,7 +12,20 @@ IntegerFieldDialog::IntegerFieldDialog(QWidget *parent) :
 {
   ui->setupUi(this);
   ui->iconLabel->setPixmap(QIcon::fromTheme("pattern-integer").pixmap(QSize(64,64)));
+  setWindowIcon(QIcon::fromTheme("pattern-integer"));
+
+  QSettings settings;
+  if (settings.contains("layout/integerFieldDialogSize"))
+    restoreGeometry(settings.value("layout/integerFieldDialogSize").toByteArray());
 }
+
+
+void
+IntegerFieldDialog::done(int res) {
+  QSettings().setValue("layout/integerFieldDialogSize", saveGeometry());
+  QDialog::done(res);
+}
+
 
 void
 IntegerFieldDialog::setPattern(IntegerFieldPattern *pattern, const CodeplugPattern *codeplug) {
@@ -50,6 +66,16 @@ IntegerFieldDialog::setPattern(IntegerFieldPattern *pattern, const CodeplugPatte
   else
     ui->defaultValue->clear();
 
+  if (_pattern->hasMinValue())
+    ui->minValue->setText(QString("%1h").arg(_pattern->minValue(), 0, 16));
+  else
+    ui->minValue->clear();
+
+  if (_pattern->hasMaxValue())
+    ui->maxValue->setText(QString("%1h").arg(_pattern->maxValue(), 0, 16));
+  else
+    ui->maxValue->clear();
+
   ui->metaEdit->setPatternMeta(&pattern->meta(), codeplug);
 }
 
@@ -71,10 +97,23 @@ IntegerFieldDialog::accept() {
 
   _pattern->setFormat(ui->format->currentData().value<IntegerFieldPattern::Format>());
   _pattern->setEndian(ui->endian->currentData().value<IntegerFieldPattern::Endian>());
+
   if (! ui->defaultValue->text().simplified().isEmpty()) {
     _pattern->setDefaultValue(ui->defaultValue->text().toUInt(nullptr, 16));
   } else {
     _pattern->clearDefaultValue();
+  }
+
+  if (! ui->minValue->text().simplified().isEmpty()) {
+    _pattern->setMinValue(ui->minValue->text().toUInt(nullptr, 16));
+  } else {
+    _pattern->clearMinValue();
+  }
+
+  if (! ui->maxValue->text().simplified().isEmpty()) {
+    _pattern->setMaxValue(ui->maxValue->text().toUInt(nullptr, 16));
+  } else {
+    _pattern->clearMaxValue();
   }
 
   ui->metaEdit->apply();

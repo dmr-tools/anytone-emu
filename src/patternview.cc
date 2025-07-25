@@ -225,6 +225,9 @@ PatternView::appendImportedPattern() {
     return;
 
   AbstractPattern *newPattern = dialog.copy();
+  if (nullptr == newPattern)
+    return;
+
   newPattern->setAddress(Address());
   newPattern->setParent(parent);
 

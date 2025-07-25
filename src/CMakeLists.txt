@@ -73,6 +73,9 @@ generate_icons(
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
   ICONS settings-interface camera-photo
+  image image-okay image-warning image-critical
+  element element-okay element-warning element-critical
+  annotation-unannotated annotation-unannotated-warning annotation-unannotated-critical
   THEMES light dark
   CONTEXT categories
   SIZES 16 48 64)

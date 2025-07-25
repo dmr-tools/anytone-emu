@@ -22,6 +22,7 @@ public:
 public slots:
   void setPattern(IntegerFieldPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
+  void done(int res);
 
 private:
   Ui::IntegerFieldDialog *ui;

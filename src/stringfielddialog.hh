@@ -21,6 +21,7 @@ public:
 public slots:
   void setPattern(StringFieldPattern *pattern, const CodeplugPattern *codeplug);
   void accept();
+  void done(int res);
 
 private:
   Ui::StringFieldDialog *ui;
