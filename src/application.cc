@@ -5,6 +5,7 @@
 #include "pattern.hh"
 #include <QIcon>
 
+
 Application::Application(int &argc, char *argv[])
   : QApplication(argc, argv), _collection(new Collection(this)), _catalog(), _device(nullptr)
 {

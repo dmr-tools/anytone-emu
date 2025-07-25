@@ -1,11 +1,14 @@
 #include "modelparser.hh"
 #include <QXmlStreamAttributes>
 
-#include "anytonemodelparser.hh"
-#include "opengd77modelparser.hh"
-#include "radtelmodelparser.hh"
-#include "md32uvmodelparser.hh"
+#include "modeldefinition.hh"
 
+#include <QFileInfo>
+#include <QPluginLoader>
+#include <QMetaClassInfo>
+
+
+QHash<QString, DeviceClassPluginInterface *> ModelDefinitionParser::_modelHandler;
 
 
 /* ********************************************************************************************** *
@@ -14,8 +17,21 @@
 ModelDefinitionParser::ModelDefinitionParser(ModelCatalog* catalog, const QString& context, QObject *parent)
   : XmlParser(parent), _context(context), _catalog(catalog)
 {
-  // pass...
+  // Load all plugins
+  const auto staticInstances = QPluginLoader::staticInstances();
+  for (QObject *plugin : staticInstances) {
+    auto deviceClass = qobject_cast<DeviceClassPluginInterface*>(plugin);
+    if (nullptr == deviceClass)
+      continue;
+    if (0 > plugin->metaObject()->indexOfClassInfo("deviceClass"))
+      continue;
+    QString deviceClassLabel = plugin->metaObject()->classInfo(
+          plugin->metaObject()->indexOfClassInfo("deviceClass")).value();
+    if (! _modelHandler.contains(deviceClassLabel))
+      _modelHandler.insert(deviceClassLabel, deviceClass);
+  }
 }
+
 
 bool
 ModelDefinitionParser::beginCatalogElement(const QXmlStreamAttributes &attributes) {
@@ -43,14 +59,8 @@ ModelDefinitionParser::beginModelElement(const QXmlStreamAttributes &attributes)
   QString modelClass(attributes.value("class").toString());
   QString modelId(attributes.value("id").toString());
 
-  if ("AnyTone" == modelClass) {
-    pushHandler(qobject_cast<ModelDefinitionHandler*>(new AnyToneModelDefinitionHandler(_context, modelId, this)));
-  } else if ("OpenGD77" == modelClass) {
-    pushHandler(qobject_cast<ModelDefinitionHandler*>(new OpenGD77ModelDefinitionHandler(_context, modelId, this)));
-  } else if ("Radtel" == modelClass) {
-    pushHandler(qobject_cast<ModelDefinitionHandler*>(new RadtelModelDefinitionHandler(_context, modelId, this)));
-  } else if ("MD32UV" == modelClass) {
-    pushHandler(qobject_cast<ModelDefinitionHandler*>(new MD32UVModelDefinitionHandler(_context, modelId, this)));
+  if (_modelHandler.contains(modelClass)) {
+    pushHandler(_modelHandler[modelClass]->definitionHandler(_context, modelId, this));
   } else {
     raiseError(QString("Unknown model class '%1'").arg(modelClass));
     return false;
@@ -168,6 +178,73 @@ ModelDefinitionHandler::endMemoryElement() {
 
 
 /* ********************************************************************************************** *
+ * Implementation of GenericModelDefinitionHandler
+ * ********************************************************************************************** */
+GenericModelDefinitionHandler::GenericModelDefinitionHandler(
+    DeviceClassPluginInterface *plugin, const QString &context, const QString& id,
+    ModelDefinitionParser *parent)
+  : ModelDefinitionHandler{context, id, parent}, _plugin(plugin),
+    _definition(plugin->modelDefinition(id, nullptr))
+{
+  // pass...
+}
+
+ModelDefinition *
+GenericModelDefinitionHandler::definition() const {
+  return _definition;
+}
+
+ModelDefinition *
+GenericModelDefinitionHandler::takeDefinition() {
+  if (nullptr == _definition)
+    return nullptr;
+  auto def = _definition;
+  _definition = nullptr;
+  def->setParent(nullptr);
+  return def;
+}
+
+
+bool
+GenericModelDefinitionHandler::beginFirmwareElement(const QXmlStreamAttributes &attributes) {
+  if (! attributes.hasAttribute("name")) {
+    raiseError("No 'name' attribute given.");
+    return false;
+  }
+  QString name(attributes.value("name").toString());
+
+  if (! attributes.hasAttribute("codeplug")) {
+    raiseError("No 'codeplug' attribute given.");
+    return false;
+  }
+
+  QString codeplug(attributes.value("codeplug").toString());
+  QFileInfo codeplugFileInfo(_context + "/" + codeplug);
+  if (!codeplugFileInfo.isFile() || !codeplugFileInfo.isReadable()) {
+    raiseError(QString("Cannot read codeplug file '%1'.").arg(codeplugFileInfo.filePath()));
+    return false;
+  }
+
+  QDate released;
+  if (attributes.hasAttribute("released")) {
+    released = QDate::fromString(attributes.value("released"));
+  }
+
+  pushHandler(new GenericModelFirmwareDefinitionHandler(_plugin, _context, name, released, codeplug, this));
+
+  return true;
+}
+
+bool
+GenericModelDefinitionHandler::endFirmwareElement() {
+  auto handler = qobject_cast<ModelFirmwareDefinitionHandler*>(popHandler());
+  definition()->addFirmware(handler->takeDefinition());
+  delete handler;
+  return true;
+}
+
+
+/* ********************************************************************************************** *
  * Implementation of ModelMemoryDefinitionHandler
  * ********************************************************************************************** */
 ModelMemoryDefinitionHandler::ModelMemoryDefinitionHandler(XmlElementHandler *parent)
@@ -252,4 +329,41 @@ ModelFirmwareDefinitionHandler::endMemoryElement() {
   delete handler;
   return true;
 }
+
+
+/* ********************************************************************************************* *
+ * Implementation of GenericModelFirmwareDefinitionHandler
+ * ********************************************************************************************* */
+GenericModelFirmwareDefinitionHandler::GenericModelFirmwareDefinitionHandler(
+    DeviceClassPluginInterface *plugin, const QString &context, const QString &name,
+    const QDate &released, const QString &codeplug, ModelDefinitionHandler *parent)
+  : ModelFirmwareDefinitionHandler{parent},
+    _definition(new GenericModelFirmwareDefinition(plugin, context, nullptr))
+{
+  _definition->setName(name);
+  _definition->setReleased(released);
+  _definition->setCodeplug(codeplug);
+}
+
+GenericModelFirmwareDefinitionHandler::~GenericModelFirmwareDefinitionHandler() {
+  if (nullptr != _definition)
+    delete _definition;
+}
+
+
+ModelFirmwareDefinition *
+GenericModelFirmwareDefinitionHandler::definition() const {
+  return _definition;
+}
+
+ModelFirmwareDefinition *
+GenericModelFirmwareDefinitionHandler::takeDefinition() {
+  if (nullptr == _definition)
+    return nullptr;
+  auto def = _definition;
+  _definition = nullptr;
+  def->setParent(nullptr);
+  return def;
+}
+
 

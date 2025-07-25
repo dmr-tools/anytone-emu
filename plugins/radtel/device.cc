@@ -1,10 +1,10 @@
-#include "radteldevice.hh"
+#include "device.hh"
 
 
 #include <QIODevice>
 
 #include "logger.hh"
-#include "radtelprotocol.hh"
+#include "protocol.hh"
 
 
 /* ********************************************************************************************* *

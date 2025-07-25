@@ -1,9 +1,9 @@
-#include "md32uvdevice.hh"
+#include "device.hh"
 
 #include <QIODevice>
 
 #include "logger.hh"
-#include "md32uvprotocol.hh"
+#include "protocol.hh"
 
 using namespace std::chrono_literals;
 

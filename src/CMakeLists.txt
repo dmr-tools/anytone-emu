@@ -108,7 +108,8 @@ qt_add_resources(anytone-emu-gui "icons-themes"
         "${CMAKE_SOURCE_DIR}/shared/icons/dark/index.theme")
 
 
-target_link_libraries(anytone-emu-gui PRIVATE Qt6::Widgets Qt6::SerialPort libanytone-emu)
+target_link_libraries(anytone-emu-gui PRIVATE Qt6::Widgets Qt6::SerialPort libanytone-emu
+  anytone-emu-anytone anytone-emu-opengd77 anytone-emu-radtel anytone-emu-md32uv)
 target_include_directories(anytone-emu-gui PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Install binary only if not a bundle under MacOS X

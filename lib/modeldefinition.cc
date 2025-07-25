@@ -3,8 +3,11 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QXmlStreamReader>
+
 #include "modelparser.hh"
 #include "logger.hh"
+#include "pattern.hh"
+#include "device.hh"
 
 
 
@@ -263,4 +266,31 @@ ModelFirmwareDefinition::rom() const {
   return qobject_cast<ModelDefinition*>(parent())->rom() + _rom;
 }
 
+
+
+/* ********************************************************************************************** *
+ * Implementation of GenericModelFirmwareDefinition
+ * ********************************************************************************************** */
+GenericModelFirmwareDefinition::GenericModelFirmwareDefinition(
+    DeviceClassPluginInterface *plugin, const QString &context, ModelDefinition *parent)
+  : ModelFirmwareDefinition{context, parent}, _plugin(plugin)
+{
+  // pass...
+}
+
+
+Device *
+GenericModelFirmwareDefinition::createDevice(QIODevice *interface, const ErrorStack &err) const {
+  CodeplugPattern *codeplug = CodeplugPattern::load(this->codeplug(), err);
+  if (nullptr == codeplug) {
+    errMsg(err) << "Cannot parse codeplug file '" << this->codeplug() << "'.";
+    return nullptr;
+  }
+
+  Device *dev = _plugin->device(interface, this, nullptr);
+  dev->rom() += qobject_cast<ModelDefinition *>(parent())->rom();
+  dev->rom() += this->rom();
+
+  return dev;
+}
 

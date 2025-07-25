@@ -1,7 +1,7 @@
 #ifndef RADTELDEVICE_HH
 #define RADTELDEVICE_HH
 
-#include "device.hh"
+#include <device.hh>
 
 class RadtelRequest;
 class RadtelResponse;

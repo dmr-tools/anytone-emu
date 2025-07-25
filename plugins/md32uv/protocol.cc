@@ -1,4 +1,4 @@
-#include "md32uvprotocol.hh"
+#include "protocol.hh"
 #include <QtEndian>
 
 #include "logger.hh"
