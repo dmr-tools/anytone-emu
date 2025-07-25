@@ -1,10 +1,12 @@
 #ifndef OPENGD77DEVICE_HH
 #define OPENGD77DEVICE_HH
 
-#include "device.hh"
+#include <device.hh>
+
 
 class OpenGD77Request;
 class OpenGD77Response;
+
 
 class OpenGD77Device : public Device
 {

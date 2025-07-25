@@ -1,4 +1,4 @@
-#include "anytonemodelparser.hh"
+#include "parser.hh"
 #include <QXmlStreamAttributes>
 #include <QFileInfo>
 

@@ -287,7 +287,7 @@ GenericModelFirmwareDefinition::createDevice(QIODevice *interface, const ErrorSt
     return nullptr;
   }
 
-  Device *dev = _plugin->device(interface, codeplug, nullptr);
+  Device *dev = _plugin->device(interface, this, nullptr);
   dev->rom() += qobject_cast<ModelDefinition *>(parent())->rom();
   dev->rom() += this->rom();
 

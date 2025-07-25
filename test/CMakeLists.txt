@@ -14,4 +14,5 @@ target_link_libraries(annotation_test PRIVATE Qt::Test libanytone-emu)
 
 qt_add_executable(model_parser_test modelparsertest.cc)
 add_test(NAME model_parser_test COMMAND model_parser_test)
-target_link_libraries(model_parser_test PRIVATE Qt::Test libanytone-emu)
+target_link_libraries(model_parser_test PRIVATE Qt::Test
+  libanytone-emu anytone-emu-anytone)

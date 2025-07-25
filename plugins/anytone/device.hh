@@ -1,7 +1,7 @@
 #ifndef ANYTONEDEVICE_HH
 #define ANYTONEDEVICE_HH
 
-#include "device.hh"
+#include <device.hh>
 
 class AnytoneRequest;
 class AnytoneResponse;

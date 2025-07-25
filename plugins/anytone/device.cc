@@ -1,7 +1,7 @@
-#include "anytonedevice.hh"
+#include "device.hh"
 #include <QIODevice>
 #include "logger.hh"
-#include "anytoneprotocol.hh"
+#include "protocol.hh"
 
 
 /* ********************************************************************************************* *

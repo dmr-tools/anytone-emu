@@ -26,7 +26,7 @@ protected:
   ModelCatalog *_catalog;
 
 protected:
-  static QHash<QString, const QMetaObject *> _modelHandler;
+  static QHash<QString, DeviceClassPluginInterface *> _modelHandler;
 };
 
 

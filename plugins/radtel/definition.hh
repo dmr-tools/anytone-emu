@@ -19,15 +19,5 @@ public:
 };
 
 
-class RadtelModelFirmwareDefinition : public ModelFirmwareDefinition
-{
-  Q_OBJECT
-
-public:
-  explicit RadtelModelFirmwareDefinition(const QString &context, RadtelModelDefinition *parent);
-
-  Device *createDevice(QIODevice *interface, const ErrorStack &err=ErrorStack()) const;
-};
-
 
 #endif // RADTELMODELDEFINITION_HH

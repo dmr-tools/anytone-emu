@@ -1,8 +1,8 @@
-#include "anytonemodeldefinition.hh"
+#include "definition.hh"
 
 #include <QXmlStreamReader>
 #include "pattern.hh"
-#include "anytonedevice.hh"
+#include "device.hh"
 
 
 /* ********************************************************************************************* *

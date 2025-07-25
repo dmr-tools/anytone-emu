@@ -3,12 +3,12 @@
 
 #include "modeldefinition.hh"
 
-#include "anytonemodelparser.hh"
-#include "opengd77modelparser.hh"
-#include "radtelmodelparser.hh"
-
 #include <QFileInfo>
+#include <QPluginLoader>
+#include <QMetaClassInfo>
 
+
+QHash<QString, DeviceClassPluginInterface *> ModelDefinitionParser::_modelHandler;
 
 
 /* ********************************************************************************************** *
@@ -17,8 +17,21 @@
 ModelDefinitionParser::ModelDefinitionParser(ModelCatalog* catalog, const QString& context, QObject *parent)
   : XmlParser(parent), _context(context), _catalog(catalog)
 {
-  // pass...
+  // Load all plugins
+  const auto staticInstances = QPluginLoader::staticInstances();
+  for (QObject *plugin : staticInstances) {
+    auto deviceClass = qobject_cast<DeviceClassPluginInterface*>(plugin);
+    if (nullptr == deviceClass)
+      continue;
+    if (0 > plugin->metaObject()->indexOfClassInfo("deviceClass"))
+      continue;
+    QString deviceClassLabel = plugin->metaObject()->classInfo(
+          plugin->metaObject()->indexOfClassInfo("deviceClass")).value();
+    if (! _modelHandler.contains(deviceClassLabel))
+      _modelHandler.insert(deviceClassLabel, deviceClass);
+  }
 }
+
 
 bool
 ModelDefinitionParser::beginCatalogElement(const QXmlStreamAttributes &attributes) {
@@ -46,12 +59,9 @@ ModelDefinitionParser::beginModelElement(const QXmlStreamAttributes &attributes)
   QString modelClass(attributes.value("class").toString());
   QString modelId(attributes.value("id").toString());
 
-  if ("AnyTone" == modelClass) {
-    pushHandler(qobject_cast<ModelDefinitionHandler*>(new AnyToneModelDefinitionHandler(_context, modelId, this)));
-  } else if ("OpenGD77" == modelClass) {
-    pushHandler(qobject_cast<ModelDefinitionHandler*>(new OpenGD77ModelDefinitionHandler(_context, modelId, this)));
-  } else if ("Radtel" == modelClass) {
-    pushHandler(qobject_cast<ModelDefinitionHandler*>(new RadtelModelDefinitionHandler(_context, modelId, this)));
+
+  if (_modelHandler.contains(modelClass)) {
+    pushHandler(_modelHandler[modelClass]->definitionHandler(_context, modelId, this));
   } else {
     raiseError(QString("Unknown model class '%1'").arg(modelClass));
     return false;

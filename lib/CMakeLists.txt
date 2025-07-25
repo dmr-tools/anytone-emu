@@ -37,18 +37,6 @@ qt_add_library(libanytone-emu STATIC ${libanytone-emu_SOURCES}
   modelrom.hh modelrom.cc
   modeldefinition.hh modeldefinition.cc
   modelparser.hh modelparser.cc
-  anytoneprotocol.hh anytoneprotocol.cc
-  anytonedevice.hh anytonedevice.cc
-  anytonemodeldefinition.hh anytonemodeldefinition.cc
-  anytonemodelparser.hh anytonemodelparser.cc
-  opengd77protocol.hh opengd77protocol.cc
-  opengd77device.hh opengd77device.cc
-  opengd77modeldefinition.hh opengd77modeldefinition.cc
-  opengd77modelparser.hh opengd77modelparser.cc
-  radtelprotocol.hh radtelprotocol.cc
-  radteldevice.hh radteldevice.cc
-  radtelmodeldefinition.hh radtelmodeldefinition.cc
-  radtelmodelparser.hh radtelmodelparser.cc
   deviceclassplugininterface.hh deviceclassplugininterface.cc
   )
 

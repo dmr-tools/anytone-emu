@@ -16,14 +16,4 @@ public:
 };
 
 
-class OpenGD77ModelFirmwareDefinition : public ModelFirmwareDefinition
-{
-  Q_OBJECT
-
-public:
-  explicit OpenGD77ModelFirmwareDefinition(const QString &context, OpenGD77ModelDefinition *parent);
-
-  Device *createDevice(QIODevice *interface, const ErrorStack &err=ErrorStack()) const;
-};
-
 #endif // OPENGD77MODELDEFINITION_HH

@@ -2,7 +2,7 @@
 #define ANYTONEMODELPARSER_H
 
 #include "modelparser.hh"
-#include "anytonemodeldefinition.hh"
+#include "definition.hh"
 
 
 class AnyToneModelDefinitionHandler: public ModelDefinitionHandler

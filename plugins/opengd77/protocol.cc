@@ -1,4 +1,4 @@
-#include "opengd77protocol.hh"
+#include "protocol.hh"
 #include <QtEndian>
 #include "logger.hh"
 
