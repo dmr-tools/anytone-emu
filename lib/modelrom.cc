@@ -84,7 +84,7 @@ ModelRom::read(uint32_t address, uint16_t length, QByteArray &data) const {
   auto next = std::lower_bound(begin(), end(), address);
 
   if (begin() == next) {
-    if ( (next->address != address) || (! next->contains(address, length))) {
+    if ((end() == next) || (next->address != address) || (! next->contains(address, length))) {
       logDebug() << "Cannot read from rom at address " << QString::number(address, 16)
                  << "h: No segment containing this address found.";
       return false;

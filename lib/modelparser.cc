@@ -4,6 +4,7 @@
 #include "anytonemodelparser.hh"
 #include "opengd77modelparser.hh"
 #include "radtelmodelparser.hh"
+#include "md32uvmodelparser.hh"
 
 
 
@@ -48,6 +49,8 @@ ModelDefinitionParser::beginModelElement(const QXmlStreamAttributes &attributes)
     pushHandler(qobject_cast<ModelDefinitionHandler*>(new OpenGD77ModelDefinitionHandler(_context, modelId, this)));
   } else if ("Radtel" == modelClass) {
     pushHandler(qobject_cast<ModelDefinitionHandler*>(new RadtelModelDefinitionHandler(_context, modelId, this)));
+  } else if ("MD32UV" == modelClass) {
+    pushHandler(qobject_cast<ModelDefinitionHandler*>(new MD32UVModelDefinitionHandler(_context, modelId, this)));
   } else {
     raiseError(QString("Unknown model class '%1'").arg(modelClass));
     return false;
