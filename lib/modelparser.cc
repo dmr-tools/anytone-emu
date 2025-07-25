@@ -59,7 +59,6 @@ ModelDefinitionParser::beginModelElement(const QXmlStreamAttributes &attributes)
   QString modelClass(attributes.value("class").toString());
   QString modelId(attributes.value("id").toString());
 
-
   if (_modelHandler.contains(modelClass)) {
     pushHandler(_modelHandler[modelClass]->definitionHandler(_context, modelId, this));
   } else {

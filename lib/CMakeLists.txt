@@ -38,6 +38,7 @@ qt_add_library(libanytone-emu STATIC ${libanytone-emu_SOURCES}
   modeldefinition.hh modeldefinition.cc
   modelparser.hh modelparser.cc
   deviceclassplugininterface.hh deviceclassplugininterface.cc
+  genericdevice.hh genericdevice.cc
   )
 
 set_target_properties(libanytone-emu PROPERTIES
@@ -50,4 +51,5 @@ target_link_libraries(libanytone-emu PRIVATE Qt6::Core Qt6::SerialPort)
 install(TARGETS libanytone-emu DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR})
 install(FILES ${libanytone-emu_HEADERS} DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/libanytone-emu)
 install(FILES ${PROJECT_BINARY_DIR}/lib/config.hh DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/libanytone-emu)
+
 
