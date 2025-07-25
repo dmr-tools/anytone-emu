@@ -49,6 +49,7 @@ qt_add_library(libanytone-emu STATIC ${libanytone-emu_SOURCES}
   radteldevice.hh radteldevice.cc
   radtelmodeldefinition.hh radtelmodeldefinition.cc
   radtelmodelparser.hh radtelmodelparser.cc
+  deviceclassplugininterface.hh deviceclassplugininterface.cc
   )
 
 set_target_properties(libanytone-emu PROPERTIES

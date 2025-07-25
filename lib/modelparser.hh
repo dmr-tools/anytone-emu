@@ -2,6 +2,7 @@
 #define MODELPARSER_HH
 
 #include "xmlparser.hh"
+#include "deviceclassplugininterface.hh"
 #include <modeldefinition.hh>
 
 
@@ -65,6 +66,29 @@ protected:
 };
 
 
+
+class GenericModelDefinitionHandler: public ModelDefinitionHandler
+{
+  Q_OBJECT
+
+public:
+  GenericModelDefinitionHandler(DeviceClassPluginInterface *plugin, const QString &context,
+                                const QString& id, ModelDefinitionParser *parent);
+
+  ModelDefinition *definition() const override;
+  ModelDefinition *takeDefinition() override;
+
+protected slots:
+  virtual bool beginFirmwareElement(const QXmlStreamAttributes &attributes);
+  virtual bool endFirmwareElement();
+
+protected:
+  DeviceClassPluginInterface *_plugin;
+  ModelDefinition *_definition;
+};
+
+
+
 class ModelMemoryDefinitionHandler: public XmlElementHandler
 {
   Q_OBJECT
@@ -102,5 +126,23 @@ public slots:
   virtual bool endMemoryElement();
 };
 
+
+class GenericModelFirmwareDefinitionHandler: public ModelFirmwareDefinitionHandler
+{
+  Q_OBJECT
+
+public:
+  GenericModelFirmwareDefinitionHandler(
+      DeviceClassPluginInterface *plugin, const QString& context, const QString &name,
+      const QDate &released, const QString &codeplug, ModelDefinitionHandler *parent);
+
+  ~GenericModelFirmwareDefinitionHandler();
+
+  ModelFirmwareDefinition *definition() const override;
+  ModelFirmwareDefinition *takeDefinition() override;
+
+protected:
+  ModelFirmwareDefinition *_definition;
+};
 
 #endif // MODELPARSER_HH

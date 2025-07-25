@@ -10,7 +10,7 @@ class Device;
 class QIODevice;
 class ModelDefinition;
 class ModelFirmwareDefinition;
-
+class DeviceClassPluginInterface;
 
 
 class ModelCatalog: public QObject
@@ -141,6 +141,20 @@ protected:
 };
 
 
+class GenericModelFirmwareDefinition: public ModelFirmwareDefinition
+{
+Q_OBJECT
+
+public:
+  /** Hidden constrcutor. */
+  GenericModelFirmwareDefinition(
+      DeviceClassPluginInterface *plugin, const QString &context, ModelDefinition *parent=nullptr);
+
+  Device *createDevice(QIODevice *interface, const ErrorStack &err=ErrorStack()) const override;
+
+protected:
+  DeviceClassPluginInterface *_plugin;
+};
 
 
 #endif // MODELDEFINITION_HH
