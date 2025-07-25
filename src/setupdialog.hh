@@ -29,6 +29,7 @@ public:
 
 private slots:
   void onUseBuildinPatternToggled(bool enabled);
+  void reloadModels();
   void onSelectCatalogFile();
   void onDeviceSelected(int idx);
   void onFirmwareSelected(int idx);
