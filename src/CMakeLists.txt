@@ -51,7 +51,7 @@ qt_add_resources(anytone-emu-gui "codeplugs"
         "${CMAKE_SOURCE_DIR}/codeplugs/d578uv2/v2.03.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/d578uv2/v2.08.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/v2.10.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv2/1.10/codeplug.xml")
+        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv2/v1.10.xml")
 
 
 generate_icons(
@@ -93,7 +93,7 @@ generate_icons(
         edit edit-annotate edit-clear edit-delete edit-erase edit-split-element edit-copy edit-paste
         insert-child insert-above insert-below document-import
         none show-diff-single show-diff-multiple show-hexdump inspect
-        help-about help-contents show-log window-close mark-done
+        help-about help-contents show-log window-close mark-done mark-needs-review
   THEMES light dark
   CONTEXT actions
   SIZES 16)
@@ -111,9 +111,13 @@ qt_add_resources(anytone-emu-gui "icons-themes"
         "${CMAKE_SOURCE_DIR}/shared/icons/dark/index.theme")
 
 
-target_link_libraries(anytone-emu-gui PRIVATE Qt6::Widgets Qt6::SerialPort libanytone-emu)
+target_link_libraries(anytone-emu-gui PRIVATE Qt6::Widgets Qt6::SerialPort libanytone-emu
+  anytone-emu-anytone anytone-emu-opengd77 anytone-emu-radtel anytone-emu-md32uv)
 target_include_directories(anytone-emu-gui PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Install binary only if not a bundle under MacOS X
 install(TARGETS anytone-emu-gui DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
 
+install(FILES ${PROJECT_SOURCE_DIR}/shared/anytone-emu-gui.desktop DESTINATION share/applications/)
+install(FILES ${PROJECT_SOURCE_DIR}/shared/icons/light/apps/application-anytone-emu.svg
+  DESTINATION share/icons/hicolor/scalable/apps/)

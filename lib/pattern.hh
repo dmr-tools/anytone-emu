@@ -424,6 +424,8 @@ signals:
   void resized(const FixedPattern *pattern, const Size &newSize);
 
 protected:
+  /** Resets the size. */
+  virtual void resetSize();
   /** Sets the size. */
   virtual void setSize(const Size &size);
 

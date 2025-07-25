@@ -17,7 +17,7 @@ ModelRom::Segment::operator <(uint32_t rhs_address) const {
 }
 
 bool
-ModelRom::Segment::contains(uint32_t address, uint8_t size) const {
+ModelRom::Segment::contains(uint32_t address, uint16_t size) const {
   return (this->address <= address)
       && ((this->address+content.size()) >= (address+size));
 }
@@ -80,11 +80,11 @@ ModelRom::write(uint32_t address, const QByteArray &data) {
 
 
 bool
-ModelRom::read(uint32_t address, uint8_t length, QByteArray &data) const {
+ModelRom::read(uint32_t address, uint16_t length, QByteArray &data) const {
   auto next = std::lower_bound(begin(), end(), address);
 
   if (begin() == next) {
-    if ( (next->address != address) || (! next->contains(address, length))) {
+    if ((end() == next) || (next->address != address) || (! next->contains(address, length))) {
       logDebug() << "Cannot read from rom at address " << QString::number(address, 16)
                  << "h: No segment containing this address found.";
       return false;
@@ -96,7 +96,7 @@ ModelRom::read(uint32_t address, uint8_t length, QByteArray &data) const {
   }
 
   auto prev = next-1;
-  if (!prev->contains(address, length)) {
+  if (! prev->contains(address, length)) {
     logDebug() << "Cannot read from rom at address " << QString::number(address, 16)
                << "h: No segment containing this address found.";
     return false;

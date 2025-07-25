@@ -115,9 +115,12 @@
     <string>Split unknown field</string>
    </property>
   </action>
-  <action name="actionMarkFieldAsUnknown">
+  <action name="actionTurnIntoUnknown">
    <property name="text">
-    <string>Mark field as unknown</string>
+    <string>Erase field (turn into unknown)</string>
+   </property>
+   <property name="toolTip">
+    <string>Erases the field and turns it into an unknown field.</string>
    </property>
   </action>
   <action name="actionMarkPatternAsUpdated">
@@ -147,6 +150,30 @@
    </property>
    <property name="toolTip">
     <string>Imports a pattern from another codeplug and inserts it below the selected one.</string>
+   </property>
+  </action>
+  <action name="actionMarkAllPatternAsUpdated">
+   <property name="text">
+    <string>Mark all pattern as updated (recursive)</string>
+   </property>
+   <property name="toolTip">
+    <string>Marks the pattern and all its children as updated.</string>
+   </property>
+  </action>
+  <action name="actionMarkPatternNeedsReview">
+   <property name="text">
+    <string>Mark pattern as needs-review</string>
+   </property>
+   <property name="toolTip">
+    <string>Marks the pattern as needs-review.</string>
+   </property>
+  </action>
+  <action name="actionMarkAllPatternNeedsReview">
+   <property name="text">
+    <string>Mark all pattern as needs-review (recursive)</string>
+   </property>
+   <property name="toolTip">
+    <string>Marks this pattern and all its children as needs-review.</string>
    </property>
   </action>
  </widget>

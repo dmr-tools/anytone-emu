@@ -123,7 +123,7 @@ protected:
    * @param addr Specifies the start address of the matched memory section.
    * @param size Specifies the size of the matched memory section.
    * @param parent Optional QObject parent.  */
-  explicit AbstractAnnotation(const Address &addr, const Size &size, QObject *parent = nullptr);
+  explicit AbstractAnnotation(const AbstractPattern *pattern, const Address &addr, const Size &size, QObject *parent = nullptr);
 
 public:
   /** Returns the address of the matched memory section. */
@@ -144,6 +144,12 @@ public:
   const AnnotationIssues &issues() const;
   /** Returns the list of annotation issues. */
   AnnotationIssues &issues();
+
+  /** Returns @c true, if the annotation has a pattern.
+   * It usually does, only unannotated segments don't. */
+  bool hasPattern() const;
+  /** Returns the pattern, that generated this annotation. */
+  const AbstractPattern *pattern() const;
 
 public:
   /** Returns @c true, if the this instance can be cast to the given template argument. */
@@ -171,6 +177,8 @@ protected:
   Size _size;
   /** The list of annotation issues. */
   AnnotationIssues _issues;
+  /** The source pattern. */
+  QPointer<const AbstractPattern> _pattern;
 };
 
 
@@ -231,14 +239,8 @@ public:
   /** Recursively resolves the given address to the field annotation containing this address. */
   const AtomicAnnotation *resolve(const Address &addr) const;
 
-  /** Returns the pattern, that generated this annotation. */
-  const BlockPattern *pattern() const;
   /** Returns the list of names of the pattern of this annotation and all its parents. */
   QStringList path() const;
-
-protected:
-  /** A weak reference to the source pattern. */
-  QPointer<const BlockPattern> _pattern;
 };
 
 
@@ -251,7 +253,7 @@ class AtomicAnnotation: public AbstractAnnotation
 
 protected:
   /** Constructs a new field annotation for the given pattern, address and value. */
-  AtomicAnnotation(const Address &addr, const Size &size, QObject *parent = nullptr);
+  AtomicAnnotation(const FieldPattern *pattern, const Address &addr, const Size &size, QObject *parent = nullptr);
 
 public:
   /** Resolves to this instance, if the address is contained. */
@@ -273,14 +275,10 @@ public:
   /** Returns the decoded value. */
   const QVariant &value() const;
 
-  /** Returns the pattern, that generated this annotation. */
-  const FieldPattern *pattern() const;
   /** Returns the list of names of the pattern of this annotation and all its parents. */
   QStringList path() const;
 
 protected:
-  /** A weak reference to the source pattern. */
-  QPointer<const FieldPattern> _pattern;
   /** The decoded value. */
   QVariant _value;
 };

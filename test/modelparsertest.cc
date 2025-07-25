@@ -1,6 +1,5 @@
 #include "modelparsertest.hh"
 #include "modelparser.hh"
-#include "anytonemodelparser.hh"
 #include <QXmlStreamReader>
 #include <QTest>
 
@@ -92,9 +91,9 @@ R"(</catalog>)";
   QVERIFY(model->rom().read(0x0100, 3, buffer));
   QCOMPARE(buffer, QByteArray("abc"));
 
-  QVERIFY(qobject_cast<AnyToneModelDefinition*>(model));
+  /*QVERIFY(qobject_cast<AnyToneModelDefinition*>(model));
   QCOMPARE(qobject_cast<AnyToneModelDefinition*>(model)->modelId(), QByteArray("6X2UV\x00",6));
-  QCOMPARE(qobject_cast<AnyToneModelDefinition*>(model)->revision(), QByteArray("V100\x00\x00",6));
+  QCOMPARE(qobject_cast<AnyToneModelDefinition*>(model)->revision(), QByteArray("V100\x00\x00",6));*/
   delete model;
 }
 

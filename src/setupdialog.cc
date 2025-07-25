@@ -37,9 +37,6 @@ SetupDialog::SetupDialog(QWidget *parent) :
     _catalog.load(ui->catalogFile->text().simplified());
   }
 
-  for (ModelCatalog::const_iterator model=_catalog.begin(); model!=_catalog.end(); model++) {
-    ui->deviceSelection->addItem((*model)->name(), (*model)->id());
-  }
   if (ui->deviceSelection->count()) {
     if (settings.contains("device") &&
         (-1 != ui->deviceSelection->findData(settings.value("device"))) )
@@ -143,10 +140,15 @@ SetupDialog::onUseBuildinPatternToggled(bool enabled) {
   QSettings().setValue(
         "useBuildinPatterns", ui->useBuildin->isChecked());
 
+  reloadModels();
+}
+
+void
+SetupDialog::reloadModels() {
   ui->firmwareSelection->clear();
   ui->deviceSelection->clear();
 
-  if (enabled) {
+  if (ui->catalogFile->isEnabled()) {
     _catalog.clear();
     _catalog.load(":/codeplugs/catalog.xml");
   } else {
@@ -157,7 +159,6 @@ SetupDialog::onUseBuildinPatternToggled(bool enabled) {
   for (ModelCatalog::const_iterator model=_catalog.begin(); model!=_catalog.end(); model++) {
     ui->deviceSelection->addItem((*model)->name(), (*model)->id());
   }
-
 }
 
 
@@ -170,6 +171,8 @@ SetupDialog::onSelectCatalogFile() {
     ui->catalogFile->setText(file.absoluteFilePath());
     QSettings().setValue("catalogFile", file.absoluteFilePath());
   }
+
+  reloadModels();
 }
 
 

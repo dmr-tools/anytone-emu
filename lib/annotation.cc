@@ -206,9 +206,9 @@ AnnotationCollection::severity() const {
 /* ********************************************************************************************* *
  * Implementation of AbstractAnnotation
  * ********************************************************************************************* */
-AbstractAnnotation::AbstractAnnotation(const Address &addr,
+AbstractAnnotation::AbstractAnnotation(const AbstractPattern *pattern, const Address &addr,
                                        const Size& size, QObject *parent)
-  : QObject{parent}, _address(addr), _size(size), _issues()
+  : QObject{parent}, _address(addr), _size(size), _issues(), _pattern(pattern)
 {
   // pass...
 }
@@ -245,15 +245,23 @@ AbstractAnnotation::issues() {
   return _issues;
 }
 
+bool
+AbstractAnnotation::hasPattern() const {
+  return !_pattern.isNull();
+}
 
+const AbstractPattern *
+AbstractAnnotation::pattern() const {
+  return _pattern.get();
+}
 
 
 
 /* ********************************************************************************************* *
  * Implementation of AtomicAnnotation
  * ********************************************************************************************* */
-AtomicAnnotation::AtomicAnnotation(const Address& addr, const Size &size, QObject *parent)
-  : AbstractAnnotation{addr, size, parent}
+AtomicAnnotation::AtomicAnnotation(const FieldPattern *pattern, const Address& addr, const Size &size, QObject *parent)
+  : AbstractAnnotation{pattern, addr, size, parent}
 {
   // pass...
 }
@@ -271,8 +279,7 @@ AtomicAnnotation::resolve(const Address &addr) const {
  * Implementation of FieldAnnotation
  * ********************************************************************************************* */
 FieldAnnotation::FieldAnnotation(const FieldPattern *pattern, const Element *element, const Address& addr, QObject *parent)
-  : AtomicAnnotation{addr, pattern->size(), parent}, _pattern(pattern),
-    _value(pattern->value(element, addr, this))
+  : AtomicAnnotation{pattern, addr, pattern->size(), parent}, _value(pattern->value(element, addr, this))
 {
   // pass...
 }
@@ -282,11 +289,6 @@ FieldAnnotation::value() const {
   return _value;
 }
 
-
-const FieldPattern *
-FieldAnnotation::pattern() const {
-  return _pattern;
-}
 
 QStringList
 FieldAnnotation::path() const {
@@ -305,7 +307,7 @@ FieldAnnotation::path() const {
  * Implementation of UnannotatedSegment
  * ********************************************************************************************* */
 UnannotatedSegment::UnannotatedSegment(const Address &addr, const Size &size, QObject *parent)
-  : AtomicAnnotation(addr, size, parent)
+  : AtomicAnnotation(nullptr, addr, size, parent)
 {
   // pass...
 }
@@ -316,8 +318,7 @@ UnannotatedSegment::UnannotatedSegment(const Address &addr, const Size &size, QO
  * Implementation of StructuredAnnotation
  * ********************************************************************************************* */
 StructuredAnnotation::StructuredAnnotation(const BlockPattern *pattern, const Address &addr, QObject *parent)
-  : AbstractAnnotation{addr, Size::zero(), parent}, AnnotationCollection(),
-    _pattern(pattern)
+  : AbstractAnnotation{pattern, addr, Size::zero(), parent}, AnnotationCollection()
 {
   // pass...
 }
@@ -335,11 +336,6 @@ StructuredAnnotation::resolve(const Address &addr) const {
   if (nullptr != element)
     return element->resolve(addr);
   return nullptr;
-}
-
-const BlockPattern *
-StructuredAnnotation::pattern() const {
-  return _pattern;
 }
 
 QStringList

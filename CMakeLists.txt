@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20.0)
-project(anytone-emu VERSION 0.1.1 LANGUAGES CXX)
+project(anytone-emu VERSION 0.1.3 LANGUAGES CXX)
 
 option(BUILD_TESTS    "Build test programs" ON)
 option(BUILD_API_DOCS "Build API documentation" OFF)
@@ -45,6 +45,7 @@ message(STATUS "Build version ${PROJECT_VERSION}")
 
 # Sources...
 add_subdirectory(lib)
+add_subdirectory(plugins)
 add_subdirectory(cli)
 add_subdirectory(src)
 if (BUILD_TESTS)

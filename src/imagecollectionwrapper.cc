@@ -116,8 +116,8 @@ CollectionWrapper::data(const QModelIndex &index, int role) const {
     return formatFieldValue(obj);
   } else if ((Qt::DecorationRole  == role) && (0 == index.column())) {
     return getIcon(obj);
-  } else if ((Qt::ToolTipRole == role) && (0 == index.column())) {
-    return getTooltip(obj);
+  } else if ((Qt::ToolTipRole == role) && (0==index.column())) {
+    return formatTooltip(obj);
   }
 
   return QVariant();
@@ -136,9 +136,9 @@ CollectionWrapper::formatTypeName(const QObject *obj) const {
       return tr("Element (unannotated)");
     return tr("Element (%1)").arg(el->numAnnotations());
   } else if (auto el = qobject_cast<const StructuredAnnotation *>(obj)) {
-    return tr("Structure '%1'").arg(el->pattern()->meta().name());
+    return tr("Structure '%1'").arg(el->hasPattern() ? el->pattern()->meta().name() : "<unknown>");
   } else if (auto el = qobject_cast<const FieldAnnotation *>(obj)) {
-    return tr("Field '%1'").arg(el->pattern()->meta().name());
+    return tr("Field '%1'").arg(el->hasPattern() ? el->pattern()->meta().name() : "<unknown>");
   } else if (auto el = qobject_cast<const UnannotatedSegment*>(obj)) {
     return tr("Unannotated Segment");
   }
@@ -206,23 +206,23 @@ CollectionWrapper::getIcon(const QObject *obj) const {
     severity = anno->issues().severity();
     if (auto st = anno->as<StructuredAnnotation>()) {
       auto pattern = st->pattern();
-      if (pattern->is<BlockRepeatPattern>())
+      if (pattern && pattern->is<BlockRepeatPattern>())
         prefix = "pattern-blockrepeat";
-      else if (pattern->is<FixedRepeatPattern>())
+      else if (pattern && pattern->is<FixedRepeatPattern>())
         prefix = "pattern-fixedrepeat";
-      else if (pattern->is<ElementPattern>())
+      else if (pattern && pattern->is<ElementPattern>())
         prefix = "pattern-element";
     } else if (auto fld = anno->as<FieldAnnotation>()) {
       auto pattern = fld->pattern();
-      if (pattern->is<IntegerFieldPattern>())
+      if (pattern && pattern->is<IntegerFieldPattern>())
         prefix = "pattern-integer";
-      else if (pattern->is<EnumFieldPattern>())
+      else if (pattern && pattern->is<EnumFieldPattern>())
         prefix = "pattern-enum";
-      else if (pattern->is<StringFieldPattern>())
+      else if (pattern && pattern->is<StringFieldPattern>())
         prefix = "pattern-stringfield";
-      else if (pattern->is<UnusedFieldPattern>())
+      else if (pattern && pattern->is<UnusedFieldPattern>())
         prefix = "pattern-unused";
-      else if (pattern->is<UnknownFieldPattern>())
+      else if (pattern && pattern->is<UnknownFieldPattern>())
         prefix = "pattern-unknown";
     } else if (anno->is<UnannotatedSegment>()) {
       prefix = "annotation-unannotated";
@@ -241,35 +241,15 @@ CollectionWrapper::getIcon(const QObject *obj) const {
 
 
 QVariant
-CollectionWrapper::getTooltip(const QObject *obj) const {
-  if (nullptr == obj)
-    return QVariant();
-
-  auto el = qobject_cast<const AbstractAnnotation *>(obj);
-  if (nullptr == el)
-    return QVariant();
-
-  if (! el->hasIssues())
-    return QVariant();
-
-  QString msg("<h3>Annotation issues:</h3><ul>");
-  AnnotationIssues::const_iterator issue = el->issues().begin();
-  for (; issue != el->issues().end(); issue++) {
-    msg += QString("<li>%1</li>").arg(issue->message());
-  }
-  msg += "</ul>";
-
-  return msg;
-}
-
-
-QVariant
 CollectionWrapper::formatFieldValue(const QObject *obj) const {
   if (nullptr == obj)
     return QVariant();
 
   auto el = qobject_cast<const FieldAnnotation *>(obj);
   if (nullptr == el)
+    return QVariant();
+
+  if (! el->hasPattern())
     return QVariant();
 
   auto pattern = el->pattern()->as<FieldPattern>();
@@ -288,6 +268,47 @@ CollectionWrapper::formatFieldValue(const QObject *obj) const {
     return QVariant();
 
   return el->value();
+}
+
+
+QVariant
+CollectionWrapper::formatTooltip(const QObject *obj) const {
+  if (nullptr == obj)
+    return QVariant();
+
+  auto el = qobject_cast<const AbstractAnnotation *>(obj);
+  if (nullptr == el)
+    return QVariant();
+
+  QString tooltip = tr("<h3>%1 <i>%2</i> at <tt>%3</tt></h3>"
+                       "<h5>Size <tt>%4</tt></h5>")
+      .arg(el->hasPattern() ? el->pattern()->metaObject()->className() : "<unknown>")
+      .arg(el->hasPattern() ? el->pattern()->meta().name() : "<unknown>")
+      .arg(el->address().toString())
+      .arg(el->size().toString());
+
+  if (el->hasPattern() && el->pattern()->meta().hasFirmwareVersion())
+    tooltip.append(QString("<h5>Firmware  version %2</h5>")
+                   .arg(el->pattern()->meta().firmwareVersion()));
+
+  if (el->hasPattern() && el->pattern()->meta().hasBriefDescription())
+    tooltip.append(QString("<p>%1</p>")
+                   .arg(el->pattern()->meta().briefDescription()));
+
+  if (el->hasPattern() && el->pattern()->meta().hasDescription())
+    tooltip.append(QString("<p>%1</p>")
+                   .arg(el->pattern()->meta().description()));
+
+  if (! el->hasIssues()) {
+    tooltip.append("<h3>Annotation issues:</h3><ul>");
+    AnnotationIssues::const_iterator issue = el->issues().begin();
+    for (; issue != el->issues().end(); issue++) {
+      tooltip.append(QString("<li>%1</li>").arg(issue->message()));
+    }
+    tooltip.append("</ul>");
+  }
+
+  return QVariant(tooltip);
 }
 
 

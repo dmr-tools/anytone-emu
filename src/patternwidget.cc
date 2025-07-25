@@ -68,8 +68,8 @@ PatternWidget::PatternWidget(QWidget *parent)
   importAction->setMenu(importMenu);
   toolBar->addAction(importAction);
   toolBar->addSeparator();
-  ui->actionMarkFieldAsUnknown->setIcon(QIcon::fromTheme("edit-erase"));
-  toolBar->addAction(ui->actionMarkFieldAsUnknown);
+  ui->actionTurnIntoUnknown->setIcon(QIcon::fromTheme("edit-erase"));
+  toolBar->addAction(ui->actionTurnIntoUnknown);
   toolBar->addAction(ui->actionDeletePattern);
 
 
@@ -114,6 +114,15 @@ PatternWidget::PatternWidget(QWidget *parent)
   ui->actionMarkPatternAsUpdated->setIcon(QIcon::fromTheme("mark-done"));
   connect(ui->patterns, &PatternView::canMarkUpdated, ui->actionMarkPatternAsUpdated, &QAction::setEnabled);
   connect(ui->actionMarkPatternAsUpdated, &QAction::triggered, ui->patterns, &PatternView::markAsUpdated);
+  ui->actionMarkAllPatternAsUpdated->setIcon(QIcon::fromTheme("mark-done"));
+  connect(ui->patterns, &PatternView::canMarkUpdated, ui->actionMarkAllPatternAsUpdated, &QAction::setEnabled);
+  connect(ui->actionMarkAllPatternAsUpdated, &QAction::triggered, ui->patterns, &PatternView::markAllAsUpdated);
+  ui->actionMarkPatternNeedsReview->setIcon(QIcon::fromTheme("mark-needs-review"));
+  connect(ui->patterns, &PatternView::canMarkUpdated, ui->actionMarkPatternNeedsReview, &QAction::setEnabled);
+  connect(ui->actionMarkPatternNeedsReview, &QAction::triggered, ui->patterns, &PatternView::markNeedsReview);
+  ui->actionMarkAllPatternNeedsReview->setIcon(QIcon::fromTheme("mark-needs-review"));
+  connect(ui->patterns, &PatternView::canMarkUpdated, ui->actionMarkAllPatternNeedsReview, &QAction::setEnabled);
+  connect(ui->actionMarkAllPatternNeedsReview, &QAction::triggered, ui->patterns, &PatternView::markAllNeedsReview);
 
   connect(ui->actionSavePattern, &QAction::triggered, ui->patterns, &PatternView::save);
 
