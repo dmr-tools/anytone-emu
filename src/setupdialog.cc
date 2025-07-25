@@ -148,7 +148,7 @@ SetupDialog::reloadModels() {
   ui->firmwareSelection->clear();
   ui->deviceSelection->clear();
 
-  if (ui->catalogFile->isEnabled()) {
+  if (! ui->catalogFile->isEnabled()) {
     _catalog.clear();
     _catalog.load(":/codeplugs/catalog.xml");
   } else {

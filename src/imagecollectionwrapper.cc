@@ -280,10 +280,16 @@ CollectionWrapper::formatTooltip(const QObject *obj) const {
   if (nullptr == el)
     return QVariant();
 
+  QString typeName = tr("Unknown pattern");
+  if (el->is<UnannotatedSegment>())
+    typeName = tr("Unannotated segment");
+  else if (el->hasPattern())
+    typeName = el->pattern()->metaObject()->className();
+
   QString tooltip = tr("<h3>%1 <i>%2</i> at <tt>%3</tt></h3>"
                        "<h5>Size <tt>%4</tt></h5>")
-      .arg(el->hasPattern() ? el->pattern()->metaObject()->className() : "<unknown>")
-      .arg(el->hasPattern() ? el->pattern()->meta().name() : "<unknown>")
+      .arg(typeName)
+      .arg(el->hasPattern() ? el->pattern()->meta().name() : "")
       .arg(el->address().toString())
       .arg(el->size().toString());
 
@@ -299,7 +305,7 @@ CollectionWrapper::formatTooltip(const QObject *obj) const {
     tooltip.append(QString("<p>%1</p>")
                    .arg(el->pattern()->meta().description()));
 
-  if (! el->hasIssues()) {
+  if (el->hasIssues()) {
     tooltip.append("<h3>Annotation issues:</h3><ul>");
     AnnotationIssues::const_iterator issue = el->issues().begin();
     for (; issue != el->issues().end(); issue++) {
