@@ -41,7 +41,7 @@ BlockRepeatDialog::setPattern(BlockRepeatPattern *pattern, const CodeplugPattern
   } else if (pattern->hasImplicitAddress()) {
     ui->address->setText(pattern->address().toString());
     ui->address->setEnabled(false);
-  } else {
+  } else if (pattern->hasAddress()){
     ui->address->setText(pattern->address().toString());
   }
 
