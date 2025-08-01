@@ -61,7 +61,11 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="address"/>
+       <widget class="QLineEdit" name="address">
+        <property name="placeholderText">
+         <string>undefined</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_4">
@@ -87,7 +91,7 @@
       <item row="2" column="1">
        <widget class="QLineEdit" name="value">
         <property name="placeholderText">
-         <string>unspecified</string>
+         <string>undefined</string>
         </property>
        </widget>
       </item>
@@ -124,10 +128,10 @@
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
      </property>
     </widget>
    </item>
