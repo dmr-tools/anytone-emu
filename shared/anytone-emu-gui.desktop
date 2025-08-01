@@ -4,6 +4,6 @@ GenericName=DMR radio emulation and reverse engineering tool.
 Exec=anytone-emu-gui
 Icon=application-anytone-emu
 Type=Application
-Categories=Network;HamRadio;
+Categories=HamRadio;
 Terminal=false
 X-Desktop-File-Install-Version=0.24

@@ -20,6 +20,7 @@ void
 HexImageDumpDocument::putElement(const HexElement &element, QTextCursor &cursor) {
   cursor.insertFrame(_elementFormat);
   putElementTitle(element, cursor);
+  putOffsets(cursor);
   for (unsigned int li=0; li < element.size(); li++) {
     const HexLine &line = element.line(li);
     putLine(line, cursor);
@@ -37,4 +38,12 @@ HexImageDumpDocument::putLine(const HexLine &line, QTextCursor &cursor) {
   cursor.insertText(QString(" "), _separatorFormat);
 
   putChars(line.left(), cursor);
+}
+
+
+void
+HexImageDumpDocument::putOffsets(QTextCursor &cursor) {
+  cursor.insertBlock(_lineFormat);
+  cursor.insertText(QString("         "), _addressFormat);
+  putValueOffsets(cursor);
 }
