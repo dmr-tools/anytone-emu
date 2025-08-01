@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Installer>
     <Name>AnyTone Emulator</Name>
-    <Version>0.1.0</Version>
+    <Version>0.2.1</Version>
     <Title>DMR Radio Emulator</Title>
     <Publisher>DM3MAT</Publisher>
     <StartMenuDir>AnyTone-Emu</StartMenuDir>
