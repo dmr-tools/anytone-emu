@@ -2,8 +2,8 @@
 <Package>
     <DisplayName>Emulator and codeplug editor</DisplayName>
     <Description>Graphical tool to reverse engineer and </Description>
-    <Version>0.1.0-1</Version>
-    <ReleaseDate>2024-11-29</ReleaseDate>
+    <Version>0.2.1-1</Version>
+    <ReleaseDate>2025-08-01</ReleaseDate>
     <Licenses>
         <License name="General Public License v3" file="license.txt" />
     </Licenses>

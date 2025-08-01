@@ -48,7 +48,6 @@ qt_add_resources(anytone-emu-gui "codeplugs"
         "${CMAKE_SOURCE_DIR}/codeplugs/d878uv/v3.05.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/d878uv2/v3.04.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/d578uv/v1.21.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/d578uv2/v2.03.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/d578uv2/v2.08.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/v2.10.xml"
         "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv2/v1.10.xml")
