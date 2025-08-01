@@ -16,6 +16,7 @@ public:
 protected:
   void putElement(const HexElement &element, QTextCursor &cursor);
   void putLine(const HexLine &line, QTextCursor &cursor);
+  void putOffsets(QTextCursor &cursor);
 };
 
 #endif // HEXIMAGEDIFFDOCUMENT_HH

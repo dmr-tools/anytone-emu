@@ -20,9 +20,11 @@ public slots:
 
 protected:
   virtual void putElement(const HexElement &element, QTextCursor &cursor) = 0;
+  virtual void putOffsets(QTextCursor &cursor) = 0;
   virtual void putLine(const HexLine &line, QTextCursor &cursor) = 0;
 
   virtual void putElementTitle(const HexElement &element, QTextCursor &cursor);
+  virtual void putValueOffsets(QTextCursor &cursor);
   virtual void putAddress(uint32_t address, QTextCursor &cursor);
   virtual void putValues(const QVector<HexLine::Byte> &values, QTextCursor &cursor);
   virtual void putChars(const QVector<HexLine::Byte> &values, QTextCursor &cursor);
@@ -33,6 +35,7 @@ protected:
   QTextBlockFormat _lineFormat;
   QTextCharFormat  _baseFormat;
   QTextCharFormat  _addressFormat;
+  QTextCharFormat  _offsetFormat;
   QTextCharFormat  _valueFormat;
   QTextCharFormat  _keepValueFormat;
   QTextCharFormat  _addValueFormat;

@@ -25,6 +25,7 @@ void
 HexImageDiffDocument::putElement(const HexElement &element, QTextCursor &cursor) {
   cursor.insertFrame(_elementFormat);
   putElementTitle(element, cursor);
+  putOffsets(cursor);
   for (unsigned int li=0; li < element.size(); li++) {
     const HexLine &line = element.line(li);
     if (! line.hasDiff())
@@ -54,3 +55,11 @@ HexImageDiffDocument::putLine(const HexLine &line, QTextCursor &cursor) {
   putChars(line.right(), cursor);
 }
 
+void
+HexImageDiffDocument::putOffsets(QTextCursor &cursor) {
+  cursor.insertBlock(_lineFormat);
+  cursor.insertText(QString("         "), _addressFormat);
+  putValueOffsets(cursor);
+  cursor.insertText(QString(" "), _separatorFormat);
+  putValueOffsets(cursor);
+}
