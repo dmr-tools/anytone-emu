@@ -9,7 +9,7 @@
  * Implementation of AnyToneModelDefinition
  * ********************************************************************************************* */
 AnyToneModelDefinition::AnyToneModelDefinition(const QString &id, QObject *parent)
-  : ModelDefinition{id, parent}, _modelId(), _revision()
+  : ModelDefinition{id, parent}, _modelId(), _band(0), _revision()
 {
   // pass...
 }
@@ -23,6 +23,16 @@ AnyToneModelDefinition::modelId() const {
 void
 AnyToneModelDefinition::setModelId(const QByteArray &id) {
   _modelId = id;
+}
+
+uint8_t
+AnyToneModelDefinition::band() const {
+  return _band;
+}
+
+void
+AnyToneModelDefinition::setBand(uint8_t band) {
+  _band = band;
 }
 
 
@@ -42,7 +52,7 @@ AnyToneModelDefinition::setRevision(const QByteArray &rev) {
  * Implementation of AnyToneModelFirmwareDefinition
  * ********************************************************************************************* */
 AnyToneModelFirmwareDefinition::AnyToneModelFirmwareDefinition(const QString& context, AnyToneModelDefinition *parent)
-  : ModelFirmwareDefinition{context, parent}, _modelId(), _revision()
+  : ModelFirmwareDefinition{context, parent}, _modelId(), _band(std::numeric_limits<uint8_t>::max()), _revision()
 {
   // pass...
 }
@@ -59,6 +69,18 @@ AnyToneModelFirmwareDefinition::setModelId(const QByteArray &id) {
   _modelId = id;
 }
 
+
+uint8_t
+AnyToneModelFirmwareDefinition::band() const {
+  if (std::numeric_limits<uint8_t>::max() != _band)
+    return _band;
+  return qobject_cast<AnyToneModelDefinition *>(parent())->band();
+}
+
+void
+AnyToneModelFirmwareDefinition::setBand(uint8_t band) {
+  _band = band;
+}
 
 const QByteArray &
 AnyToneModelFirmwareDefinition::revision() const {
@@ -81,7 +103,7 @@ AnyToneModelFirmwareDefinition::createDevice(QIODevice *interface, const ErrorSt
     return nullptr;
   }
 
-  Device *dev = new AnyToneDevice(interface, codeplug, nullptr, modelId(), revision());
+  Device *dev = new AnyToneDevice(interface, codeplug, nullptr, modelId(), band(), revision());
   dev->rom() += qobject_cast<AnyToneModelDefinition *>(parent())->rom();
   dev->rom() += this->rom();
 

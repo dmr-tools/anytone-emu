@@ -147,13 +147,15 @@ class AnytoneDeviceInfoResponse: public AnytoneResponse
 {
 public:
   /** Constructor from model ID and hardware version number. */
-  AnytoneDeviceInfoResponse(const QByteArray &model, const QByteArray &hwVersion);
+  AnytoneDeviceInfoResponse(const QByteArray &model, uint8_t band, const QByteArray &hwVersion);
 
   bool serialize(QByteArray &buffer);
 
 protected:
   /** The model ID. */
   QByteArray _model;
+  /** The band enum value. */
+  uint8_t _band;
   /** The hardware verison number. */
   QByteArray _hwVersion;
 };

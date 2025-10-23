@@ -1,5 +1,4 @@
 #include "deviceclass.hh"
-#include "logger.hh"
 #include "pattern.hh"
 
 #include "definition.hh"
@@ -37,7 +36,7 @@ AnytoneDeviceClassPlugin::device(QIODevice *interface, const ModelFirmwareDefini
   }
 
   return new AnyToneDevice(interface, codeplug, handler,
-                           fw->modelId(), fw->revision(), parent);
+                           fw->modelId(), fw->band(), fw->revision(), parent);
 }
 
 
