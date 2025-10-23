@@ -57,6 +57,8 @@ RadtelDevice::onBytesWritten() {
 
   qint64 nbytes = _interface->write(_out_buffer);
   _out_buffer.remove(0, nbytes);
+  logDebug() << "Send " << Qt::hex << nbytes
+             << "h bytes," << Qt::hex << _out_buffer.size() << "h bytes left.";
 }
 
 

@@ -168,10 +168,18 @@ PseudoTerminal::readData(char *data, qint64 maxLen) {
 
 qint64
 PseudoTerminal::writeData(const char *data, qint64 maxLen) {
-  int n = ::write(_dom, data, maxLen);
+  qint64 left = maxLen;
+  while (left) {
+    int n = ::write(_dom, data, left);
 
-  if (n < 0)
-    setErrorString(QString("Cannot write to pyt: %1.").arg(strerror(errno)));
+    if (n < 0) {
+      setErrorString(QString("Cannot write to pyt: %1.").arg(strerror(errno)));
+      return -1;
+    }
 
-  return n;
+    data += n;
+    left -= n;
+  }
+
+  return maxLen;
 }
