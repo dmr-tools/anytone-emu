@@ -142,8 +142,8 @@ AnytoneProgramResponse::serialize(QByteArray &buffer) {
 /* ********************************************************************************************* *
  * Implementation of AnytoneDeviceInfoResponse
  * ********************************************************************************************* */
-AnytoneDeviceInfoResponse::AnytoneDeviceInfoResponse(const QByteArray &model, const QByteArray &hwVersion)
-  : AnytoneResponse(), _model(model), _hwVersion(hwVersion)
+AnytoneDeviceInfoResponse::AnytoneDeviceInfoResponse(const QByteArray &model, uint8_t band, const QByteArray &hwVersion)
+  : AnytoneResponse(), _model(model), _band(band), _hwVersion(hwVersion)
 {
   // pass...
 }
@@ -152,7 +152,7 @@ bool
 AnytoneDeviceInfoResponse::serialize(QByteArray &buffer) {
   buffer.append("ID");
   buffer.append(_model.left(6));
-  buffer.append('\x00');
+  buffer.append(_band);
   buffer.append(_hwVersion.left(6));
   buffer.append("\x06");
   return true;

@@ -23,6 +23,9 @@ protected slots:
   virtual bool beginFirmwareElement(const QXmlStreamAttributes &attributes);
   virtual bool endFirmwareElement();
 
+  virtual bool beginBandElement(const QXmlStreamAttributes &attributes);
+  virtual bool endBandElement();
+
 protected:
   AnyToneModelDefinition *_definition;
 };
@@ -66,6 +69,9 @@ public:
 
   ModelFirmwareDefinition *definition() const;
   ModelFirmwareDefinition *takeDefinition();
+
+  virtual bool beginBandElement(const QXmlStreamAttributes &attributes);
+  virtual bool endBandElement();
 
 protected:
   bool beginMemoryElement(const QXmlStreamAttributes &attributes);

@@ -12,6 +12,7 @@ class AnyToneModelDefinition : public ModelDefinition
   Q_OBJECT
 
   Q_PROPERTY(QByteArray modelId READ modelId WRITE setModelId)
+  Q_PROPERTY(uint8_t band READ band WRITE setBand)
   Q_PROPERTY(QByteArray revision READ revision WRITE setRevision)
 
 public:
@@ -20,11 +21,15 @@ public:
   const QByteArray &modelId() const;
   void setModelId(const QByteArray &id);
 
+  uint8_t band() const;
+  void setBand(uint8_t band);
+
   const QByteArray &revision() const;
   void setRevision(const QByteArray &rev);
 
 protected:
   QByteArray _modelId;
+  uint8_t    _band;
   QByteArray _revision;
 };
 
@@ -35,6 +40,7 @@ class AnyToneModelFirmwareDefinition : public ModelFirmwareDefinition
   Q_OBJECT
 
   Q_PROPERTY(QByteArray modelId READ modelId WRITE setModelId)
+  Q_PROPERTY(uint8_t band READ band WRITE setBand)
   Q_PROPERTY(QByteArray revision READ revision WRITE setRevision)
 
 public:
@@ -43,6 +49,9 @@ public:
   const QByteArray &modelId() const;
   void setModelId(const QByteArray &id);
 
+  uint8_t band() const;
+  void setBand(uint8_t band);
+
   const QByteArray &revision() const;
   void setRevision(const QByteArray &rev);
 
@@ -50,6 +59,7 @@ public:
 
 protected:
   QByteArray _modelId;
+  uint8_t    _band;
   QByteArray _revision;
 };
 

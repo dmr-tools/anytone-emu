@@ -92,6 +92,27 @@ AnyToneModelDefinitionHandler::endFirmwareElement() {
 }
 
 
+bool
+AnyToneModelDefinitionHandler::beginBandElement(const QXmlStreamAttributes &attributes) {
+  _textBuffer.clear();
+  return true;
+}
+
+bool
+AnyToneModelDefinitionHandler::endBandElement() {
+  bool ok; uint8_t band = _textBuffer.toUInt(&ok);
+  if (! ok) {
+    raiseError(QString("Cannot convert '%1' to band enum value.").arg(_textBuffer));
+    return false;
+  }
+  _textBuffer.clear();
+
+  qobject_cast<AnyToneModelDefinition*>(definition())->setBand(band);
+
+  return true;
+}
+
+
 
 /* ********************************************************************************************* *
  * Implementation of AnyToneModelMemoryDefinitionHandler
@@ -206,5 +227,26 @@ AnyToneModelFirmwareDefinitionHandler::endMemoryElement() {
     qobject_cast<AnyToneModelFirmwareDefinition*>(definition())->setRevision(handler->revision());
 
   return ModelFirmwareDefinitionHandler::endMemoryElement();
+}
+
+
+bool
+AnyToneModelFirmwareDefinitionHandler::beginBandElement(const QXmlStreamAttributes &attributes) {
+  _textBuffer.clear();
+  return true;
+}
+
+bool
+AnyToneModelFirmwareDefinitionHandler::endBandElement() {
+  bool ok; uint8_t band = _textBuffer.toUInt(&ok);
+  if (! ok) {
+    raiseError(QString("Cannot convert '%1' to band enum value.").arg(_textBuffer));
+    return false;
+  }
+  _textBuffer.clear();
+
+  qobject_cast<AnyToneModelFirmwareDefinition*>(definition())->setBand(band);
+
+  return true;
 }
 

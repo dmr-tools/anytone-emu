@@ -8,9 +8,10 @@
  * Implementation of AnyToneDevice
  * ********************************************************************************************* */
 AnyToneDevice::AnyToneDevice(QIODevice *interface, CodeplugPattern *pattern, ImageCollector *handler,
-                             const QByteArray &model, const QByteArray &revision, QObject *parent)
+                             const QByteArray &model, uint8_t band, const QByteArray &revision,
+                             QObject *parent)
   : Device{pattern, handler, parent}, _state(State::Initial), _interface(interface),
-    _in_buffer(), _out_buffer(), _model(model), _revision(revision)
+    _in_buffer(), _out_buffer(), _model(model), _band(band), _revision(revision)
 {
   _interface->setParent(this);
   connect(_interface, SIGNAL(readyRead()), this, SLOT(onBytesAvailable()));
@@ -60,7 +61,7 @@ AnyToneDevice::handle(AnytoneRequest *request) {
     return new AnytoneProgramResponse();
   } else if ((State::Program == _state) && request->is<AnytoneDeviceInfoRequest>()) {
     logDebug() << "Get device info.";
-    return new AnytoneDeviceInfoResponse(this->model(), this->revision());
+    return new AnytoneDeviceInfoResponse(this->model(), this->band(), this->revision());
   } else if ((State::Program == _state) && request->is<AnytoneReadRequest>()) {
     AnytoneReadRequest *rreq = request->as<AnytoneReadRequest>();
     logDebug() << "Read " << (int)rreq->length() << "b from " << Qt::hex << rreq->address() << "h.";
@@ -91,6 +92,11 @@ AnyToneDevice::handle(AnytoneRequest *request) {
 const QByteArray &
 AnyToneDevice::model() const {
   return _model;
+}
+
+uint8_t
+AnyToneDevice::band() const {
+  return _band;
 }
 
 const QByteArray &

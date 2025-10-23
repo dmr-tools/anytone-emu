@@ -24,11 +24,13 @@ public:
   /** Constructs a new device for the specifies interface using the given memory model.
    * Takes ownership of @c interface and @c model. */
   explicit AnyToneDevice(QIODevice *interface, CodeplugPattern *pattern, ImageCollector *handler,
-                         const QByteArray &model, const QByteArray &revision,
+                         const QByteArray &model, uint8_t band, const QByteArray &revision,
                          QObject *parent = nullptr);
 
   /** Returns the model code for this device. */
   const QByteArray &model() const;
+  /** Returns the band enum value. */
+  uint8_t band() const;
   /** Returns the revision code for this device. */
   const QByteArray &revision() const;
 
@@ -54,6 +56,7 @@ protected:
   QByteArray _out_buffer;
 
   QByteArray _model;
+  uint8_t _band;
   QByteArray _revision;
 };
 
