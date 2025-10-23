@@ -96,14 +96,19 @@ ModelRom::read(uint32_t address, uint16_t length, QByteArray &data) const {
   }
 
   auto prev = next-1;
-  if (! prev->contains(address, length)) {
+  if (((end() != next) && !next->contains(address, length)) && (! prev->contains(address, length))) {
     logDebug() << "Cannot read from rom at address " << QString::number(address, 16)
                << "h: No segment containing this address found.";
     return false;
   }
 
-  uint32_t offset = address - prev->address;
-  data = prev->content.mid(offset, length);
+  if ((end() != next) && next->contains(address, length)) {
+    data = next->content.first(length);
+  } else {
+    uint32_t offset = address - prev->address;
+    data = prev->content.mid(offset, length);
+  }
+
   return true;
 }
 

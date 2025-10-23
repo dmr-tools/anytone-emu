@@ -73,8 +73,8 @@ RadtelRequest::fromBuffer(QByteArray &buffer, bool &ok, const ErrorStack &err) {
     return new RadtelWriteRequest(segment, page, payload);
   }
 
-  errMsg(err) << "Unexpected request: " << buffer << ".";
-  ok = false;
+  errMsg(err) << "Unexpected request: " << buffer.toHex(' ') << ". Ignore.";
+  ok = true;
   buffer.clear();
 
   return nullptr;
