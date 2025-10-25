@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 
   QTextStream stream(stdout);
   ModelCatalog catalog;
-  ModelDefinitionParser modelParser(&catalog, ":/codeplug/");
+  ModelDefinitionParser modelParser(&catalog);
   QFile catalogFile(":/codeplug/catalog.xml");
   if (! catalogFile.open(QIODevice::ReadOnly)) {
     logError() << "Cannot parse catalog file '" << catalogFile.fileName()
@@ -80,7 +80,7 @@ main(int argc, char *argv[])
     return -1;
   }
   QXmlStreamReader reader(&catalogFile);
-  if (! modelParser.parse(reader)) {
+  if (! modelParser.parse(reader, QFileInfo(catalogFile))) {
     logError() << "Cannot parse catalog file '" << catalogFile.fileName()
                << "': " << modelParser.errorMessage() << ".";
     return -1;

@@ -44,7 +44,7 @@ class AnyToneModelFirmwareDefinition : public ModelFirmwareDefinition
   Q_PROPERTY(QByteArray revision READ revision WRITE setRevision)
 
 public:
-  explicit AnyToneModelFirmwareDefinition(const QString &context, AnyToneModelDefinition *parent);
+  explicit AnyToneModelFirmwareDefinition(AnyToneModelDefinition *parent);
 
   const QByteArray &modelId() const;
   void setModelId(const QByteArray &id);

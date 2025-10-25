@@ -31,11 +31,11 @@ public:
    * That is, it does not handle additional elements and calls @c firmwareDefinitionHandler
    * to construct firmware definition parsers. */
   virtual ModelDefinitionHandler *definitionHandler(
-      const QString &context, const QString& id, ModelDefinitionParser *parent);
+      const QString& id, ModelDefinitionParser *parent);
 
   /** By default, returns a GenericModelFirmwareDefinitionHandler for this plugin. */
   virtual ModelFirmwareDefinitionHandler *firmwareDefinitionHandler(
-      const QString& context, const QString &name, const QDate &released, const QString &codeplug,
+      const QString &name, const QString &codeplug, const QDate &released,
       ModelDefinitionHandler *parent);
 
 };

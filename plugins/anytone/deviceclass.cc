@@ -41,15 +41,13 @@ AnytoneDeviceClassPlugin::device(QIODevice *interface, const ModelFirmwareDefini
 
 
 ModelDefinitionHandler *
-AnytoneDeviceClassPlugin::definitionHandler(const QString &context, const QString &id,
-                                            ModelDefinitionParser *parent) {
-  return new AnyToneModelDefinitionHandler(context, id, parent);
+AnytoneDeviceClassPlugin::definitionHandler(const QString &id, ModelDefinitionParser *parent) {
+  return new AnyToneModelDefinitionHandler(id, parent);
 }
 
 
 ModelFirmwareDefinitionHandler *
-AnytoneDeviceClassPlugin::firmwareDefinitionHandler(const QString &context, const QString &name,
-                                                    const QDate &released, const QString &codeplug,
-                                                    ModelDefinitionHandler *parent) {
-  return new AnyToneModelFirmwareDefinitionHandler(context, name, released, codeplug, parent);
+AnytoneDeviceClassPlugin::firmwareDefinitionHandler(const QString &name, const QString &codeplug,
+                                                    const QDate &released, ModelDefinitionHandler *parent) {
+  return new AnyToneModelFirmwareDefinitionHandler(name, codeplug, released, parent);
 }

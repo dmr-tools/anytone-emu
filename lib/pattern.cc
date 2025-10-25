@@ -482,7 +482,7 @@ CodeplugPattern::load(const QString &filename, const ErrorStack &err) {
 
   CodeplugPatternParser parser;
   QXmlStreamReader reader(&file);
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context(QFileInfo(file).absolutePath(), 0,0))) {
     errMsg(err) << "Cannot load annotation pattern from '" << filename
                 << "', cannot parse pattern: " << parser.errorMessage() << ".";
     return nullptr;

@@ -77,8 +77,8 @@ ModelCatalog::load(const QString &catalogFile) {
   }
 
   QXmlStreamReader reader(&file);
-  ModelDefinitionParser parser(this, fileInfo.absolutePath());
-  if (! parser.parse(reader)) {
+  ModelDefinitionParser parser(this);
+  if (! parser.parse(reader, XmlParser::Context(fileInfo))) {
     logError() << "Parse catalog '" << catalogFile << "': " << parser.errorMessage() << ".";
     return false;
   }
@@ -204,8 +204,8 @@ ModelDefinition::end() const {
 /* ********************************************************************************************** *
  * Implementation of ModelFirmwareDefinition
  * ********************************************************************************************** */
-ModelFirmwareDefinition::ModelFirmwareDefinition(const QString& context, ModelDefinition *parent)
-  : QObject{parent}, _context(context), _name(), _released(), _description(), _rom()
+ModelFirmwareDefinition::ModelFirmwareDefinition(ModelDefinition *parent)
+  : QObject{parent}, _name(), _released(), _description(), _rom()
 {
   // pass...
 }
@@ -240,7 +240,7 @@ ModelFirmwareDefinition::codeplug() const {
 
 void
 ModelFirmwareDefinition::setCodeplug(const QString &codeplug) {
-  _codeplug = _context + "/" + codeplug;
+  _codeplug = codeplug;
 }
 
 const QDate &
@@ -272,8 +272,8 @@ ModelFirmwareDefinition::rom() const {
  * Implementation of GenericModelFirmwareDefinition
  * ********************************************************************************************** */
 GenericModelFirmwareDefinition::GenericModelFirmwareDefinition(
-    DeviceClassPluginInterface *plugin, const QString &context, ModelDefinition *parent)
-  : ModelFirmwareDefinition{context, parent}, _plugin(plugin)
+    DeviceClassPluginInterface *plugin, ModelDefinition *parent)
+  : ModelFirmwareDefinition{parent}, _plugin(plugin)
 {
   // pass...
 }

@@ -12,7 +12,7 @@ class ModelDefinitionParser: public XmlParser
   Q_OBJECT
 
 public:
-  explicit ModelDefinitionParser(ModelCatalog *catalog, const QString &context, QObject *parent=nullptr);
+  explicit ModelDefinitionParser(ModelCatalog *catalog, QObject *parent=nullptr);
 
 public slots:
   virtual bool beginCatalogElement(const QXmlStreamAttributes &attributes);
@@ -22,7 +22,6 @@ public slots:
   virtual bool endModelElement();
 
 protected:
-  QString _context;
   ModelCatalog *_catalog;
 
 protected:
@@ -36,7 +35,7 @@ class ModelDefinitionHandler: public XmlElementHandler
   Q_OBJECT
 
 protected:
-  explicit ModelDefinitionHandler(const QString &context, const QString& id, ModelDefinitionParser *parent);
+  explicit ModelDefinitionHandler(const QString& id, ModelDefinitionParser *parent);
 
 public:
   virtual ModelDefinition *definition() const = 0;
@@ -61,7 +60,6 @@ public slots:
   virtual bool endMemoryElement();
 
 protected:
-  QString _context;
   QString _id;
 };
 
@@ -72,7 +70,7 @@ class GenericModelDefinitionHandler: public ModelDefinitionHandler
   Q_OBJECT
 
 public:
-  GenericModelDefinitionHandler(DeviceClassPluginInterface *plugin, const QString &context,
+  GenericModelDefinitionHandler(DeviceClassPluginInterface *plugin,
                                 const QString& id, ModelDefinitionParser *parent);
 
   ModelDefinition *definition() const override;
@@ -133,8 +131,8 @@ class GenericModelFirmwareDefinitionHandler: public ModelFirmwareDefinitionHandl
 
 public:
   GenericModelFirmwareDefinitionHandler(
-      DeviceClassPluginInterface *plugin, const QString& context, const QString &name,
-      const QDate &released, const QString &codeplug, ModelDefinitionHandler *parent);
+      DeviceClassPluginInterface *plugin, const QString &name,
+      const QString &codeplug, const QDate &released, ModelDefinitionHandler *parent);
 
   ~GenericModelFirmwareDefinitionHandler();
 

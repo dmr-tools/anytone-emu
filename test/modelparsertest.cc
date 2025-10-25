@@ -81,8 +81,8 @@ R"(</catalog>)";
 
   QXmlStreamReader reader(def);
   ModelCatalog catalog;
-  ModelDefinitionParser parser(&catalog, "");
-  QVERIFY2(parser.parse(reader), parser.errorMessage().toLocal8Bit().constData());
+  ModelDefinitionParser parser(&catalog);
+  QVERIFY2(parser.parse(reader, XmlParser::Context()), parser.errorMessage().toLocal8Bit().constData());
 
   QCOMPARE(catalog.count(), 1);
   ModelDefinition *model = catalog.model(0);

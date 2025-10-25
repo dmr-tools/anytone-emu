@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QList>
 #include <QUrl>
+#include <QDir>
 
 class XmlParser;
 class QStringView;
@@ -87,16 +88,26 @@ public:
   class Context
   {
   public:
+    /** Default constructor. */
+    Context();
+    /** From file info. */
+    Context(const QFileInfo &info, unsigned int line=0, unsigned int column=0);
     /** Constructor from filename, line and column. */
-    explicit Context(const QString &filename, unsigned int line, unsigned int column);
+    explicit Context(const QString &filename, unsigned int line=0, unsigned int column=0);
     /** Copy constructor. */
     Context(const Context &other) = default;
     /** Assignement operator. */
     Context &operator= (const Context &other) = default;
 
+    /** Updates the contexts position. */
+    void setPosition(unsigned int line, unsigned int column);
+    QString filename() const;
+    /** Returns the directory portion of the path. */
+    QDir directory() const;
+
   protected:
     /** The current filename. */
-    QString _filename;
+    QFileInfo _fileInfo;
     /** The current line number. */
     unsigned int _line;
     /** The current column number. */
@@ -108,7 +119,9 @@ public:
   explicit XmlParser(QObject *parent=nullptr);
 
   /** Parses a XML document using the given XML stream reader. */
-  virtual bool parse(QXmlStreamReader &reader);
+  virtual bool parse(QXmlStreamReader &reader, const Context &context, bool ignoreDocumentToken=false);
+
+  Context context() const;
 
 protected:
   /** Handles the start of a document. */
@@ -123,6 +136,9 @@ protected:
    * Dispatches to the corresponding slot based on the tag name of the current handler. */
   virtual bool dispatchEndElement(const QStringView &name);
 
+  /** Handles an XInclude element. */
+  virtual bool handleInclude(const QXmlStreamAttributes &attributes);
+
   /** Puts the given handler on the top of the stack. */
   void pushHandler(XmlElementHandler *parser);
   /** Returns the first handler from the stack. */
@@ -133,6 +149,8 @@ protected:
   /** The stack of handler.
    * This stack at least contains an instance of itself. */
   QList<XmlElementHandler *> _handler;
+  /** The context stack. */
+  QList<Context> _context;
 
   friend class XmlElementHandler;
 };
