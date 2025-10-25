@@ -21,7 +21,7 @@ PatternParserTest::parseCodeplugTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 
@@ -47,7 +47,7 @@ PatternParserTest::parseCodeplugMetaTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 
@@ -69,7 +69,7 @@ PatternParserTest::parseUnusedFieldTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 
@@ -102,7 +102,7 @@ PatternParserTest::parseIntFieldTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 
@@ -148,7 +148,7 @@ PatternParserTest::parseEnumFieldTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 
@@ -193,7 +193,7 @@ PatternParserTest::parseSerializedTest() {
 
   {
     QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
-    if (! parser.parse(reader)) {
+    if (! parser.parse(reader, XmlParser::Context())) {
       QFAIL(parser.errorMessage().toLatin1().constData());
     }
   }
@@ -205,7 +205,7 @@ PatternParserTest::parseSerializedTest() {
 
   {
     QXmlStreamReader reader(buffer.data());
-    if (! parser.parse(reader)) {
+    if (! parser.parse(reader, XmlParser::Context())) {
       QFAIL(parser.errorMessage().toLatin1().constData());
     }
   }

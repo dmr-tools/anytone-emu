@@ -30,7 +30,7 @@ AnnotationTest::annotateUnusedTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 
@@ -60,7 +60,7 @@ AnnotationTest::annotateUnknownTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 
@@ -94,7 +94,7 @@ AnnotationTest::annotateIntTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 
@@ -137,7 +137,7 @@ AnnotationTest::annotateFixedRepeatTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 
@@ -184,7 +184,7 @@ AnnotationTest::annotateBlockRepeatTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 
@@ -233,7 +233,7 @@ AnnotationTest::annotateEmptyBlockRepeatTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 
@@ -263,7 +263,7 @@ AnnotationTest::annotateSparseRepeatTest() {
   QXmlStreamReader reader(QByteArray::fromRawData(content, strlen(content)));
   CodeplugPatternParser parser;
 
-  if (! parser.parse(reader)) {
+  if (! parser.parse(reader, XmlParser::Context())) {
     QFAIL(parser.errorMessage().toLatin1().constData());
   }
 

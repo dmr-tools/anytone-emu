@@ -25,10 +25,10 @@ public:
                  QObject *parent = nullptr, const ErrorStack &err=ErrorStack()) override;
 
   ModelDefinitionHandler *definitionHandler(
-      const QString &context, const QString& id, ModelDefinitionParser *parent) override;
+      const QString& id, ModelDefinitionParser *parent) override;
 
   ModelFirmwareDefinitionHandler *firmwareDefinitionHandler(
-      const QString& context, const QString &name, const QDate &released, const QString &codeplug,
+      const QString &name, const QString &codeplug, const QDate &released,
       ModelDefinitionHandler *parent) override;
 };
 

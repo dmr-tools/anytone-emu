@@ -19,15 +19,13 @@ DeviceClassPluginInterface::modelDefinition(const QString &id, QObject *parent, 
 
 
 ModelDefinitionHandler *
-DeviceClassPluginInterface::definitionHandler(const QString &context, const QString &id,
-                                              ModelDefinitionParser *parent) {
-  return new GenericModelDefinitionHandler(this, context, id, parent);
+DeviceClassPluginInterface::definitionHandler(const QString &id, ModelDefinitionParser *parent) {
+  return new GenericModelDefinitionHandler(this, id, parent);
 }
 
 
 ModelFirmwareDefinitionHandler *
-DeviceClassPluginInterface::firmwareDefinitionHandler(const QString &context, const QString &name,
-                                                      const QDate &released, const QString &codeplug,
-                                                      ModelDefinitionHandler *parent) {
-  return new GenericModelFirmwareDefinitionHandler(this, context, name, released, codeplug, parent);
+DeviceClassPluginInterface::firmwareDefinitionHandler(const QString &name, const QString &codeplug,
+                                                      const QDate &released, ModelDefinitionHandler *parent) {
+  return new GenericModelFirmwareDefinitionHandler(this, name, codeplug, released, parent);
 }
