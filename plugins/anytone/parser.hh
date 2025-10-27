@@ -10,7 +10,7 @@ class AnyToneModelDefinitionHandler: public ModelDefinitionHandler
   Q_OBJECT
 
 public:
-  Q_INVOKABLE explicit AnyToneModelDefinitionHandler(const QString &context, const QString& id, ModelDefinitionParser *parent);
+  Q_INVOKABLE explicit AnyToneModelDefinitionHandler(const QString& id, ModelDefinitionParser *parent);
 
 public:
   ModelDefinition *definition() const;
@@ -62,7 +62,7 @@ class AnyToneModelFirmwareDefinitionHandler: public ModelFirmwareDefinitionHandl
 
 public:
   explicit AnyToneModelFirmwareDefinitionHandler(
-      const QString& context, const QString &name, const QDate &released, const QString &codeplug,
+      const QString &name, const QString &codeplug, const QDate &released,
       ModelDefinitionHandler *parent);
 
   ~AnyToneModelFirmwareDefinitionHandler();

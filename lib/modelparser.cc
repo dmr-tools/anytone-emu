@@ -14,8 +14,8 @@ QHash<QString, DeviceClassPluginInterface *> ModelDefinitionParser::_modelHandle
 /* ********************************************************************************************** *
  * Implementation of ModelDefinitionParser
  * ********************************************************************************************** */
-ModelDefinitionParser::ModelDefinitionParser(ModelCatalog* catalog, const QString& context, QObject *parent)
-  : XmlParser(parent), _context(context), _catalog(catalog)
+ModelDefinitionParser::ModelDefinitionParser(ModelCatalog* catalog, QObject *parent)
+  : XmlParser(parent), _catalog(catalog)
 {
   // Load all plugins
   const auto staticInstances = QPluginLoader::staticInstances();
@@ -60,7 +60,7 @@ ModelDefinitionParser::beginModelElement(const QXmlStreamAttributes &attributes)
   QString modelId(attributes.value("id").toString());
 
   if (_modelHandler.contains(modelClass)) {
-    pushHandler(_modelHandler[modelClass]->definitionHandler(_context, modelId, this));
+    pushHandler(_modelHandler[modelClass]->definitionHandler(modelId, this));
   } else {
     raiseError(QString("Unknown model class '%1'").arg(modelClass));
     return false;
@@ -98,8 +98,8 @@ ModelDefinitionParser::endModelElement() {
 /* ********************************************************************************************** *
  * Implementation of ModelDefinitionHandler
  * ********************************************************************************************** */
-ModelDefinitionHandler::ModelDefinitionHandler(const QString& context, const QString &id, ModelDefinitionParser *parent)
-  : XmlElementHandler{parent}, _context(context), _id(id)
+ModelDefinitionHandler::ModelDefinitionHandler(const QString &id,  ModelDefinitionParser *parent)
+  : XmlElementHandler{parent}, _id(id)
 {
   // pass...
 }
@@ -181,10 +181,10 @@ ModelDefinitionHandler::endMemoryElement() {
  * Implementation of GenericModelDefinitionHandler
  * ********************************************************************************************** */
 GenericModelDefinitionHandler::GenericModelDefinitionHandler(
-    DeviceClassPluginInterface *plugin, const QString &context, const QString& id,
+    DeviceClassPluginInterface *plugin, const QString& id,
     ModelDefinitionParser *parent)
-  : ModelDefinitionHandler{context, id, parent}, _plugin(plugin),
-    _definition(plugin->modelDefinition(id, nullptr))
+  : ModelDefinitionHandler{id, parent}, _plugin(plugin),
+    _definition(plugin->modelDefinition(id, this))
 {
   // pass...
 }
@@ -219,7 +219,7 @@ GenericModelDefinitionHandler::beginFirmwareElement(const QXmlStreamAttributes &
   }
 
   QString codeplug(attributes.value("codeplug").toString());
-  QFileInfo codeplugFileInfo(_context + "/" + codeplug);
+  QFileInfo codeplugFileInfo(parser()->context().directory().absolutePath() + "/" + codeplug);
   if (!codeplugFileInfo.isFile() || !codeplugFileInfo.isReadable()) {
     raiseError(QString("Cannot read codeplug file '%1'.").arg(codeplugFileInfo.filePath()));
     return false;
@@ -230,7 +230,7 @@ GenericModelDefinitionHandler::beginFirmwareElement(const QXmlStreamAttributes &
     released = QDate::fromString(attributes.value("released"));
   }
 
-  pushHandler(new GenericModelFirmwareDefinitionHandler(_plugin, _context, name, released, codeplug, this));
+  pushHandler(new GenericModelFirmwareDefinitionHandler(_plugin, name, codeplug, released, this));
 
   return true;
 }
@@ -335,14 +335,14 @@ ModelFirmwareDefinitionHandler::endMemoryElement() {
  * Implementation of GenericModelFirmwareDefinitionHandler
  * ********************************************************************************************* */
 GenericModelFirmwareDefinitionHandler::GenericModelFirmwareDefinitionHandler(
-    DeviceClassPluginInterface *plugin, const QString &context, const QString &name,
-    const QDate &released, const QString &codeplug, ModelDefinitionHandler *parent)
+    DeviceClassPluginInterface *plugin, const QString &name,
+    const QString &codeplug, const QDate &released, ModelDefinitionHandler *parent)
   : ModelFirmwareDefinitionHandler{parent},
-    _definition(new GenericModelFirmwareDefinition(plugin, context, nullptr))
+    _definition(new GenericModelFirmwareDefinition(plugin, nullptr))
 {
   _definition->setName(name);
   _definition->setReleased(released);
-  _definition->setCodeplug(codeplug);
+  _definition->setCodeplug(parser()->context().directory().absoluteFilePath(codeplug));
 }
 
 GenericModelFirmwareDefinitionHandler::~GenericModelFirmwareDefinitionHandler() {

@@ -2,6 +2,10 @@
 #include <QXmlStreamReader>
 #include <QRegularExpression>
 #include <QMetaMethod>
+#include <QFile>
+#include <QFileInfo>
+#include <QDir>
+#include <QStringView>
 
 #define SPLIT_TAG_NAME_PATTERN R"([\-_.])"
 
@@ -112,6 +116,8 @@ XmlElementHandler::parser() {
     return nullptr;
   if (auto parser = qobject_cast<XmlParser *>(parent()))
     return parser;
+  if (auto handler = qobject_cast<XmlElementHandler*>(parent()))
+    return handler->parser();
   return nullptr;
 }
 
@@ -213,7 +219,7 @@ XmlParser::dispatchEndElement(const QStringView &name) {
 
 
 bool
-XmlParser::parse(QXmlStreamReader &reader) {
+XmlParser::parse(QXmlStreamReader &reader, const Context &context, bool ignoreDocumentToken) {
   if (_handler.isEmpty()) {
     raiseError(QString("Near %1:%2: No handler given to process elements.")
                .arg(reader.lineNumber())
@@ -221,25 +227,37 @@ XmlParser::parse(QXmlStreamReader &reader) {
     return false;
   }
 
+  _context.push_back(context);
+
   while (! reader.atEnd()) {
     QXmlStreamReader::TokenType token = reader.readNext();
+    _context.back().setPosition(reader.lineNumber(), reader.columnNumber());
     switch(token) {
     case QXmlStreamReader::NoToken:
     case QXmlStreamReader::Invalid:
       continue;
     case QXmlStreamReader::StartDocument:
-      if (! this->beginDocument())
+      if ((! ignoreDocumentToken) && (! this->beginDocument()))
         reader.raiseError(errorMessage());
       continue;
     case QXmlStreamReader::EndDocument:
-      if (! this->endDocument())
+      if ((! ignoreDocumentToken) && (! this->endDocument()))
         reader.raiseError(errorMessage());
       continue;
     case QXmlStreamReader::StartElement:
-      if (! this->dispatchBeginElement(reader.name(), reader.attributes()))
+      if ((reader.namespaceUri().isEmpty()
+           ||(reader.namespaceUri() == QString("http://www.w3.org/2001/XInclude")))
+          && (reader.name() == QString("include"))) {
+        if (! handleInclude(reader.attributes()))
+          reader.raiseError(errorMessage());
+      } else if (! this->dispatchBeginElement(reader.name(), reader.attributes()))
         reader.raiseError(errorMessage());
       continue;
     case QXmlStreamReader::EndElement:
+      if ((reader.namespaceUri().isEmpty()
+           ||(reader.namespaceUri() == QString("http://www.w3.org/2001/XInclude")))
+          && (reader.name() == QString("include")))
+        continue;
       if (! this->dispatchEndElement(reader.name()))
         reader.raiseError(errorMessage());
       continue;
@@ -248,6 +266,11 @@ XmlParser::parse(QXmlStreamReader &reader) {
         reader.raiseError(errorMessage());
       else if (! reader.isCDATA() && ! this->_handler.back()->processText(reader.text()))
         reader.raiseError(errorMessage());
+      continue;
+    case QXmlStreamReader::Comment:
+    case QXmlStreamReader::DTD:
+    case QXmlStreamReader::EntityReference:
+    case QXmlStreamReader::ProcessingInstruction:
       continue;
     }
   }
@@ -259,7 +282,15 @@ XmlParser::parse(QXmlStreamReader &reader) {
                .arg(reader.errorString()));
   }
 
+  _context.pop_back();
+
   return !reader.hasError();
+}
+
+
+XmlParser::Context
+XmlParser::context() const {
+  return _context.back();
 }
 
 void
@@ -282,4 +313,84 @@ XmlParser::popHandler() {
   XmlElementHandler *handler = _handler.takeLast();
   handler->setParent(nullptr);
   return handler;
+}
+
+
+bool
+XmlParser::handleInclude(const QXmlStreamAttributes &attributes) {
+  if (! attributes.hasAttribute("href")) {
+    raiseError("No href given.");
+    return false;
+  }
+
+  QUrl url(attributes.value("href").toString());
+  if (! url.isValid()) {
+    raiseError(QString("Invalid URL '%1' given: %2")
+               .arg(attributes.value("href"))
+               .arg(url.errorString()));
+    return false;
+  }
+
+  if ((!url.isRelative()) && (!url.isLocalFile())) {
+    raiseError("Only local files are supported.");
+    return false;
+  }
+
+  if (! QDir::isAbsolutePath(url.path())) {
+    QDir currentDir = _context.back().directory();
+    url.setPath(currentDir.absoluteFilePath(url.path()));
+  }
+
+  QFile file(url.path());
+  if (! file.open(QIODevice::ReadOnly)) {
+    raiseError(QString("Cannot open %1: %2")
+               .arg(file.fileName())
+               .arg(file.errorString()));
+    return false;
+  }
+
+  QXmlStreamReader reader(&file);
+  if (! parse(reader, Context(QFileInfo(file)))) {
+    return false;
+  }
+
+  return true;
+}
+
+
+
+/* ********************************************************************************************* *
+ * Implementation of XmlParser
+ * ********************************************************************************************* */
+XmlParser::Context::Context()
+  : _fileInfo(), _line(0), _column(0)
+{
+  // pass...
+}
+
+XmlParser::Context::Context(const QFileInfo &fileInfo, unsigned int line, unsigned int column)
+  : _fileInfo(fileInfo), _line(line), _column(column)
+{
+  // pass...
+}
+
+XmlParser::Context::Context(const QString &filename, unsigned int line, unsigned int column)
+  : _fileInfo(filename), _line(line), _column(column)
+{
+  // pass...
+}
+
+void
+XmlParser::Context::setPosition(unsigned int row, unsigned int column) {
+  _line = row; _column = column;
+}
+
+QString
+XmlParser::Context::filename() const {
+  return _fileInfo.absoluteFilePath();
+}
+
+QDir
+XmlParser::Context::directory() const {
+  return QFileInfo(_fileInfo).absoluteDir();
 }

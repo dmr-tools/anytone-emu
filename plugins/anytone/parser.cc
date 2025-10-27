@@ -7,8 +7,8 @@
 /* ********************************************************************************************* *
  * Implementation of AnyToneModelDefinitionHandler
  * ********************************************************************************************* */
-AnyToneModelDefinitionHandler::AnyToneModelDefinitionHandler(const QString &context, const QString &id, ModelDefinitionParser *parent)
-  : ModelDefinitionHandler{context, id, parent}, _definition(new AnyToneModelDefinition(id, this))
+AnyToneModelDefinitionHandler::AnyToneModelDefinitionHandler(const QString &id, ModelDefinitionParser *parent)
+  : ModelDefinitionHandler{id, parent}, _definition(new AnyToneModelDefinition(id, this))
 {
   // pass...
 }
@@ -67,7 +67,7 @@ AnyToneModelDefinitionHandler::beginFirmwareElement(const QXmlStreamAttributes &
   }
 
   QString codeplug(attributes.value("codeplug").toString());
-  QFileInfo codeplugFileInfo(_context + "/" + codeplug);
+  QFileInfo codeplugFileInfo(parser()->context().directory().absoluteFilePath(codeplug));
   if (!codeplugFileInfo.isFile() || !codeplugFileInfo.isReadable()) {
     raiseError(QString("Cannot read codeplug file '%1'.").arg(codeplugFileInfo.filePath()));
     return false;
@@ -78,7 +78,7 @@ AnyToneModelDefinitionHandler::beginFirmwareElement(const QXmlStreamAttributes &
     released = QDate::fromString(attributes.value("released"));
   }
 
-  pushHandler(new AnyToneModelFirmwareDefinitionHandler(_context, name, released, codeplug, this));
+  pushHandler(new AnyToneModelFirmwareDefinitionHandler(name, codeplug, released, this));
 
   return true;
 }
@@ -174,14 +174,13 @@ AnyToneModelMemoryDefinitionHandler::endRevisionElement() {
  * Implementation of AnyToneModelFirmwareDefinitionHandler
  * ********************************************************************************************* */
 AnyToneModelFirmwareDefinitionHandler::AnyToneModelFirmwareDefinitionHandler(
-    const QString &context, const QString &name, const QDate &released, const QString &codeplug,
-    ModelDefinitionHandler *parent)
+    const QString &name, const QString &codeplug, const QDate &released, ModelDefinitionHandler *parent)
   : ModelFirmwareDefinitionHandler{parent},
-    _definition(new AnyToneModelFirmwareDefinition{context, nullptr})
+    _definition(new AnyToneModelFirmwareDefinition{nullptr})
 {
   _definition->setName(name);
   _definition->setReleased(released);
-  _definition->setCodeplug(codeplug);
+  _definition->setCodeplug(parser()->context().directory().absoluteFilePath(codeplug));
 }
 
 AnyToneModelFirmwareDefinitionHandler::~AnyToneModelFirmwareDefinitionHandler() {

@@ -109,7 +109,7 @@ class ModelFirmwareDefinition: public QObject
 
 protected:
   /** Hidden constrcutor. */
-  ModelFirmwareDefinition(const QString &context, ModelDefinition *parent=nullptr);
+  explicit ModelFirmwareDefinition(ModelDefinition *parent=nullptr);
 
 public:
   const QString &name() const;
@@ -130,7 +130,6 @@ public:
   ModelRom rom() const;
 
 protected:
-  QString _context;
   QString _name;
   QDate _released;
   QString _description;
@@ -146,7 +145,7 @@ Q_OBJECT
 public:
   /** Hidden constrcutor. */
   GenericModelFirmwareDefinition(
-      DeviceClassPluginInterface *plugin, const QString &context, ModelDefinition *parent=nullptr);
+      DeviceClassPluginInterface *plugin, ModelDefinition *parent=nullptr);
 
   Device *createDevice(QIODevice *interface, const ErrorStack &err=ErrorStack()) const override;
 

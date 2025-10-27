@@ -51,8 +51,8 @@ AnyToneModelDefinition::setRevision(const QByteArray &rev) {
 /* ********************************************************************************************* *
  * Implementation of AnyToneModelFirmwareDefinition
  * ********************************************************************************************* */
-AnyToneModelFirmwareDefinition::AnyToneModelFirmwareDefinition(const QString& context, AnyToneModelDefinition *parent)
-  : ModelFirmwareDefinition{context, parent}, _modelId(), _band(std::numeric_limits<uint8_t>::max()), _revision()
+AnyToneModelFirmwareDefinition::AnyToneModelFirmwareDefinition(AnyToneModelDefinition *parent)
+  : ModelFirmwareDefinition{parent}, _modelId(), _band(std::numeric_limits<uint8_t>::max()), _revision()
 {
   // pass...
 }
