@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDir>
+#include <QStringView>
 
 #define SPLIT_TAG_NAME_PATTERN R"([\-_.])"
 
@@ -245,8 +246,8 @@ XmlParser::parse(QXmlStreamReader &reader, const Context &context, bool ignoreDo
       continue;
     case QXmlStreamReader::StartElement:
       if ((reader.namespaceUri().isEmpty()
-           ||(reader.namespaceUri() == "http://www.w3.org/2001/XInclude"))
-          && (reader.name() == "include")) {
+           ||(reader.namespaceUri() == QString("http://www.w3.org/2001/XInclude")))
+          && (reader.name() == QString("include"))) {
         if (! handleInclude(reader.attributes()))
           reader.raiseError(errorMessage());
       } else if (! this->dispatchBeginElement(reader.name(), reader.attributes()))
@@ -254,8 +255,8 @@ XmlParser::parse(QXmlStreamReader &reader, const Context &context, bool ignoreDo
       continue;
     case QXmlStreamReader::EndElement:
       if ((reader.namespaceUri().isEmpty()
-           ||(reader.namespaceUri() == "http://www.w3.org/2001/XInclude"))
-          && (reader.name() == "include"))
+           ||(reader.namespaceUri() == QString("http://www.w3.org/2001/XInclude")))
+          && (reader.name() == QString("include")))
         continue;
       if (! this->dispatchEndElement(reader.name()))
         reader.raiseError(errorMessage());
