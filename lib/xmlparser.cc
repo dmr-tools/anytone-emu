@@ -331,7 +331,7 @@ XmlParser::handleInclude(const QXmlStreamAttributes &attributes) {
     return false;
   }
 
-  if (! url.isLocalFile()) {
+  if ((!url.isRelative()) && (!url.isLocalFile())) {
     raiseError("Only local files are supported.");
     return false;
   }
