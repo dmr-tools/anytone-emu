@@ -245,8 +245,8 @@ XmlParser::parse(QXmlStreamReader &reader, const Context &context, bool ignoreDo
       continue;
     case QXmlStreamReader::StartElement:
       if ((reader.namespaceUri().isEmpty()
-           ||("http://www.w3.org/2001/XInclude" == reader.namespaceUri()))
-          && ("include" == reader.name())) {
+           ||(reader.namespaceUri() == "http://www.w3.org/2001/XInclude"))
+          && (reader.name() == "include")) {
         if (! handleInclude(reader.attributes()))
           reader.raiseError(errorMessage());
       } else if (! this->dispatchBeginElement(reader.name(), reader.attributes()))
@@ -254,8 +254,8 @@ XmlParser::parse(QXmlStreamReader &reader, const Context &context, bool ignoreDo
       continue;
     case QXmlStreamReader::EndElement:
       if ((reader.namespaceUri().isEmpty()
-           ||("http://www.w3.org/2001/XInclude" == reader.namespaceUri()))
-          && ("include" == reader.name()))
+           ||(reader.namespaceUri() == "http://www.w3.org/2001/XInclude"))
+          && (reader.name() == "include"))
         continue;
       if (! this->dispatchEndElement(reader.name()))
         reader.raiseError(errorMessage());
