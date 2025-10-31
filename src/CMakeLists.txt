@@ -38,7 +38,8 @@ qt_add_executable(anytone-emu-gui WIN32
   logmessagelist.hh logmessagelist.cc
   elementpatternview.hh elementpatternview.cc
   questiondialog.cc questiondialog.hh
-  patternimportdialog.hh patternimportdialog.cc patternimportdialog.ui)
+  patternimportdialog.hh patternimportdialog.cc patternimportdialog.ui
+  hexvaluevalidator.hh hexvaluevalidator.cc)
 
 qt_add_resources(anytone-emu-gui "codeplugs"
   PREFIX "/codeplugs"

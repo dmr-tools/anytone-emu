@@ -473,7 +473,7 @@ PatternParser::beginIntElement(const QXmlStreamAttributes &attributes)
   }
 
   if (attributes.hasAttribute("max")) {
-    pattern->setMinValue(attributes.value("min").toLongLong(&ok));
+    pattern->setMaxValue(attributes.value("max").toLongLong(&ok));
     if (! ok) {
       raiseError(QString("Invalid 'max' value.").arg(attributes.value("max")));
       return false;
@@ -483,7 +483,7 @@ PatternParser::beginIntElement(const QXmlStreamAttributes &attributes)
   if (attributes.hasAttribute("default")) {
     pattern->setDefaultValue(attributes.value("default").toLongLong(&ok));
     if (! ok) {
-      raiseError(QString("Invalid 'default' value.").arg(attributes.value("max")));
+      raiseError(QString("Invalid 'default' value.").arg(attributes.value("default")));
       return false;
     }
   }
