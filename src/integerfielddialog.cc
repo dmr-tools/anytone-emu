@@ -1,6 +1,8 @@
 #include "integerfielddialog.hh"
 #include "ui_integerfielddialog.h"
 #include "pattern.hh"
+#include "hexvaluevalidator.hh"
+
 
 #include <QMessageBox>
 #include <QSettings>
@@ -17,6 +19,10 @@ IntegerFieldDialog::IntegerFieldDialog(QWidget *parent) :
   QSettings settings;
   if (settings.contains("layout/integerFieldDialogSize"))
     restoreGeometry(settings.value("layout/integerFieldDialogSize").toByteArray());
+
+  ui->defaultValue->setValidator(new HexValueValidator());
+  ui->minValue->setValidator(new HexValueValidator());
+  ui->maxValue->setValidator(new HexValueValidator());
 }
 
 
@@ -98,20 +104,25 @@ IntegerFieldDialog::accept() {
   _pattern->setFormat(ui->format->currentData().value<IntegerFieldPattern::Format>());
   _pattern->setEndian(ui->endian->currentData().value<IntegerFieldPattern::Endian>());
 
-  if (! ui->defaultValue->text().simplified().isEmpty()) {
-    _pattern->setDefaultValue(ui->defaultValue->text().toUInt(nullptr, 16));
+  QRegularExpression hexIntPattern(R"(([0-9a-f]+)\s*[h]?)",
+                                   QRegularExpression::CaseInsensitiveOption);
+  if (hexIntPattern.match(ui->defaultValue->text()).hasMatch()) {
+    _pattern->setDefaultValue(
+        hexIntPattern.match(ui->defaultValue->text()).captured(1).toUInt(nullptr, 16));
   } else {
     _pattern->clearDefaultValue();
   }
 
-  if (! ui->minValue->text().simplified().isEmpty()) {
-    _pattern->setMinValue(ui->minValue->text().toUInt(nullptr, 16));
+  if (hexIntPattern.match(ui->minValue->text()).hasMatch()) {
+    _pattern->setMinValue(
+        hexIntPattern.match(ui->minValue->text()).captured(1).toUInt(nullptr, 16));
   } else {
     _pattern->clearMinValue();
   }
 
-  if (! ui->maxValue->text().simplified().isEmpty()) {
-    _pattern->setMaxValue(ui->maxValue->text().toUInt(nullptr, 16));
+  if (hexIntPattern.match(ui->maxValue->text()).hasMatch()) {
+    _pattern->setMaxValue(
+        hexIntPattern.match(ui->maxValue->text()).captured(1).toUInt(nullptr, 16));
   } else {
     _pattern->clearMaxValue();
   }
