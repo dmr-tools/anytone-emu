@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=AnyTone Emulator GUI
 GenericName=DMR radio emulation and reverse engineering tool.
-Exec=anytone-emu-gui
+Exec=${CMAKE_INSTALL_PREFIX}/bin/anytone-emu-gui
 Icon=application-anytone-emu
 Type=Application
 Categories=HamRadio;
