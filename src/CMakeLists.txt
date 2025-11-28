@@ -41,17 +41,6 @@ qt_add_executable(anytone-emu-gui WIN32
   patternimportdialog.hh patternimportdialog.cc patternimportdialog.ui
   hexvaluevalidator.hh hexvaluevalidator.cc)
 
-qt_add_resources(anytone-emu-gui "codeplugs"
-  PREFIX "/codeplugs"
-  BASE "${CMAKE_SOURCE_DIR}/codeplugs/"
-  FILES "${CMAKE_SOURCE_DIR}/codeplugs/catalog.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/d868uve/v2.40.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/d878uv/v3.05.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/d878uv2/v3.04.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/d578uv/v1.21.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv/v2.10.xml"
-        "${CMAKE_SOURCE_DIR}/codeplugs/dmr6x2uv2/v1.10.xml")
-
 
 generate_icons(
   DIRECTORY ${CMAKE_SOURCE_DIR}/shared/icons
