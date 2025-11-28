@@ -23,19 +23,10 @@ SetupDialog::SetupDialog(QWidget *parent) :
 
   if (settings.contains("catalogFile"))
     ui->catalogFile->setText(settings.value("catalogFile").toString());
-  if (settings.contains("useBuildinPatterns"))
-    ui->useBuildin->setChecked(settings.value("useBuildinPatterns").toBool());
-  onUseBuildinPatternToggled(ui->useBuildin->isChecked());
-  connect(ui->useBuildin, &QCheckBox::toggled, this, &SetupDialog::onUseBuildinPatternToggled);
   connect(ui->selectCatalogFile, &QPushButton::clicked, this, &SetupDialog::onSelectCatalogFile);
 
-  if (ui->useBuildin->isChecked()) {
-    _catalog.clear();
-    _catalog.load(":/codeplugs/catalog.xml");
-  } else {
-    _catalog.clear();
-    _catalog.load(ui->catalogFile->text().simplified());
-  }
+  reloadModels();
+  connect(ui->catalogFile, &QLineEdit::editingFinished, this, &SetupDialog::reloadModels);
 
   if (ui->deviceSelection->count()) {
     if (settings.contains("device") &&
@@ -91,9 +82,6 @@ SetupDialog::done(int res) {
 
 QString
 SetupDialog::catalog() const {
-  if (ui->useBuildin->isChecked()) {
-    return ":/codeplugs/catalog.xml";
-  }
   return ui->catalogFile->text().simplified();
 }
 
@@ -134,27 +122,12 @@ SetupDialog::createDevice(const ErrorStack &err) {
 
 
 void
-SetupDialog::onUseBuildinPatternToggled(bool enabled) {
-  ui->catalogFile->setEnabled(! enabled);
-  ui->selectCatalogFile->setEnabled(! enabled);
-  QSettings().setValue(
-        "useBuildinPatterns", ui->useBuildin->isChecked());
-
-  reloadModels();
-}
-
-void
 SetupDialog::reloadModels() {
   ui->firmwareSelection->clear();
   ui->deviceSelection->clear();
 
-  if (! ui->catalogFile->isEnabled()) {
-    _catalog.clear();
-    _catalog.load(":/codeplugs/catalog.xml");
-  } else {
-    _catalog.clear();
-    _catalog.load(ui->catalogFile->text().simplified());
-  }
+  _catalog.clear();
+  _catalog.load(ui->catalogFile->text().simplified());
 
   for (ModelCatalog::const_iterator model=_catalog.begin(); model!=_catalog.end(); model++) {
     ui->deviceSelection->addItem((*model)->name(), (*model)->id());
