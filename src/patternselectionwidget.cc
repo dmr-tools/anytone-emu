@@ -58,6 +58,7 @@ PatternSelectionWidget::setPatternTypes(int mask) {
 
   if (_patternTypes | PatternType::FixedStructuredPattern) {
     ui->structuredPattern->addItem(tr("element"), "element");
+    ui->structuredPattern->addItem(tr("union"), "union");
     ui->structuredPattern->addItem(tr("fixed repeat"), "fixed repeat");
   }
 
@@ -104,6 +105,10 @@ PatternSelectionWidget::createPattern() const {
 
   if ("element" == type) {
     return new ElementPattern();
+  }
+
+  if ("union" == type) {
+    return new UnionPattern();
   }
 
   if ("fixed repeat" == type) {

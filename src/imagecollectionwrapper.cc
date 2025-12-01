@@ -212,6 +212,8 @@ CollectionWrapper::getIcon(const QObject *obj) const {
         prefix = "pattern-fixedrepeat";
       else if (pattern && pattern->is<ElementPattern>())
         prefix = "pattern-element";
+      else if (pattern && pattern->is<UnionPattern>())
+        prefix = "pattern-union";
     } else if (auto fld = anno->as<FieldAnnotation>()) {
       auto pattern = fld->pattern();
       if (pattern && pattern->is<IntegerFieldPattern>())

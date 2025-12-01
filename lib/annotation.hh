@@ -320,6 +320,8 @@ protected:
   static bool annotate(AnnotationCollection &parent, const Element *element, const FixedRepeatPattern *pattern, const Address &address);
   /** Annotates the given element by applying the specified element pattern at the given address. */
   static bool annotate(AnnotationCollection &parent, const Element *element, const ElementPattern *pattern, const Address &addr);
+  /** Annotates the given element by applying the specified union pattern at the given address. */
+  static bool annotate(AnnotationCollection &parent, const Element *element, const UnionPattern *pattern, const Address &addr);
   /** Annotates the given element by applying the specified field pattern at the given address. */
   static bool annotate(AnnotationCollection &parent, const Element *element, const FieldPattern *pattern, const Address &address);
 };

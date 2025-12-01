@@ -352,6 +352,8 @@ ElementPatternView::formatTooltip(const FixedPattern *pattern) const {
   // Dispatch by type:
   if (pattern->is<ElementPattern>())
     res = formatTooltipElement(pattern->as<ElementPattern>());
+  else if (pattern->is<UnionPattern>())
+      res = formatTooltipUnion(pattern->as<UnionPattern>());
   else if (pattern->is<FixedRepeatPattern>())
     res = formatTooltipFixedRepeat(pattern->as<FixedRepeatPattern>());
   else if (pattern->is<UnknownFieldPattern>())
@@ -385,6 +387,15 @@ ElementPatternView::formatTooltip(const FixedPattern *pattern) const {
 QString
 ElementPatternView::formatTooltipElement(const ElementPattern *pattern) const {
   return tr("<h3>Element <i>%1</i> at <tt>%2</tt></h3>"
+            "<h5>Size <tt>%3</tt></h5>")
+      .arg(pattern->meta().name())
+      .arg(pattern->address().toString())
+      .arg(pattern->size().toString());
+}
+
+QString
+ElementPatternView::formatTooltipUnion(const UnionPattern *pattern) const {
+  return tr("<h3>Union <i>%1</i> at <tt>%2</tt></h3>"
             "<h5>Size <tt>%3</tt></h5>")
       .arg(pattern->meta().name())
       .arg(pattern->address().toString())

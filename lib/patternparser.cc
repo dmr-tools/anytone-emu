@@ -322,7 +322,7 @@ PatternParser::beginElementElement(const QXmlStreamAttributes &attributes) {
 
 bool
 PatternParser::endElementElement() {
-  ElementPattern *el = popAs<ElementPattern>();
+  auto el = popAs<ElementPattern>();
 
   if (! topAs<StructuredPattern>()->addChildPattern(el)) {
     raiseError("Cannot add element to parent.");
@@ -332,6 +332,28 @@ PatternParser::endElementElement() {
 
   return true;
 }
+
+
+bool
+PatternParser::beginUnionElement(const QXmlStreamAttributes &attributes) {
+  push(new UnionPattern());
+  return processDefaultArgs(attributes);
+  ;
+}
+
+bool
+PatternParser::endUnionElement() {
+  auto el = popAs<UnionPattern>();
+
+  if (! topAs<StructuredPattern>()->addChildPattern(el)) {
+    raiseError("Cannot add union to parent.");
+    delete el;
+    return false;
+  }
+
+  return true;
+}
+
 
 bool
 PatternParser::beginUnusedElement(const QXmlStreamAttributes &attributes) {

@@ -470,6 +470,8 @@ ImageAnnotator::annotate(AnnotationCollection &parent, const Element *element, c
     return annotate(parent, element, pattern->as<FixedRepeatPattern>(), addr);
   else if (pattern->is<ElementPattern>())
     return annotate(parent, element, pattern->as<ElementPattern>(), addr);
+  else if (pattern->is<UnionPattern>())
+    return annotate(parent, element, pattern->as<UnionPattern>(), addr);
   else if (pattern->is<FieldPattern>())
     return annotate(parent, element, pattern->as<FieldPattern>(), addr);
   return false;
@@ -544,6 +546,26 @@ ImageAnnotator::annotate(AnnotationCollection &parent, const Element *element, c
 
   parent.addAnnotation(annotation);
   logDebug() << "Processed pattern '" << pattern->meta().name() << "' at " << address.toString() << ".";
+
+  return true;
+}
+
+bool
+ImageAnnotator::annotate(AnnotationCollection &parent, const Element *element, const UnionPattern *pattern, const Address& address) {
+  StructuredAnnotation *annotation = nullptr;
+  for (unsigned int i=0; i<pattern->numChildPattern(); i++) {
+    auto currentAnnotation = new StructuredAnnotation(pattern, address);
+    FixedPattern *child = pattern->childPattern(i)->as<FixedPattern>();
+    if (annotate(*currentAnnotation, element, child, address)) {
+      annotation = currentAnnotation;
+      logDebug() << "Processed pattern '" << child->meta().name() << "' at " << address.toString() << ".";
+      break;
+    }
+    delete currentAnnotation;
+  }
+
+  parent.addAnnotation(annotation);
+  logDebug() << "Processed union '" << pattern->meta().name() << "' at " << address.toString() << ".";
 
   return true;
 }

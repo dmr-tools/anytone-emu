@@ -898,11 +898,23 @@ FixedPattern::setSize(const Size &size) {
 }
 
 
+
+/* ********************************************************************************************* *
+ * Implementation of IndexedPattern
+ * ********************************************************************************************* */
+IndexedPattern::IndexedPattern(QObject *parent)
+  : FixedPattern(parent)
+{
+  // pass...
+}
+
+
+
 /* ********************************************************************************************* *
  * Implementation of ElementPattern
  * ********************************************************************************************* */
 ElementPattern::ElementPattern(QObject *parent)
-  : FixedPattern(parent), _content()
+  : IndexedPattern(parent), _content()
 {
   // pass...
 }
@@ -1103,6 +1115,197 @@ ElementPattern::onChildResized(const FixedPattern *child, const Size &size) {
   }
 
   setSize(addr-Address::zero());
+}
+
+
+
+/* ********************************************************************************************* *
+ * Implementation of UnionPattern
+ * ********************************************************************************************* */
+UnionPattern::UnionPattern(QObject *parent)
+  : IndexedPattern(parent), _content()
+{
+  // pass...
+}
+
+bool
+UnionPattern::verify() const {
+  if (! FixedPattern::verify())
+    return false;
+
+  foreach(FixedPattern *pattern, _content)
+    if (! pattern->verify())
+      return false;
+
+  return true;
+}
+
+bool
+UnionPattern::serialize(QXmlStreamWriter &writer) const {
+  writer.writeStartElement("union");
+
+  if (! hasImplicitAddress())
+    writer.writeAttribute("at", address().toString());
+
+  if (! meta().serialize(writer))
+    return false;
+
+  foreach(FixedPattern *pattern, _content)
+    if (! pattern->serialize(writer))
+      return false;
+
+  writer.writeEndElement();
+  return true;
+}
+
+AbstractPattern *
+UnionPattern::clone() const {
+  auto pattern = FixedPattern::clone()->as<UnionPattern>();
+
+  pattern->resetSize();
+  foreach(FixedPattern *child, _content)
+    pattern->addChildPattern(child->clone());
+
+  return pattern;
+}
+
+PatternMeta::Flags
+UnionPattern::combinedFlags() const {
+  PatternMeta::Flags flags = AbstractPattern::combinedFlags();
+  for (unsigned int i=0; i<numChildPattern(); i++)
+    flags += childPattern(i)->combinedFlags();
+  return flags;
+}
+
+bool
+UnionPattern::addChildPattern(AbstractPattern *pattern) {
+  if (! pattern->is<FixedPattern>()) {
+    logInfo() << "Only fixed pattern can be added to UnionPattern.";
+    return false;
+  }
+
+  // If a offset is set -> check it
+  if (pattern->hasAddress() && (pattern->address() != Address::zero())) {
+    logInfo() << "Cannot append pattern at address " << pattern->address().toString()
+              << ", must be " << Address::zero().toString() << ".";
+    return false;
+  }
+  // Set/update offset to 0
+  pattern->setAddress(Address::zero());
+
+  // add to content
+  unsigned int idx = _content.size();
+  pattern->setParent(this);
+  _content.append(pattern->as<FixedPattern>());
+  connect(pattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
+  connect(pattern, &AbstractPattern::added, this, &AbstractPattern::added);
+  connect(pattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
+  connect(pattern, &AbstractPattern::removed, this, &AbstractPattern::removed);
+  connect(pattern->as<FixedPattern>(), &FixedPattern::resized,
+          this, &UnionPattern::onChildResized);
+
+  // update own size
+  if (pattern->as<FixedPattern>()->hasSize()) {
+    if (size().isValid())
+      setSize(std::max(size(), pattern->as<FixedPattern>()->size()));
+    else
+      setSize(pattern->as<FixedPattern>()->size());
+  }
+
+  emit added(this, idx);
+  emit modified(this);
+
+  return true;
+}
+
+bool
+UnionPattern::insertChildPattern(FixedPattern *pattern, unsigned int idx) {
+  if (idx > _content.size())
+    return false;
+
+  // If a offset is set -> check it
+  if (pattern->hasAddress() && (pattern->address() != Address::zero()))
+    return false;
+
+  // Set/update offset
+  pattern->setAddress(Address::zero());
+
+  // add to content
+  pattern->setParent(this);
+  _content.insert(idx, pattern->as<FixedPattern>());
+  connect(pattern, &AbstractPattern::modified, this, &AbstractPattern::modified);
+  connect(pattern, &AbstractPattern::added, this, &AbstractPattern::added);
+  connect(pattern, &AbstractPattern::removing, this, &AbstractPattern::removing);
+  connect(pattern, &AbstractPattern::removed, this, &AbstractPattern::removed);
+  connect(pattern->as<FixedPattern>(), &FixedPattern::resized,
+          this, &UnionPattern::onChildResized);
+
+  // update own size
+  if (pattern->hasSize()) {
+    if (size().isValid())
+      setSize(std::max(size(), pattern->size()));
+    else
+      setSize(pattern->size());
+  }
+
+  emit added(this, idx);
+  emit modified(this);
+
+  // Update addresses of all subsequent patterns:
+  for (idx++; idx < _content.size(); idx++) {
+    _content[idx]->setAddress(_content[idx-1]->address() + _content[idx-1]->size());
+  }
+
+  return true;
+}
+
+unsigned int
+UnionPattern::numChildPattern() const {
+  return _content.size();
+}
+
+AbstractPattern *
+UnionPattern::childPattern(unsigned int n) const {
+  if (n >= _content.size())
+    return nullptr;
+  return _content[n];
+}
+
+int
+UnionPattern::indexOf(const AbstractPattern *pattern) const {
+  return _content.indexOf(pattern);
+}
+
+AbstractPattern *
+UnionPattern::takeChild(unsigned int n) {
+  if (n >= _content.size())
+    return nullptr;
+
+  FixedPattern *pattern = _content[n];
+  emit removing(this, n);
+  _content.remove(n);
+  pattern->setParent(nullptr);
+  emit removed(this, n);
+
+  Size mySize = Size::zero();
+  foreach(FixedPattern *child, _content)
+    if (child->hasSize())
+      mySize = std::max(mySize, child->size());
+  setSize(mySize);
+
+  emit modified(this);
+
+  return pattern;
+}
+
+void
+UnionPattern::onChildResized(const FixedPattern *child, const Size &size) {
+  int idx = indexOf(child);
+  if (0 > idx)
+    return;
+
+  if (size.isValid())
+    setSize(std::max(this->size(), size));
 }
 
 

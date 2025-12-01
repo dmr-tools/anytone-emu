@@ -485,7 +485,24 @@ protected:
 
 /** A fixed sized and dense collection of other fixed sized patterns.
  * @ingroup pattern */
-class ElementPattern : public FixedPattern, public StructuredPattern
+class IndexedPattern : public FixedPattern, public StructuredPattern
+{
+  Q_OBJECT
+
+protected:
+  /** Default constructor. */
+  explicit IndexedPattern(QObject *parent = nullptr);
+
+public:
+  /** Insert the given pattern at the specified index. */
+  virtual bool insertChildPattern(FixedPattern *pattern, unsigned int idx) = 0;
+};
+
+
+
+/** A fixed sized and dense collection of other fixed sized patterns.
+ * @ingroup pattern */
+class ElementPattern : public IndexedPattern
 {
   Q_OBJECT
 
@@ -501,8 +518,6 @@ public:
   PatternMeta::Flags combinedFlags() const;
 
   bool addChildPattern(AbstractPattern *pattern);
-  /** Insert the given pattern at the specified index.
-   * Also updates all addresses. */
   bool insertChildPattern(FixedPattern *pattern, unsigned int idx);
   unsigned int numChildPattern() const;
   AbstractPattern *childPattern(unsigned int n) const;
@@ -518,6 +533,43 @@ protected:
   /** The list of sub-patterns. */
   QList<FixedPattern *> _content;
 };
+
+
+
+/** A fixed sized union of other fixed size dense pattern.
+ * The size of this element is determined by the largest child.
+ * @ingroup pattern */
+class UnionPattern : public IndexedPattern
+{
+  Q_OBJECT
+
+public:
+  /** Default constructor. */
+  Q_INVOKABLE explicit UnionPattern(QObject *parent = nullptr);
+
+  bool verify() const;
+  bool serialize(QXmlStreamWriter &writer) const;
+
+  AbstractPattern *clone() const;
+
+  PatternMeta::Flags combinedFlags() const;
+
+  bool addChildPattern(AbstractPattern *pattern);
+  bool insertChildPattern(FixedPattern *pattern, unsigned int idx);
+  unsigned int numChildPattern() const;
+  AbstractPattern *childPattern(unsigned int n) const;
+  int indexOf(const AbstractPattern *pattern) const;
+  AbstractPattern *takeChild(unsigned int n);
+
+private slots:
+  /** Gets called, if a sub-patern is resized. Updates the size of this size. */
+  void onChildResized(const FixedPattern *child, const Size &size);
+
+protected:
+  /** The list of sub-patterns. */
+  QList<FixedPattern *> _content;
+};
+
 
 
 /** Exactly n repetitions of a fixed sub-pattern.

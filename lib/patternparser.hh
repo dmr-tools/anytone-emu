@@ -113,6 +113,11 @@ protected slots:
   /** Handler for end of element element. */
   bool endElementElement();
 
+  /** Handler for start of union element. */
+  bool beginUnionElement(const QXmlStreamAttributes &attributes);
+  /** Handler for end of union element. */
+  bool endUnionElement();
+
   /** Handler for start of unused element. */
   bool beginUnusedElement(const QXmlStreamAttributes &attributes);
   /** Handler for end of unused element. */

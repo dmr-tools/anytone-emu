@@ -39,7 +39,8 @@ qt_add_executable(anytone-emu-gui WIN32
   elementpatternview.hh elementpatternview.cc
   questiondialog.cc questiondialog.hh
   patternimportdialog.hh patternimportdialog.cc patternimportdialog.ui
-  hexvaluevalidator.hh hexvaluevalidator.cc)
+  hexvaluevalidator.hh hexvaluevalidator.cc
+  uniondialog.hh uniondialog.cc uniondialog.ui)
 
 
 generate_icons(
@@ -49,6 +50,7 @@ generate_icons(
         pattern-blockrepeat pattern-blockrepeat-okay pattern-blockrepeat-warning pattern-blockrepeat-critical
         pattern-fixedrepeat pattern-fixedrepeat-okay pattern-fixedrepeat-warning pattern-fixedrepeat-critical
         pattern-element pattern-element-okay pattern-element-warning pattern-element-critical
+        pattern-union pattern-union-okay pattern-union-warning pattern-union-critical
         pattern-integer pattern-integer-okay pattern-integer-warning pattern-integer-critical
         pattern-enum pattern-enum-okay pattern-enum-warning pattern-enum-critical
         pattern-stringfield pattern-stringfield-okay pattern-stringfield-warning pattern-stringfield-critical

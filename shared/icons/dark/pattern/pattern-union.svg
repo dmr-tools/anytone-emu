@@ -8,7 +8,7 @@
    version="1.1"
    id="svg5"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
-   sodipodi:docname="pattern-element.svg"
+   sodipodi:docname="pattern-union.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -26,8 +26,8 @@
      units="px"
      width="512px"
      inkscape:zoom="1.1282353"
-     inkscape:cx="37.226277"
-     inkscape:cy="250.39103"
+     inkscape:cx="35.453597"
+     inkscape:cy="252.16371"
      inkscape:window-width="2560"
      inkscape:window-height="1368"
      inkscape:window-x="0"
@@ -43,7 +43,8 @@
      inkscape:groupmode="layer"
      id="layer1">
     <g
-       id="g1617">
+       id="g1617"
+       transform="rotate(90,67.733498,67.733349)">
       <rect
          style="fill:none;stroke:#bfbfbf;stroke-width:7.9375;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:21.4312;stroke-opacity:1"
          id="rect892"
