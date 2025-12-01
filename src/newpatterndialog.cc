@@ -31,6 +31,8 @@ NewPatternDialog::NewPatternDialog(AbstractPattern *parentPattern, const Address
         | PatternSelectionWidget::PatternType::SparsePattern;
   } else if (parentPattern->is<ElementPattern>()) {
     pattern = (int)PatternSelectionWidget::PatternType::FixedPattern;
+  } else if (parentPattern->is<UnionPattern>()) {
+    pattern = (int)PatternSelectionWidget::PatternType::FixedPattern;
   } else if (parentPattern->is<StructuredPattern>()) {
     pattern = (0 == parentPattern->as<StructuredPattern>()->numChildPattern())
         ? (PatternSelectionWidget::PatternType::FixedPattern

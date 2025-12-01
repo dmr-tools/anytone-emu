@@ -5,13 +5,13 @@
 
 
 /** Simple XML parser, reading pattern fragments. */
-class PatterFragmentParser : public PatternParser
+class PatternFragmentParser : public PatternParser
 {
   Q_OBJECT
 
 public:
   /** Default constructor. */
-  explicit PatterFragmentParser(QObject *parent = nullptr);
+  explicit PatternFragmentParser(QObject *parent = nullptr);
 
 protected:
   bool endDocument();

@@ -15,6 +15,7 @@
 #include "blockrepeatdialog.hh"
 #include "fixedrepeatdialog.hh"
 #include "elementdialog.hh"
+#include "uniondialog.hh"
 #include "integerfielddialog.hh"
 #include "enumfielddialog.hh"
 #include "stringfielddialog.hh"
@@ -94,6 +95,12 @@ PatternView::showPatternEditor(AbstractPattern *pattern, const CodeplugPattern *
     return QDialog::Accepted == dialog.exec();
   }
 
+  if (pattern->is<UnionPattern>()) {
+    UnionDialog dialog;
+    dialog.setPattern(pattern->as<UnionPattern>(), codeplug);
+    return QDialog::Accepted == dialog.exec();
+  }
+
   if (pattern->is<IntegerFieldPattern>()) {
     IntegerFieldDialog dialog;
     dialog.setPattern(pattern->as<IntegerFieldPattern>(), codeplug);
@@ -159,7 +166,7 @@ PatternView::insertNewPatternAbove() {
   auto nextSibling = selectedSibling();
   if (nullptr == nextSibling)
     return;
-  auto parent = qobject_cast<ElementPattern *>(nextSibling->parent());
+  auto parent = qobject_cast<IndexedPattern *>(nextSibling->parent());
 
   Address insertionAddress = nextSibling->address();
   unsigned int insertionIndex = parent->indexOf(nextSibling);
@@ -187,7 +194,7 @@ PatternView::insertNewPatternAbove() {
 void
 PatternView::insertNewPatternBelow() {
   auto prevSibling = selectedSibling();
-  auto parent = qobject_cast<ElementPattern *>(prevSibling->parent());
+  auto parent = qobject_cast<IndexedPattern *>(prevSibling->parent());
 
   Address insertionAddress = prevSibling->address();
   if (FixedPattern *fixed = prevSibling->as<FixedPattern>())
@@ -250,7 +257,7 @@ PatternView::insertImportedPatternAbove() {
   auto nextSibling = selectedSibling();
   if (nullptr == nextSibling)
     return;
-  auto parent = qobject_cast<ElementPattern *>(nextSibling->parent());
+  auto parent = qobject_cast<IndexedPattern *>(nextSibling->parent());
 
   Address insertionAddress = nextSibling->address();
   unsigned int insertionIndex = parent->indexOf(nextSibling);
@@ -287,7 +294,7 @@ PatternView::insertImportedPatternAbove() {
 void
 PatternView::insertImportedPatternBelow(){
   auto prevSibling = selectedSibling();
-  auto parent = qobject_cast<ElementPattern *>(prevSibling->parent());
+  auto parent = qobject_cast<IndexedPattern *>(prevSibling->parent());
 
   Address insertionAddress = prevSibling->address();
   if (FixedPattern *fixed = prevSibling->as<FixedPattern>())
@@ -362,7 +369,7 @@ PatternView::pastePatternAbove() {
   if (nullptr == nextSibling)
     return;
 
-  auto parent = qobject_cast<ElementPattern *>(nextSibling->parent());
+  auto parent = qobject_cast<IndexedPattern *>(nextSibling->parent());
   auto pattern = mimeData->pattern();
   pattern->setParent(parent);
   QGuiApplication::clipboard()->clear();
@@ -404,7 +411,7 @@ PatternView::pastePatternBelow() {
   if (nullptr == prevSibling)
     return;
 
-  auto parent = qobject_cast<ElementPattern *>(prevSibling->parent());
+  auto parent = qobject_cast<IndexedPattern *>(prevSibling->parent());
   auto pattern = mimeData->pattern();
   pattern->setParent(parent);
   QGuiApplication::clipboard()->clear();
@@ -688,6 +695,8 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canAppendPattern(true);
     emit canSplitFieldPattern(false);
     emit canView(true);
+  } else if (pattern->is<UnionPattern>()) {
+    emit canAppendPattern(true);
   } else {
     emit canView(true);
     emit canAppendPattern(false);
@@ -700,6 +709,10 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
       emit canSplitFieldPattern(true);
     else
       emit canSplitFieldPattern(false);
+  } else if (parent->is<UnionPattern>()) {
+    emit canInsertPatternAbove(true);
+    emit canInsertPatternBelow(true);
+    emit canSplitFieldPattern(false);
   } else {
     emit canInsertPatternAbove(false);
     emit canInsertPatternBelow(false);
@@ -765,7 +778,7 @@ PatternView::selectedSibling() const {
   }
 
   AbstractPattern *parent = qobject_cast<AbstractPattern *>(nextSibling->parent());
-  if ((nullptr == parent) || (! parent->is<ElementPattern>())) {
+  if ((nullptr == parent) || (! parent->is<IndexedPattern>())) {
     QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
                              tr("The parent of the selected pattern must be an element pattern."));
     return nullptr;

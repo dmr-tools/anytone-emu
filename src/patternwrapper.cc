@@ -156,6 +156,8 @@ PatternWrapper::getIcon(const AbstractPattern *pattern) const {
     return QIcon::fromTheme(QString("pattern-fixedrepeat%1").arg(suffix));
   else if (pattern->is<ElementPattern>())
     return QIcon::fromTheme(QString("pattern-element%1").arg(suffix));
+  else if (pattern->is<UnionPattern>())
+    return QIcon::fromTheme(QString("pattern-union%1").arg(suffix));
   else if (pattern->is<IntegerFieldPattern>())
     return QIcon::fromTheme(QString("pattern-integer%1").arg(suffix));
   else if (pattern->is<EnumFieldPattern>())

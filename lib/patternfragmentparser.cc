@@ -2,14 +2,14 @@
 #include "pattern.hh"
 
 
-PatterFragmentParser::PatterFragmentParser(QObject *parent)
+PatternFragmentParser::PatternFragmentParser(QObject *parent)
   : PatternParser{parent}
 {
   // pass...
 }
 
 bool
-PatterFragmentParser::endDocument() {
+PatternFragmentParser::endDocument() {
   if (! PatternParser::endDocument())
     return false;
 
@@ -28,7 +28,7 @@ PatterFragmentParser::endDocument() {
 
 
 bool
-PatterFragmentParser::beginFragmentElement(const QXmlStreamAttributes &attributes) {
+PatternFragmentParser::beginFragmentElement(const QXmlStreamAttributes &attributes) {
   if (0 != _stack.size()) {
     raiseError("<fragment> must be the root elment.");
     return false;
@@ -40,7 +40,7 @@ PatterFragmentParser::beginFragmentElement(const QXmlStreamAttributes &attribute
 }
 
 bool
-PatterFragmentParser::endFragmentElement() {
+PatternFragmentParser::endFragmentElement() {
   // Do nothing to keep the fragment on the stack.
   return true;
 }

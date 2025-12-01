@@ -3,6 +3,7 @@
 
 class FixedPattern;
 class ElementPattern;
+class UnionPattern;
 class FixedRepeatPattern;
 class UnknownFieldPattern;
 class UnusedFieldPattern;
@@ -63,6 +64,7 @@ private:
 
   QString formatTooltip(const FixedPattern *pattern) const;
   QString formatTooltipElement(const ElementPattern *pattern) const;
+  QString formatTooltipUnion(const UnionPattern *pattern) const;
   QString formatTooltipFixedRepeat(const FixedRepeatPattern *pattern) const;
   QString formatTooltipUnknownField(const UnknownFieldPattern *pattern) const;
   QString formatTooltipUnusedField(const UnusedFieldPattern *pattern) const;

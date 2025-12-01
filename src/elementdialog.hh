@@ -30,4 +30,5 @@ private:
   ElementPattern *_pattern;
 };
 
+
 #endif // ELEMENTDIALOG_HH
