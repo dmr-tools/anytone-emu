@@ -892,7 +892,11 @@ FixedPattern::resetSize() {
 
 void
 FixedPattern::setSize(const Size &size) {
+  if (_size == size)
+    return;
+  // Store size
   _size = size;
+  // emit resize signal
   emit resized(this, _size);
   emit modified(this);
 }
@@ -1204,7 +1208,7 @@ UnionPattern::addChildPattern(AbstractPattern *pattern) {
   connect(pattern->as<FixedPattern>(), &FixedPattern::resized,
           this, &UnionPattern::onChildResized);
 
-  // update own size
+  // update own size if child has a size
   if (pattern->as<FixedPattern>()->hasSize()) {
     if (size().isValid())
       setSize(std::max(size(), pattern->as<FixedPattern>()->size()));
@@ -1304,8 +1308,12 @@ UnionPattern::onChildResized(const FixedPattern *child, const Size &size) {
   if (0 > idx)
     return;
 
-  if (size.isValid())
-    setSize(std::max(this->size(), size));
+  if (size.isValid()) {
+    if (this->size().isValid())
+      setSize(std::max(this->size(), size));
+    else
+      setSize(size);
+  }
 }
 
 
