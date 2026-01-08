@@ -82,6 +82,9 @@ public:
   virtual ModelFirmwareDefinition * latestFirmware() const;
   virtual const QList<ModelFirmwareDefinition *> &firmwares() const;
   virtual void addFirmware(ModelFirmwareDefinition *firmware);
+  virtual bool hasFirmware(const QString &version) const;
+  virtual ModelFirmwareDefinition *firmware(const QString &version) const;
+
   const_iterator begin() const;
   const_iterator end() const;
 
