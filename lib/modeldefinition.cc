@@ -188,6 +188,24 @@ ModelDefinition::addFirmware(ModelFirmwareDefinition *firmware) {
   _firmwares.append(firmware);
 }
 
+bool
+ModelDefinition::hasFirmware(const QString &version) const {
+  for (auto firmware: _firmwares) {
+    if (firmware->name() == version)
+      return true;
+  }
+  return false;
+}
+
+ModelFirmwareDefinition *
+ModelDefinition::firmware(const QString &version) const {
+  for (auto firmware: _firmwares) {
+    if (firmware->name() == version)
+      return firmware;
+  }
+  return nullptr;
+}
+
 
 ModelDefinition::const_iterator
 ModelDefinition::begin() const {
