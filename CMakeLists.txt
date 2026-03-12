@@ -18,6 +18,7 @@ include(GenerateIcons)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets SerialPort Test)
 find_program(CONVERT_CMD rsvg-convert DOC "SVG conversion tool (librsvg)." REQUIRED)
+find_package(Hunspell REQUIRED)
 
 if (BUILD_MANUAL)
   find_package(DocBookXSL REQUIRED)
@@ -38,6 +39,7 @@ set(USE_FOLDERS ON)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/lib)
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/lib)
+include_directories(${Hunspell_INCLUDE_DIRS})
 
 LINK_DIRECTORIES(${PROJECT_BINARY_DIR}/src)
 

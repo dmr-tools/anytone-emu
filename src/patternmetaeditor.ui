@@ -53,7 +53,7 @@
      </widget>
     </item>
     <item row="3" column="1">
-     <widget class="QTextEdit" name="briefDescription"/>
+     <widget class="SpellCheckedTextEdit" name="briefDescription"/>
     </item>
     <item row="4" column="0">
      <widget class="QLabel" name="label_4">
@@ -87,11 +87,18 @@
    </attribute>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QTextEdit" name="description"/>
+     <widget class="SpellCheckedTextEdit" name="description"/>
     </item>
    </layout>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SpellCheckedTextEdit</class>
+   <extends>QTextEdit</extends>
+   <header>spellcheckedtextedit.hh</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
