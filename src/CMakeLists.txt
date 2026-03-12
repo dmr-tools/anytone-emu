@@ -42,7 +42,8 @@ qt_add_executable(anytone-emu-gui WIN32
   hexvaluevalidator.hh hexvaluevalidator.cc
   uniondialog.hh uniondialog.cc uniondialog.ui
   spellcheckedtextedit.hh spellcheckedtextedit.cc
-  spellcheckhighlighter.hh spellcheckhighlighter.cc)
+  spellcheckhighlighter.hh spellcheckhighlighter.cc
+  spellchecker.hh spellchecker.cc)
 
 
 generate_icons(
@@ -101,6 +102,11 @@ qt_add_resources(anytone-emu-gui "icons-themes"
   BASE "${CMAKE_SOURCE_DIR}/shared/icons"
   FILES "${CMAKE_SOURCE_DIR}/shared/icons/light/index.theme"
         "${CMAKE_SOURCE_DIR}/shared/icons/dark/index.theme")
+
+qt_add_resources(anytone-emu-gui "dictionary"
+  PREFIX ""
+  BASE "${CMAKE_SOURCE_DIR}/shared"
+  FILES "${CMAKE_SOURCE_DIR}/shared/dictionary.json")
 
 
 target_link_libraries(anytone-emu-gui PRIVATE Qt6::Widgets Qt6::SerialPort ${Hunspell_LIBRARIES}

@@ -1,18 +1,16 @@
 #include "spellcheckhighlighter.hh"
 #include <QRegularExpression>
-#include <hunspell.hxx>
-#include <QStandardPaths>
+#include "application.hh"
+#include "spellchecker.hh"
 
 
 SpellCheckHighlighter::SpellCheckHighlighter(QObject *parent)
-  : QSyntaxHighlighter{parent}, _spellChecker(nullptr)
+  : QSyntaxHighlighter{parent},
+  _spellChecker(qobject_cast<Application*>(QApplication::instance())->spellChecker())
 {
   _highlighted.setFontUnderline(true);
   _highlighted.setUnderlineColor(QColor(Qt::magenta));
   _highlighted.setUnderlineStyle(QTextCharFormat::WaveUnderline);
-  auto affPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, "hunspell/en_US.aff");
-  auto dicPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, "hunspell/en_US.dic");
-  _spellChecker = new Hunspell(affPath.toLocal8Bit().constData(), dicPath.toLocal8Bit().constData());
 }
 
 
@@ -25,7 +23,7 @@ SpellCheckHighlighter::highlightBlock(const QString &text) {
   QRegularExpressionMatchIterator i = expression.globalMatch(text);
   while (i.hasNext()) {
     QRegularExpressionMatch match = i.next();
-    if (! _spellChecker->spell(match.captured().toStdString()))
+    if (! _spellChecker->check(match.captured()))
       setFormat(match.capturedStart(), match.capturedLength(), _highlighted);
   }
 }

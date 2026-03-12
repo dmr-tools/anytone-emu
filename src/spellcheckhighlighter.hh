@@ -4,7 +4,7 @@
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 
-class Hunspell;
+class SpellChecker;
 
 class SpellCheckHighlighter : public QSyntaxHighlighter
 {
@@ -17,7 +17,7 @@ protected:
   void highlightBlock(const QString &text) override;
 
 protected:
-  Hunspell *_spellChecker;
+  SpellChecker *_spellChecker;
   QTextCharFormat _highlighted;
 };
 
