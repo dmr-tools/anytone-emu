@@ -2,12 +2,13 @@
 #include "config.hh"
 #include "image.hh"
 #include "device.hh"
-#include "pattern.hh"
+#include "spellchecker.hh"
 #include <QIcon>
 
 
 Application::Application(int &argc, char *argv[])
-  : QApplication(argc, argv), _collection(new Collection(this)), _catalog(), _device(nullptr)
+  : QApplication(argc, argv), _collection(new Collection(this)), _catalog(), _device(nullptr),
+  _spellChecker(nullptr)
 {
   setApplicationDisplayName("AnyTone emulator");
   setOrganizationName("DMRTools");
@@ -32,6 +33,15 @@ Collection *
 Application::collection() {
   return _collection;
 }
+
+
+SpellChecker *
+Application::spellChecker() {
+  if (nullptr == _spellChecker)
+    _spellChecker = new SpellChecker(this);
+  return _spellChecker;
+}
+
 
 void
 Application::setDevice(Device *device) {

@@ -6,6 +6,8 @@
 
 class Device;
 class Collection;
+class SpellChecker;
+
 
 class Application: public QApplication
 {
@@ -15,6 +17,7 @@ public:
   Application(int &argc, char *argv[]);
 
   Collection *collection();
+  SpellChecker *spellChecker();
 
   void setCatalog(const QString &filename);
   const QString &catalog() const;
@@ -40,6 +43,7 @@ protected:
   QString _catalog;
   Device *_device;
   Collection *_collection;
+  SpellChecker *_spellChecker;
 };
 
 #endif // APPLICATION_HH

@@ -40,7 +40,10 @@ qt_add_executable(anytone-emu-gui WIN32
   questiondialog.cc questiondialog.hh
   patternimportdialog.hh patternimportdialog.cc patternimportdialog.ui
   hexvaluevalidator.hh hexvaluevalidator.cc
-  uniondialog.hh uniondialog.cc uniondialog.ui)
+  uniondialog.hh uniondialog.cc uniondialog.ui
+  spellcheckedtextedit.hh spellcheckedtextedit.cc
+  spellcheckhighlighter.hh spellcheckhighlighter.cc
+  spellchecker.hh spellchecker.cc)
 
 
 generate_icons(
@@ -84,6 +87,7 @@ generate_icons(
         insert-child insert-above insert-below document-import
         none show-diff-single show-diff-multiple show-hexdump inspect
         help-about help-contents show-log window-close mark-done mark-needs-review
+        spellcheck spellcheck-add spellcheck-replace
   THEMES light dark
   CONTEXT actions
   SIZES 16)
@@ -100,9 +104,14 @@ qt_add_resources(anytone-emu-gui "icons-themes"
   FILES "${CMAKE_SOURCE_DIR}/shared/icons/light/index.theme"
         "${CMAKE_SOURCE_DIR}/shared/icons/dark/index.theme")
 
+qt_add_resources(anytone-emu-gui "dictionary"
+  PREFIX "/"
+  BASE "${CMAKE_SOURCE_DIR}/shared"
+  FILES "${CMAKE_SOURCE_DIR}/shared/dictionary.json")
 
-target_link_libraries(anytone-emu-gui PRIVATE Qt6::Widgets Qt6::SerialPort libanytone-emu
-  anytone-emu-anytone anytone-emu-opengd77 anytone-emu-radtel anytone-emu-md32uv)
+
+target_link_libraries(anytone-emu-gui PRIVATE Qt6::Widgets Qt6::SerialPort ${Hunspell_LIBRARIES}
+  libanytone-emu anytone-emu-anytone anytone-emu-opengd77 anytone-emu-radtel anytone-emu-md32uv)
 target_include_directories(anytone-emu-gui PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Install binary only if not a bundle under MacOS X
