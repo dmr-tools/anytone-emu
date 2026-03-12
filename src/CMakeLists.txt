@@ -104,7 +104,7 @@ qt_add_resources(anytone-emu-gui "icons-themes"
         "${CMAKE_SOURCE_DIR}/shared/icons/dark/index.theme")
 
 qt_add_resources(anytone-emu-gui "dictionary"
-  PREFIX ""
+  PREFIX "/"
   BASE "${CMAKE_SOURCE_DIR}/shared"
   FILES "${CMAKE_SOURCE_DIR}/shared/dictionary.json")
 
