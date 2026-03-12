@@ -87,6 +87,7 @@ generate_icons(
         insert-child insert-above insert-below document-import
         none show-diff-single show-diff-multiple show-hexdump inspect
         help-about help-contents show-log window-close mark-done mark-needs-review
+        spellcheck spellcheck-add spellcheck-replace
   THEMES light dark
   CONTEXT actions
   SIZES 16)

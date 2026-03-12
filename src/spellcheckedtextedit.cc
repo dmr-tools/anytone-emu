@@ -25,16 +25,16 @@ SpellCheckedTextEdit::contextMenuEvent(QContextMenuEvent *event) {
       menu->addSeparator();
       auto suggestions = checker->suggest(word);
       if (! suggestions.isEmpty()) {
-        QMenu *subMenu = menu->addMenu(tr("Replace %1 with ...").arg(word));
+        QMenu *subMenu = menu->addMenu(QIcon::fromTheme("spellcheck"), tr("Replace %1 with ...").arg(word));
         for (auto suggestion: suggestions) {
-          auto action = subMenu->addAction(suggestion);
+          auto action = subMenu->addAction(QIcon::fromTheme("spellcheck-replace"), suggestion);
           int start = tc.selectionStart(), end = tc.selectionEnd();
           connect(action, &QAction::triggered, [this, suggestion, start, end] () {
             this->fixSpelling(start, end, suggestion);
           });
         }
       }
-      auto addAction = menu->addAction(tr("Add word"));
+      auto addAction = menu->addAction(QIcon::fromTheme("spellcheck-add"), tr("Add word to dictionary"));
       connect(addAction, &QAction::triggered, [this, word, &tc]() {
         qobject_cast<Application*>(QApplication::instance())->spellChecker()->addWord(word);
         this->_highlighter->rehighlight();
