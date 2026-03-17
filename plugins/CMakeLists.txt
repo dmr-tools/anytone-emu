@@ -4,7 +4,8 @@ target_sources(anytone-emu-anytone PRIVATE
   anytone/protocol.hh anytone/protocol.cc
   anytone/device.hh anytone/device.cc
   anytone/parser.hh anytone/parser.cc
-  anytone/definition.hh anytone/definition.cc)
+  anytone/definition.hh anytone/definition.cc
+)
 
 target_include_directories(anytone-emu-anytone PUBLIC ../lib)
 target_link_libraries(anytone-emu-anytone PRIVATE Qt6::Core libanytone-emu)
@@ -34,7 +35,10 @@ qt6_add_plugin(anytone-emu-md32uv STATIC CLASS_NAME MD32UVDeviceClassPlugin)
 target_sources(anytone-emu-md32uv PRIVATE
   md32uv/deviceclass.hh md32uv/deviceclass.cc
   md32uv/device.hh md32uv/device.cc
-  md32uv/protocol.hh md32uv/protocol.cc)
+  md32uv/protocol.hh md32uv/protocol.cc
+  md32uv/definition.hh md32uv/definition.cc
+  md32uv/parser.hh md32uv/parser.cc
+)
 
 target_include_directories(anytone-emu-md32uv PUBLIC ../lib)
 target_link_libraries(anytone-emu-md32uv PRIVATE Qt6::Core libanytone-emu)

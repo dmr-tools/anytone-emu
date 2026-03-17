@@ -230,7 +230,7 @@ GenericModelDefinitionHandler::beginFirmwareElement(const QXmlStreamAttributes &
     released = QDate::fromString(attributes.value("released"));
   }
 
-  pushHandler(new GenericModelFirmwareDefinitionHandler(_plugin, name, codeplug, released, this));
+  pushHandler(_plugin->firmwareDefinitionHandler(name, codeplug, released, this));
 
   return true;
 }

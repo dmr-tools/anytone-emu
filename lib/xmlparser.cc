@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QStringView>
+#include "logger.hh"
 
 #define SPLIT_TAG_NAME_PATTERN R"([\-_.])"
 
@@ -26,6 +27,7 @@ XmlElementHandler::canBeginElement(const QStringView &name) const {
   for (int i=0; i<tagName.size(); i++)
     tagName[i][0] = tagName[i][0].toUpper();
   QByteArray slotName = QString("begin%1Element(QXmlStreamAttributes)").arg(tagName.join("")).toLocal8Bit();
+  logDebug() << "Resolve callback " << slotName << "...";
   return (-1 != this->metaObject()->indexOfMethod(slotName.constData())) ||
       (-1 != this->metaObject()->indexOfSlot(slotName.constData()));
 }
@@ -174,10 +176,16 @@ XmlParser::endDocument() {
 
 bool
 XmlParser::dispatchBeginElement(const QStringView &name, const QXmlStreamAttributes &attributes) {
-  if (this->_handler.isEmpty() || (! topHandler()->canBeginElement(name))) {
+  if (this->_handler.isEmpty()) {
     raiseError(
-          QString("Cannot handle start of element <%1>, no handler present or unable to handle element.")
+          QString("Cannot handle start of element <%1>, no handler present.")
           .arg(name));
+    return false;
+  }
+  if (! topHandler()->canBeginElement(name)) {
+    raiseError(
+      QString("Cannot handle start of element <%1>, unhandled element.")
+        .arg(name));
     return false;
   }
 
