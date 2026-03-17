@@ -43,8 +43,9 @@ constexpr char meta_flags_sorted[] =
  * Implementation of MD32UV Device
  * ********************************************************************************************* */
 MD32UVDevice::MD32UVDevice(
-    QIODevice *interface, CodeplugPattern *pattern, ImageCollector *handler, QObject *parent)
-  : GenericDevice{interface, pattern, handler, parent}, _timer()
+  QIODevice *interface, const DM32UVFirmwareProperties &properties, CodeplugPattern *pattern,
+  ImageCollector *handler, QObject *parent)
+  : GenericDevice{interface, pattern, handler, parent}, _timer(), _properties(properties)
 {
   // IO time-out handling
   _timer.setInterval(2000);
@@ -126,42 +127,37 @@ bool
 MD32UVDevice::getValue(uint8_t field, uint8_t length, QByteArray &payload) {
   switch ((Value)field) {
   case Value::FirmwareVersion:
-    payload = QByteArray::fromHex("33 32 2e 30 31 2e 30 31 2e 30 34");
+    payload = _properties.firmwareVersion;
     return true;
   case Value::Unknown02h:
     payload = QByteArray::fromHex("00 00 00 00 00 00 1c 4c 00 00 1c 4c");
     return true;
   case Value::BuildDate:
-    payload = QByteArray::fromHex("32 30 32 32 2d 30 36 2d 32 37");
+    payload = _properties.buildDate.toString("yyyy.MM.dd").toLatin1();
     return true;
   case Value::DSPVersion:
-    payload = QByteArray::fromHex("44 31 2e 30 31 2e 30 31 2e 30 30 34");
+    payload = _properties.dspVersion;
     return true;
   case Value::RadioVersion:
-    payload = QByteArray::fromHex("52 31 2e 30 30 2e 30 31 2e 30 30 31");
+    payload = _properties.radioVersion;
     return true;
   case Value::AudioResourceAddress:
-    //payload = QByteArray::fromHex("00 10 20 00 ff 4f 26 00");
-    payload = packAddressRange(0x00201000, 0x00264fff);
+    payload = _properties.audioResourceRange.pack();
     return true;
   case Value::CompactItemTable:
-    //payload = QByteArray::fromHex("00 90 0c 00 ff 9f 14 00");
-    payload = packAddressRange(0x000c9000, 0x00149fff);
+    payload = _properties.compactItemTableRange.pack();
     return true;
   case Value::ZonesAddress:
-    //payload = QByteArray::fromHex("00 00 18 00 ff 0f 20 00");
-    payload = packAddressRange(0x00180000, 0x00200fff);
+    payload = _properties.zonesRange.pack();
     return true;
   case Value::EmergencyAddress:
-    //payload = QByteArray::fromHex("00 c0 6d 00 ff ff ff 00");
-    payload = packAddressRange(0x006dc000, 0x00ffffff);
+    payload = _properties.emergencyRange.pack();
     return true;
   case Value::MainConfigAddress:
-    //payload = QByteArray::fromHex("00 10 00 00 ff 8f 0c 00");
-    payload = packAddressRange(0x00001000, 0x000c8fff);
+    payload = _properties.mainConfigRange.pack();
     return true;
   case Value::CodeplugVersion:
-    payload = QByteArray::fromHex("43 31 2e 30 30 2e 30 31 2e 30 30 31");
+    payload = _properties.codeplugVersion;
     return true;
   case Value::Capabilities:
     payload = QByteArray::fromHex("03 4e 2d 00 00 00 00 00 00 00 00 00 00 00 00 00 "
@@ -171,16 +167,19 @@ MD32UVDevice::getValue(uint8_t field, uint8_t length, QByteArray &payload) {
     payload = payload.first(length);
     return true;
   case Value::ListsAddress:
-    //payload = QByteArray::fromHex("00 00 15 00 ff 5f 17 00");
-    payload = packAddressRange(0x00150000, 0x00175fff);
+    payload = _properties.listsRange.pack();
     return true;
   case Value::ContactsAddress:
-    //payload = QByteArray::fromHex("00 80 27 00 ff bf 6d 00");
-    payload = packAddressRange(0x00278000, 0x006dbfff);
+    payload = _properties.contactsRange.pack();
     return true;
-  case Value::Unknown10h:
-    payload = QByteArray::fromHex("50 c3 00");
+  case Value::ContactCount: {
+    payload = QByteArray(3, 0);
+    uint32_t count = _properties.contactsCount;
+    payload[0] = (count & 0xff); count >>= 8;
+    payload[1] = (count & 0xff); count >>= 8;
+    payload[2] = (count & 0xff);
     return true;
+  }
   }
   return false;
 }
@@ -209,15 +208,3 @@ MD32UVDevice::readInfo(uint32_t address, uint16_t length, QByteArray &payload) {
   return true;
 }
 
-
-QByteArray
-MD32UVDevice::packAddressRange(uint32_t from, uint32_t to) {
-  from = qToLittleEndian(from);
-  to = qToLittleEndian(to);
-
-  QByteArray buffer;
-  buffer.append((char *)&from, sizeof(uint32_t));
-  buffer.append((char *)&to, sizeof(uint32_t));
-
-  return buffer;
-}
