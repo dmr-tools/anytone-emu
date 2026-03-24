@@ -3,6 +3,7 @@
 
 #include <QTimer>
 #include "genericdevice.hh"
+#include "definition.hh"
 
 class MD32UVRequest;
 class MD32UVResponse;
@@ -17,13 +18,14 @@ protected:
     FirmwareVersion = 1, Unknown02h = 2, BuildDate = 3, DSPVersion = 4, RadioVersion = 5,
     AudioResourceAddress = 6, CompactItemTable = 7, ZonesAddress = 8, EmergencyAddress = 9,
     MainConfigAddress = 10, CodeplugVersion = 11, Capabilities = 13, ListsAddress = 14,
-    ContactsAddress = 15, Unknown10h = 16
+    ContactsAddress = 15, ContactCount = 16
   };
 
 public:
   /** Constructs a new device for the specifies interface using the given memory model.
    * Takes ownership of @c interface and @c model. */
-  explicit MD32UVDevice(QIODevice *interface, CodeplugPattern *pattern, ImageCollector *handler,
+  explicit MD32UVDevice(QIODevice *interface, const DM32UVFirmwareProperties &properties,
+                        CodeplugPattern *pattern, ImageCollector *handler,
                         QObject *parent = nullptr);
 
 protected:
@@ -33,16 +35,19 @@ protected:
   virtual bool getValue(uint8_t field, uint8_t length, QByteArray &payload);
   virtual bool readInfo(uint32_t address, uint16_t length, QByteArray &payload);
 
-protected:
-  static QByteArray packAddressRange(uint32_t from, uint32_t to);
-
 private:
   QTimer _timer;
+  DM32UVFirmwareProperties _properties;
 
 protected:
   /** Some pre-defined addresses, defining the memory layout of the device. */
   struct Address{
-    static constexpr unsigned int channelBank() { return 0x00A000; }
+    static constexpr unsigned int channelBank() { return 0x0000A000; }
+    static constexpr unsigned int firmwareVersion() { return 0x80000000; }
+    static constexpr unsigned int buildDate()       { return 0x80000010; }
+    static constexpr unsigned int dspVersion()      { return 0x80000020; }
+    static constexpr unsigned int radioVersion()    { return 0x80000030; }
+    static constexpr unsigned int codeplugVersion() { return 0x80000040; }
   };
 
   /** Some limits. */

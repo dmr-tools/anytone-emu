@@ -23,6 +23,9 @@ public:
   Device *device(QIODevice *interface, const ModelFirmwareDefinition *firmware, ImageCollector *handler,
                  QObject *parent = nullptr, const ErrorStack &err=ErrorStack()) override;
 
+  ModelFirmwareDefinitionHandler *firmwareDefinitionHandler(
+    const QString &name, const QString &codeplug, const QDate &released,
+    ModelDefinitionHandler *parent) override;
 };
 
 
