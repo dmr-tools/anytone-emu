@@ -142,6 +142,16 @@ public:
 };
 
 
+/** Response to END request (ACK). */
+class AnytoneACKResponse: public AnytoneResponse
+{
+public:
+  /** Constructor. */
+  AnytoneACKResponse();
+
+  bool serialize(QByteArray &buffer);
+};
+
 /** Response to a device info request. Contains the model ID and HW version. */
 class AnytoneDeviceInfoResponse: public AnytoneResponse
 {

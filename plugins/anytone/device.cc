@@ -79,9 +79,9 @@ AnyToneDevice::handle(AnytoneRequest *request) {
   } else if (request->is<AnytoneEndRequest>()) {
     if (State::Program == _state)
       emit endProgram();
-    logDebug() << "Done.";
+    logDebug() << "Received END command -> done.";
     _state = State::Initial;
-    return nullptr;
+    return new AnytoneACKResponse();
   }
 
   logWarn() << "Uknown request.";

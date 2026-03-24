@@ -140,6 +140,22 @@ AnytoneProgramResponse::serialize(QByteArray &buffer) {
 
 
 /* ********************************************************************************************* *
+ * Implementation of AnytoneACKResponse
+ * ********************************************************************************************* */
+AnytoneACKResponse::AnytoneACKResponse()
+  : AnytoneResponse()
+{
+  // pass...
+}
+
+bool
+AnytoneACKResponse::serialize(QByteArray &buffer) {
+  buffer.append("\x06");
+  return true;
+}
+
+
+/* ********************************************************************************************* *
  * Implementation of AnytoneDeviceInfoResponse
  * ********************************************************************************************* */
 AnytoneDeviceInfoResponse::AnytoneDeviceInfoResponse(const QByteArray &model, uint8_t band, const QByteArray &hwVersion)
