@@ -107,7 +107,8 @@ PatternWidget::PatternWidget(QWidget *parent)
 
   connect(ui->patterns, &PatternView::canRemove, ui->actionDeletePattern, &QAction::setEnabled);
   connect(ui->actionDeletePattern, &QAction::triggered, ui->patterns, &PatternView::removeSelected);
-
+  connect(ui->patterns, &PatternView::canErase, ui->actionTurnIntoUnknown, &QAction::setEnabled);
+  connect(ui->actionTurnIntoUnknown, &QAction::triggered, ui->patterns, &PatternView::eraseSelected);
   connect(ui->patterns, &PatternView::canRemove, ui->actionCopyPattern, &QAction::setEnabled);
   connect(ui->actionCopyPattern, &QAction::triggered, ui->patterns, &PatternView::copySelected);
 

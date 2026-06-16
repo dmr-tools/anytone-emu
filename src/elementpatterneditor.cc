@@ -171,8 +171,7 @@ ElementPatternEditor::onMarkAsUnknown() {
   }
   ElementPattern *parentElement = parent->as<ElementPattern>();
 
-  // Get address, size and location of replaced field pattern
-  Address startAddress = replaced->address();
+  // Get size and index of replaced field pattern
   Offset originalSize = replaced->as<FixedPattern>()->size();
   unsigned int insertionIndex = parentElement->indexOf(replaced);
 

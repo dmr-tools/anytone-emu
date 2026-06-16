@@ -21,10 +21,15 @@ signals:
   void canInsertPatternAbove(bool enable);
   void canSplitFieldPattern(bool enable);
   void canInsertPatternBelow(bool enable);
-  void canRemove(bool enable);
   void canEdit(bool enable);
   void canView(bool enable);
   void canMarkUpdated(bool enable);
+  // Gets emitted with @c true, if the selected pattern can be deleted. The patter itself gets
+  // removed and the size of the parent may change.
+  void canRemove(bool enable);
+  // Gets emitted, if a pattern within an element gets selected that can be turned into an unknown
+  // field of the same size. In contrast to deletion, the size of the parent does not change.
+  void canErase(bool enable);
 
 public slots:
   void editPattern();
@@ -45,6 +50,7 @@ public slots:
   void pastePatternAbove();
   void pastePatternBelow();
   void removeSelected();
+  void eraseSelected();
 
   void markAsUpdated();
   void markAllAsUpdated();
@@ -55,8 +61,8 @@ public:
   static bool showPatternEditor(AbstractPattern *pattern, const CodeplugPattern *codeplug=nullptr);
 
 protected:
-  void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
-  void contextMenuEvent(QContextMenuEvent *event);
+  void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override;
+  void contextMenuEvent(QContextMenuEvent *event) override;
   AbstractPattern *selectedParent() const;
   FixedPattern *selectedSibling() const;
 

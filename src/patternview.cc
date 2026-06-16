@@ -561,6 +561,50 @@ PatternView::removeSelected() {
 
 
 void
+PatternView::eraseSelected() {
+  auto replaced = selectedPattern();
+  if (nullptr == replaced) {
+    QMessageBox::information(nullptr, tr("Select a pattern first"),
+                             tr("Select the pattern to remove."));
+    return;
+  }
+
+  // Check type of parent pattern
+  auto parent = qobject_cast<AbstractPattern *>(replaced->parent());
+  if ((nullptr == parent) || (! parent->is<ElementPattern>())) {
+    QMessageBox::information(nullptr, tr("Parent must be an element pattern."),
+                             tr("The parent of the selected pattern must be an element pattern."));
+    return;
+  }
+  auto parentElement = parent->as<ElementPattern>();
+
+  // Get address, size and location of replaced field pattern
+  Offset originalSize = replaced->as<FixedPattern>()->size();
+  unsigned int insertionIndex = parentElement->indexOf(replaced);
+
+  auto res = QuestionDialog::ask(
+        "elementPatternEditorMarkUnknown", tr("Replace pattern?"),
+        tr("You are about to replace the pattern '%1' with an unknown field pattern of the same "
+           "size. This cannot be undone. Do you want to proceed?").arg(replaced->meta().name()));
+  if (QMessageBox::Yes != res)
+    return;
+
+  auto inserted = new UnknownFieldPattern();
+  inserted->meta().setName("Unknown data");
+  if (parentElement->codeplug() && parentElement->codeplug()->meta().hasFirmwareVersion())
+    inserted->meta().setFirmwareVersion(
+          parentElement->codeplug()->meta().firmwareVersion());
+  inserted->setWidth(originalSize);
+
+  // Remove old pattern;
+  parentElement->deleteChild(insertionIndex);
+  parentElement->insertChildPattern(inserted, insertionIndex++);
+
+  // done.
+
+}
+
+void
 PatternView::markAsUpdated() {
   if (nullptr == selectedPattern()) {
     QMessageBox::information(nullptr, tr("Select a pattern first"),
@@ -635,13 +679,17 @@ void
 PatternView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) {
   QTreeView::selectionChanged(selected, deselected);
 
-  if (0 == selected.indexes().size()) {
+  if (selected.isEmpty() && deselected.isEmpty())
+    return;
+
+  if (selected.isEmpty()) {
     emit canEdit(false);
     emit canAppendPattern(false);
     emit canInsertPatternAbove(false);
     emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
+    emit canErase(false);
     emit canView(false);
     emit canMarkUpdated(false);
     return;
@@ -656,6 +704,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
+    emit canErase(false);
     emit canView(false);
     emit canMarkUpdated(false);
     return;
@@ -670,6 +719,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
+    emit canErase(false);
     emit canView(false);
     return;
   }
@@ -681,6 +731,7 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canSplitFieldPattern(false);
     emit canInsertPatternBelow(false);
     emit canRemove(false);
+    emit canErase(false);
     emit canView(false);
     return;
   }
@@ -697,26 +748,32 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canView(true);
   } else if (pattern->is<UnionPattern>()) {
     emit canAppendPattern(true);
+    emit canView(false);
   } else {
-    emit canView(true);
+    emit canView(false);
     emit canAppendPattern(false);
   }
 
   if (parent->is<ElementPattern>()) {
     emit canInsertPatternAbove(true);
     emit canInsertPatternBelow(true);
-    if (pattern->is<UnknownFieldPattern>())
+    if (pattern->is<UnknownFieldPattern>()) {
       emit canSplitFieldPattern(true);
-    else
+      emit canErase(false);
+    } else {
       emit canSplitFieldPattern(false);
+      emit canErase(true);
+    }
   } else if (parent->is<UnionPattern>()) {
     emit canInsertPatternAbove(true);
     emit canInsertPatternBelow(true);
     emit canSplitFieldPattern(false);
+    emit canErase(false);
   } else {
     emit canInsertPatternAbove(false);
     emit canInsertPatternBelow(false);
     emit canSplitFieldPattern(false);
+    emit canErase(false);
   }
 }
 
