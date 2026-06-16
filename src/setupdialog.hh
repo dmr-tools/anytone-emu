@@ -22,7 +22,7 @@ public:
 
 public:
   explicit SetupDialog(QWidget *parent = nullptr);
-  ~SetupDialog();
+  ~SetupDialog() override;
 
   QString catalog() const;
   Device *createDevice(const ErrorStack &err=ErrorStack());
@@ -39,6 +39,7 @@ private slots:
 
 private:
   Ui::SetupDialog *ui;
+  QString _currentFile;
   ModelCatalog _catalog;
 };
 
