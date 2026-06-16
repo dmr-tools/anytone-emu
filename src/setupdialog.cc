@@ -10,7 +10,7 @@
 
 SetupDialog::SetupDialog(QWidget *parent) :
   QDialog(parent),
-  ui(new Ui::SetupDialog)
+  ui(new Ui::SetupDialog), _currentFile()
 {
   QSettings settings;
 
@@ -26,7 +26,7 @@ SetupDialog::SetupDialog(QWidget *parent) :
   connect(ui->selectCatalogFile, &QPushButton::clicked, this, &SetupDialog::onSelectCatalogFile);
 
   reloadModels();
-  connect(ui->catalogFile, &QLineEdit::editingFinished, this, &SetupDialog::reloadModels);
+  connect(ui->catalogFile, &QLineEdit::textChanged, this, &SetupDialog::reloadModels);
 
   if (ui->deviceSelection->count()) {
     if (settings.contains("device") &&
@@ -123,11 +123,15 @@ SetupDialog::createDevice(const ErrorStack &err) {
 
 void
 SetupDialog::reloadModels() {
+  QString canonical = QFileInfo(ui->catalogFile->text().simplified()).canonicalFilePath();
+  if (canonical.isEmpty() || (_currentFile == canonical)) return;
+
+  _currentFile = canonical;
   ui->firmwareSelection->clear();
   ui->deviceSelection->clear();
 
   _catalog.clear();
-  _catalog.load(ui->catalogFile->text().simplified());
+  _catalog.load(canonical);
 
   for (ModelCatalog::const_iterator model=_catalog.begin(); model!=_catalog.end(); model++) {
     ui->deviceSelection->addItem((*model)->name(), (*model)->id());
