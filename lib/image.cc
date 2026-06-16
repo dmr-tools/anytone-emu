@@ -253,7 +253,8 @@ AnnotationIssue::Severity
 Image::annotationSeverity() const {
   AnnotationIssue::Severity severity = AnnotationIssue::None;
   foreach (auto element, _elements) {
-    severity = element->severity();
+    if (element->severity() > severity)
+      severity = element->severity();
   }
   return severity;
 }

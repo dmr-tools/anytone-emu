@@ -18,7 +18,7 @@ class AtomicAnnotation;
 
 
 /** Annotation issue class.
- * Also implements @c QTextStream, hence messages can be assmebled and formatted easily.
+ * Also implements @c QTextStream, hence messages can be assembled and formatted easily.
  * @ingroup annotation */
 class AnnotationIssue: public QTextStream
 {
@@ -27,13 +27,13 @@ public:
   enum Severity {
     /** No issue at all. */
     None = 0,
-    /** Minor codeplug incompatebility. Incompleteness or minor issue concering the compatibility.
+    /** Minor codeplug incompatibility. Incompleteness or minor issue concerting the compatibility.
      * That is, the codeplug remains functional, although not all features are encoded/decoded
      * correctly. */
     Note = 1,
-    /** Codeplug incompatebility. Encoding/decoding codeplug might be functional. */
+    /** Codeplug incompatibility. Encoding/decoding codeplug might be functional. */
     Warning = 2,
-    /** Severe codeplug incompatebility. Decoding fails, encoding will likely produce non-functional
+    /** Severe codeplug incompatibility. Decoding fails, encoding will likely produce non-functional
      * codeplug. */
     Error = 3
   };
@@ -144,6 +144,8 @@ public:
   const AnnotationIssues &issues() const;
   /** Returns the list of annotation issues. */
   AnnotationIssues &issues();
+  /** Returns the worst severity of all annotation issues  of this annotation and its children. */
+  virtual AnnotationIssue::Severity severity() const;
 
   /** Returns @c true, if the annotation has a pattern.
    * It usually does, only unannotated segments don't. */
@@ -239,6 +241,8 @@ public:
   /** Recursively resolves the given address to the field annotation containing this address. */
   const AtomicAnnotation *resolve(const Address &addr) const;
 
+  AnnotationIssue::Severity severity() const override;
+
   /** Returns the list of names of the pattern of this annotation and all its parents. */
   QStringList path() const;
 };
@@ -293,6 +297,8 @@ class UnannotatedSegment: public AtomicAnnotation
 public:
   /** Constructs a new unannotated segment annotation. */
   explicit UnannotatedSegment(const Address &addr, const Size &size, QObject *parent = nullptr);
+
+  AnnotationIssue::Severity severity() const override;
 };
 
 

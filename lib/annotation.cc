@@ -194,9 +194,8 @@ AnnotationIssue::Severity
 AnnotationCollection::severity() const {
   AnnotationIssue::Severity severity = AnnotationIssue::None;
   foreach (auto annotation, _annotations) {
-    for (auto issue = annotation->issues().begin(); issue != annotation->issues().end(); issue++)
-      if (issue->severity() > severity)
-        severity = issue->severity();
+    if (annotation->severity() > severity)
+      severity = annotation->severity();
   }
   return severity;
 }
@@ -230,6 +229,7 @@ AbstractAnnotation::contains(const Address& addr) const {
   return addr < (_address+size());
 }
 
+
 bool
 AbstractAnnotation::hasIssues() const {
   return 0 != _issues.numIssues();
@@ -244,6 +244,17 @@ AnnotationIssues &
 AbstractAnnotation::issues() {
   return _issues;
 }
+
+AnnotationIssue::Severity
+AbstractAnnotation::severity() const {
+  auto severity = AnnotationIssue::None;
+  for (auto issue: _issues) {
+    if (issue.severity() > severity)
+      severity = issue.severity();
+  }
+  return severity;
+}
+
 
 bool
 AbstractAnnotation::hasPattern() const {
@@ -312,6 +323,11 @@ UnannotatedSegment::UnannotatedSegment(const Address &addr, const Size &size, QO
   // pass...
 }
 
+AnnotationIssue::Severity
+UnannotatedSegment::severity() const {
+  return AnnotationIssue::Error;
+}
+
 
 
 /* ********************************************************************************************* *
@@ -349,6 +365,16 @@ StructuredAnnotation::path() const {
   return path;
 }
 
+
+AnnotationIssue::Severity
+StructuredAnnotation::severity() const {
+  auto severity = AbstractAnnotation::severity();
+  for (auto child : _annotations) {
+    if (severity < child->severity())
+      severity = child->severity();
+  }
+  return severity;
+}
 
 
 /* ********************************************************************************************* *
