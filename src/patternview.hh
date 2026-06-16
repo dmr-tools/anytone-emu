@@ -55,8 +55,8 @@ public:
   static bool showPatternEditor(AbstractPattern *pattern, const CodeplugPattern *codeplug=nullptr);
 
 protected:
-  void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
-  void contextMenuEvent(QContextMenuEvent *event);
+  void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override;
+  void contextMenuEvent(QContextMenuEvent *event) override;
   AbstractPattern *selectedParent() const;
   FixedPattern *selectedSibling() const;
 

@@ -635,7 +635,10 @@ void
 PatternView::selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) {
   QTreeView::selectionChanged(selected, deselected);
 
-  if (0 == selected.indexes().size()) {
+  if (selected.isEmpty() && deselected.isEmpty())
+    return;
+
+  if (selected.isEmpty()) {
     emit canEdit(false);
     emit canAppendPattern(false);
     emit canInsertPatternAbove(false);
@@ -697,8 +700,9 @@ PatternView::selectionChanged(const QItemSelection &selected, const QItemSelecti
     emit canView(true);
   } else if (pattern->is<UnionPattern>()) {
     emit canAppendPattern(true);
+    emit canView(false);
   } else {
-    emit canView(true);
+    emit canView(false);
     emit canAppendPattern(false);
   }
 
