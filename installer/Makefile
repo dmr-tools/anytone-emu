@@ -1,12 +1,12 @@
-VERSION = 0.3.0
+VERSION = 0.4.2
 SOURCE = ../
 PREFIX = $(MINGW_PREFIX)
 DATA   = packages/de.darc.dm3mat.anytone_emu_gui/data/
 DLLS   = libgcc_s_seh-1.dll libstdc++-6.dll libwinpthread-1.dll libfreetype-6.dll \
 	 libharfbuzz-0.dll libmd4c.dll libpng16-16.dll zlib1.dll libdouble-conversion.dll \
-   libicuin77.dll libicuuc77.dll libicudt77.dll libb2-1.dll libpcre2-16-0.dll libzstd.dll \
+	 libicuin77.dll libicuuc77.dll libicudt77.dll libb2-1.dll libpcre2-16-0.dll libzstd.dll \
 	 libbz2-1.dll libbrotlidec.dll libglib-2.0-0.dll libgraphite2.dll libintl-8.dll \
-	 libiconv-2.dll libbrotlicommon.dll libpcre2-8-0.dll
+	 libiconv-2.dll libbrotlicommon.dll libpcre2-8-0.dll libhunspell-1.7-0.dll
 ICONS  = anytone-emu-gui.ico
 
 DEPS   = $(addprefix $(DATA), $(DLLS) $(ICONS))
