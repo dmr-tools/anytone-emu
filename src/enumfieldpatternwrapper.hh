@@ -22,6 +22,14 @@ public:
   bool setData(const QModelIndex &index, const QVariant &value, int role);
   QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
+  Qt::DropActions supportedDropActions() const override;
+  QStringList mimeTypes() const override;
+  QMimeData *mimeData(const QModelIndexList &indexes) const override;
+  bool canDropMimeData(const QMimeData *data, Qt::DropAction action,
+    int row, int column, const QModelIndex &parent) const override;
+  bool dropMimeData(const QMimeData *data, Qt::DropAction action,
+    int row, int column, const QModelIndex &parent) override;
+
 private slots:
   void onItemAdded(unsigned int idx);
   void onItemDeleted(unsigned int idx);

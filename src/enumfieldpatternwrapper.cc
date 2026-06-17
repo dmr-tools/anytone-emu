@@ -1,6 +1,11 @@
 #include "enumfieldpatternwrapper.hh"
 #include "pattern.hh"
 #include <QItemEditorFactory>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QMimeData>
+
+#define dndMimeType "application/x-anytone-emu-enum-item-indices"
 
 /* ********************************************************************************************* *
  * Implementation of EnumFieldPatternWrapper
@@ -15,7 +20,7 @@ EnumFieldPatternWrapper::EnumFieldPatternWrapper(EnumFieldPattern *pattern, QObj
 
 int
 EnumFieldPatternWrapper::rowCount(const QModelIndex &parent) const {
-  return _pattern->numItems();
+  return static_cast<int>(_pattern->numItems());
 }
 
 int
@@ -26,7 +31,77 @@ EnumFieldPatternWrapper::columnCount(const QModelIndex &parent) const {
 Qt::ItemFlags
 EnumFieldPatternWrapper::flags(const QModelIndex &index) const {
   Qt::ItemFlags flags = QAbstractTableModel::flags(index);
-  return flags | Qt::ItemIsEditable;
+  if (index.isValid())
+    return flags | Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
+  return flags | Qt::ItemIsDropEnabled;
+}
+
+Qt::DropActions
+EnumFieldPatternWrapper::supportedDropActions() const {
+  return Qt::MoveAction;
+}
+
+QStringList
+EnumFieldPatternWrapper::mimeTypes() const {
+  return { dndMimeType };
+}
+
+QMimeData *
+EnumFieldPatternWrapper::mimeData(const QModelIndexList &indexes) const {
+  if (indexes.isEmpty())
+    return nullptr;
+
+  QJsonArray rows;
+  for (auto index: indexes)
+    if (index.isValid() && (!rows.contains(index.row())))
+      rows.append(index.row());
+
+  if (rows.isEmpty()) return nullptr;
+
+  auto data = new QMimeData();
+  data->setData(dndMimeType, QJsonDocument(rows).toJson());
+  return data;
+}
+
+
+bool
+EnumFieldPatternWrapper::canDropMimeData(const QMimeData *data, Qt::DropAction action,
+  int row, int column, const QModelIndex &parent) const
+{
+  if ( (!data->hasFormat(dndMimeType)) || (Qt::MoveAction != action))
+    return false;
+
+  auto doc = QJsonDocument::fromJson(data->data(dndMimeType));
+  if (doc.isNull() || (! doc.isArray()) )
+    return false;
+
+  return true;
+}
+
+bool
+EnumFieldPatternWrapper::dropMimeData(const QMimeData *data, Qt::DropAction action,
+    int row, int column, const QModelIndex &parent)
+{
+  if (! canDropMimeData(data, action, row, column, parent))
+    return false;
+
+  if (parent.isValid())
+    row = parent.row();
+
+  auto doc = QJsonDocument::fromJson(data->data(dndMimeType));
+  QList<int> rows;
+  for (auto val: doc.array()) {
+    if (! val.isDouble())
+      continue;
+    rows.append(val.toInt());
+  }
+
+  beginMoveRows(QModelIndex(), rows.first(), rows.last(), QModelIndex(), row);
+  for (int source_row: rows)
+    _pattern->moveItem(source_row, row++);
+  endMoveRows();
+
+  return true;
 }
 
 QVariant

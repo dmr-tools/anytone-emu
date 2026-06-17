@@ -833,7 +833,8 @@ public:
   EnumFieldPatternItem *itemByValue(unsigned int value) const;
   /** Removes and deletes the n-th item. */
   bool deleteItem(unsigned int n);
-
+  /** Moves an item from index source to index destination. */
+  bool moveItem(unsigned int source, unsigned int destination);
   /** Specifies the exact width of the field. */
   void setWidth(const Size &size);
 

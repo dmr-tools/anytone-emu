@@ -2026,6 +2026,14 @@ EnumFieldPattern::deleteItem(unsigned int n) {
   return true;
 }
 
+bool
+EnumFieldPattern::moveItem(unsigned int source, unsigned int destination) {
+  if ((source >= _items.size()) || (destination >= _items.size()))
+    return false;
+  _items.move(source, destination);
+  return true;
+}
+
 
 unsigned int
 EnumFieldPattern::decode(const Element *element, const Address &address, AnnotationIssue &errmsg) const {
