@@ -5,6 +5,8 @@
 #include <QJsonDocument>
 #include <QMimeData>
 
+#include "logger.hh"
+
 #define dndMimeType "application/x-anytone-emu-enum-item-indices"
 
 /* ********************************************************************************************* *
@@ -72,7 +74,18 @@ EnumFieldPatternWrapper::canDropMimeData(const QMimeData *data, Qt::DropAction a
     return false;
 
   auto doc = QJsonDocument::fromJson(data->data(dndMimeType));
-  if (doc.isNull() || (! doc.isArray()) )
+  if (doc.isNull() || (! doc.isArray()))
+    return false;
+
+  if (parent.isValid())
+    row = parent.row();
+
+  // Check rows
+  if (doc.array().isEmpty())
+    return false;
+  
+  int source = doc.array().at(0).toInt();
+  if ((row == source) || (row == source+1))
     return false;
 
   return true;
