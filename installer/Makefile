@@ -1,7 +1,7 @@
 VERSION = 0.4.2
 SOURCE = ../
 PREFIX = $(MINGW_PREFIX)
-DATA   = packages/de.darc.dm3mat.anytone_emu_gui/data/
+DATA   = packages/de.dm3mat.anytone_emu_gui/data/
 DLLS   = libgcc_s_seh-1.dll libstdc++-6.dll libwinpthread-1.dll libfreetype-6.dll \
 	 libharfbuzz-0.dll libmd4c.dll libpng16-16.dll zlib1.dll libdouble-conversion.dll \
 	 libicuin77.dll libicuuc77.dll libicudt77.dll libb2-1.dll libpcre2-16-0.dll libzstd.dll \
@@ -15,10 +15,13 @@ DEPS   = $(addprefix $(DATA), $(DLLS) $(ICONS))
 
 all: installer
 
+repository: installer
+	repogen.exe --update-new-components -p packages	repository
+
 installer: anytone-emu-$(VERSION).exe
 
 anytone-emu-$(VERSION).exe: $(DEPS) deploy 
-	binarycreator -v --offline-only -c config/config.xml -p packages $@
+	binarycreator -v -c config/config.xml -p packages $@
 	
 
 deploy: $(DATA)/anytone-emu-gui.exe
