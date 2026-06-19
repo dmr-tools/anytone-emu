@@ -4,7 +4,7 @@
 #include <QAbstractTableModel>
 #include <QComboBox>
 #include "pattern.hh"
-class EnumFieldPattern;
+class AbstractEnumFieldPattern;
 
 
 class EnumFieldPatternWrapper : public QAbstractTableModel
@@ -12,7 +12,7 @@ class EnumFieldPatternWrapper : public QAbstractTableModel
   Q_OBJECT
 
 public:
-  explicit EnumFieldPatternWrapper(EnumFieldPattern *pattern, QObject *parent = nullptr);
+  explicit EnumFieldPatternWrapper(AbstractEnumFieldPattern *pattern, QObject *parent = nullptr);
 
   int rowCount(const QModelIndex &parent) const;
   int columnCount(const QModelIndex &parent) const;
@@ -35,7 +35,7 @@ private slots:
   void onItemDeleted(unsigned int idx);
 
 protected:
-  EnumFieldPattern *_pattern;
+  AbstractEnumFieldPattern *_pattern;
 };
 
 

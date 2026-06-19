@@ -12,7 +12,7 @@
 /* ********************************************************************************************* *
  * Implementation of EnumFieldPatternWrapper
  * ********************************************************************************************* */
-EnumFieldPatternWrapper::EnumFieldPatternWrapper(EnumFieldPattern *pattern, QObject *parent)
+EnumFieldPatternWrapper::EnumFieldPatternWrapper(AbstractEnumFieldPattern *pattern, QObject *parent)
   : QAbstractTableModel{parent}, _pattern(pattern)
 {
   connect(_pattern, &QObject::destroyed, this, &QObject::deleteLater);

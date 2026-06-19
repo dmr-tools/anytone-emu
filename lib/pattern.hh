@@ -4,7 +4,6 @@
 #ifndef CODEPLUGPATTERN_HH
 #define CODEPLUGPATTERN_HH
 
-#include <QObject>
 #include <QFileInfo>
 #include "offset.hh"
 #include "errorstack.hh"
@@ -27,7 +26,7 @@ class PatternMeta: public QObject
   Q_PROPERTY(QString name READ name WRITE setName)
   /** The optional short name of the pattern. */
   Q_PROPERTY(QString shortName READ shortName WRITE setShortName)
-  /** The breif description property. */
+  /** The brief description property. */
   Q_PROPERTY(QString brief READ briefDescription WRITE setBriefDescription)
   /** The description property. */
   Q_PROPERTY(QString description READ description WRITE setDescription)
@@ -206,11 +205,11 @@ class StructuredPattern
 {
 protected:
   /** Hidden constructor. */
-  StructuredPattern();
+  StructuredPattern() = default;
 
 public:
   /** Destructor. */
-  virtual ~StructuredPattern();
+  virtual ~StructuredPattern() = default;
 
   /** Returns the index of the given sub-pattern within this one or -1. */
   virtual int indexOf(const AbstractPattern *pattern) const = 0;
@@ -242,7 +241,7 @@ public:
   /** Serializes the fragment into XML. */
   virtual bool serialize(QXmlStreamWriter &writer) const;
 
-  virtual int indexOf(const AbstractPattern *pattern) const;
+  int indexOf(const AbstractPattern *pattern) const override;
   virtual unsigned int numChildPattern() const;
   virtual bool addChildPattern(AbstractPattern *pattern);
   virtual AbstractPattern *childPattern(unsigned int n) const;
@@ -269,14 +268,14 @@ protected:
   explicit GroupPattern(QObject *parent = nullptr);
 
 public:
-  PatternMeta::Flags combinedFlags() const;
+  PatternMeta::Flags combinedFlags() const override;
 };
 
 
 
 /** Root pattern for all codeplugs.
  * The codeplug is usually considered a sparse group of patterns. If the codeplug is a single
- * continous blob of memory, just add a single element here.
+ * continuous blob of memory, just add a single element here.
  * @ingroup pattern */
 class CodeplugPattern: public GroupPattern
 {
@@ -286,18 +285,18 @@ public:
   /** Desfault constructor. */
   Q_INVOKABLE explicit CodeplugPattern(QObject *parent = nullptr);
 
-  bool verify() const;
-  bool serialize(QXmlStreamWriter &writer) const;
+  bool verify() const override;
+  bool serialize(QXmlStreamWriter &writer) const override;
 
-  AbstractPattern *clone() const;
+  AbstractPattern *clone() const override;
 
-  int indexOf(const AbstractPattern *pattern) const;
-  unsigned int numChildPattern() const;
-  bool addChildPattern(AbstractPattern *pattern);
-  AbstractPattern *childPattern(unsigned int n) const;
-  AbstractPattern *takeChild(unsigned int n);
+  int indexOf(const AbstractPattern *pattern) const override;
+  unsigned int numChildPattern() const override;
+  bool addChildPattern(AbstractPattern *pattern) override;
+  AbstractPattern *childPattern(unsigned int n) const override;
+  AbstractPattern *takeChild(unsigned int n) override;
 
-  const CodeplugPattern *codeplug() const;
+  const CodeplugPattern *codeplug() const override;
 
   /** Retruns @c true if the codeplug was modified since the last save. */
   bool isModified() const;
@@ -343,10 +342,10 @@ public:
   /** Default constructor. */
   Q_INVOKABLE explicit RepeatPattern(QObject *parent = nullptr);
 
-  bool verify() const;
-  bool serialize(QXmlStreamWriter &writer) const;
+  bool verify() const override;
+  bool serialize(QXmlStreamWriter &writer) const override;
 
-  AbstractPattern *clone() const;
+  AbstractPattern *clone() const override;
 
   /** Retunrs @c true, if a minimum repetition number is specified. */
   bool hasMinRepetition() const;
@@ -366,13 +365,13 @@ public:
   /** Sets the offset between repetition of the sub-pattern. */
   void setStep(const Offset &step);
 
-  int indexOf(const AbstractPattern *pattern) const;
-  unsigned int numChildPattern() const;
-  bool addChildPattern(AbstractPattern *subpattern);
+  int indexOf(const AbstractPattern *pattern) const override;
+  unsigned int numChildPattern() const override;
+  bool addChildPattern(AbstractPattern *subpattern) override;
   /** Retunrs the one child pattern, the sub pattern. */
   AbstractPattern *subpattern() const;
-  AbstractPattern *childPattern(unsigned int n) const;
-  AbstractPattern *takeChild(unsigned int n);
+  AbstractPattern *childPattern(unsigned int n) const override;
+  AbstractPattern *takeChild(unsigned int n) override;
 
 protected:
   /** The minimum number of prepetitions, @c std::numeric_limits<unsigned int>::max() if not set. */
@@ -410,9 +409,9 @@ protected:
   explicit FixedPattern(QObject *parent = nullptr);
 
 public:
-  bool verify() const;
+  bool verify() const override;
 
-  AbstractPattern *clone() const;
+  AbstractPattern *clone() const override;
 
   /** Returns @c true, if a size is set. */
   bool hasSize() const;
@@ -447,10 +446,10 @@ public:
   /** Default constructor. */
   Q_INVOKABLE explicit BlockRepeatPattern(QObject *parent=nullptr);
 
-  bool verify() const;
-  bool serialize(QXmlStreamWriter &writer) const;
+  bool verify() const override;
+  bool serialize(QXmlStreamWriter &writer) const override;
 
-  AbstractPattern *clone() const;
+  AbstractPattern *clone() const override;
 
   /** Returns the minimum number of repetitions of the sub-pattern. */
   unsigned int minRepetition() const;
@@ -462,20 +461,20 @@ public:
   /** Sets the maximum number of repetitions of the sub-pattern. */
   void setMaxRepetition(unsigned int rep);
 
-  PatternMeta::Flags combinedFlags() const;
+  PatternMeta::Flags combinedFlags() const override;
 
-  int indexOf(const AbstractPattern *pattern) const;
-  unsigned int numChildPattern() const;
+  int indexOf(const AbstractPattern *pattern) const override;
+  unsigned int numChildPattern() const override;
   /** Retunrs the one child pattern, the sub pattern. */
   FixedPattern *subpattern() const;
-  AbstractPattern *childPattern(unsigned int n) const;
-  bool addChildPattern(AbstractPattern *subpattern);
-  AbstractPattern *takeChild(unsigned int n);
+  AbstractPattern *childPattern(unsigned int n) const override;
+  bool addChildPattern(AbstractPattern *subpattern) override;
+  AbstractPattern *takeChild(unsigned int n) override;
 
 protected:
-  /** The minimum number of prepetitions, @c std::numeric_limits<unsigned int>::max() if not set. */
+  /** The minimum number of repetitions, @c std::numeric_limits<unsigned int>::max() if not set. */
   unsigned int _minRepetition;
-  /** The maximum number of prepetitions, @c std::numeric_limits<unsigned int>::max() if not set. */
+  /** The maximum number of repetitions, @c std::numeric_limits<unsigned int>::max() if not set. */
   unsigned int _maxRepetition;
   /** The sub-pattern. */
   FixedPattern *_subpattern;
@@ -510,19 +509,19 @@ public:
   /** Default constructor. */
   Q_INVOKABLE explicit ElementPattern(QObject *parent = nullptr);
 
-  bool verify() const;
-  bool serialize(QXmlStreamWriter &writer) const;
+  bool verify() const override;
+  bool serialize(QXmlStreamWriter &writer) const override;
 
-  AbstractPattern *clone() const;
+  AbstractPattern *clone() const override;
 
-  PatternMeta::Flags combinedFlags() const;
+  PatternMeta::Flags combinedFlags() const override;
 
-  bool addChildPattern(AbstractPattern *pattern);
-  bool insertChildPattern(FixedPattern *pattern, unsigned int idx);
-  unsigned int numChildPattern() const;
-  AbstractPattern *childPattern(unsigned int n) const;
-  int indexOf(const AbstractPattern *pattern) const;
-  AbstractPattern *takeChild(unsigned int n);
+  bool addChildPattern(AbstractPattern *pattern) override;
+  bool insertChildPattern(FixedPattern *pattern, unsigned int idx) override;
+  unsigned int numChildPattern() const override;
+  AbstractPattern *childPattern(unsigned int n) const override;
+  int indexOf(const AbstractPattern *pattern) const override;
+  AbstractPattern *takeChild(unsigned int n) override;
 
 private slots:
   /** Gets called, if a sub-patern is resized. Then updates the relative addresses of all
@@ -547,19 +546,19 @@ public:
   /** Default constructor. */
   Q_INVOKABLE explicit UnionPattern(QObject *parent = nullptr);
 
-  bool verify() const;
-  bool serialize(QXmlStreamWriter &writer) const;
+  bool verify() const override;
+  bool serialize(QXmlStreamWriter &writer) const override;
 
-  AbstractPattern *clone() const;
+  AbstractPattern *clone() const override;
 
-  PatternMeta::Flags combinedFlags() const;
+  PatternMeta::Flags combinedFlags() const override;
 
-  bool addChildPattern(AbstractPattern *pattern);
-  bool insertChildPattern(FixedPattern *pattern, unsigned int idx);
-  unsigned int numChildPattern() const;
-  AbstractPattern *childPattern(unsigned int n) const;
-  int indexOf(const AbstractPattern *pattern) const;
-  AbstractPattern *takeChild(unsigned int n);
+  bool addChildPattern(AbstractPattern *pattern) override;
+  bool insertChildPattern(FixedPattern *pattern, unsigned int idx) override;
+  unsigned int numChildPattern() const override;
+  AbstractPattern *childPattern(unsigned int n) const override;
+  int indexOf(const AbstractPattern *pattern) const override;
+  AbstractPattern *takeChild(unsigned int n) override;
 
 private slots:
   /** Gets called, if a sub-patern is resized. Updates the size of this size. */
@@ -582,25 +581,25 @@ public:
   /** Default constructor. */
   Q_INVOKABLE explicit FixedRepeatPattern(QObject *parent = nullptr);
 
-  bool verify() const;
-  bool serialize(QXmlStreamWriter &writer) const;
+  bool verify() const override;
+  bool serialize(QXmlStreamWriter &writer) const override;
 
-  AbstractPattern *clone() const;
+  AbstractPattern *clone() const override;
 
   /** Returns the number of repetition. */
   unsigned int repetition() const;
   /** Sets the number of repetition. */
   void setRepetition(unsigned int n);
 
-  PatternMeta::Flags combinedFlags() const;
+  PatternMeta::Flags combinedFlags() const override;
 
-  int indexOf(const AbstractPattern *pattern) const;
-  unsigned int numChildPattern() const;
+  int indexOf(const AbstractPattern *pattern) const override;
+  unsigned int numChildPattern() const override;
   /** Returns the one sub-pattern. */
   FixedPattern *subpattern() const;
-  AbstractPattern *childPattern(unsigned int n) const;
-  bool addChildPattern(AbstractPattern *pattern);
-  AbstractPattern *takeChild(unsigned int n);
+  AbstractPattern *childPattern(unsigned int n) const override;
+  bool addChildPattern(AbstractPattern *pattern) override;
+  AbstractPattern *takeChild(unsigned int n) override;
 
 private slots:
   /** Gets called, if the sub-pattern resizes. This also updates the size of this pattern. */
@@ -625,9 +624,10 @@ protected:
   explicit FieldPattern(QObject *parent=nullptr);
 
 public:
-  /** Decodes the given memeory at the specified address. */
-  virtual QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const = 0;
+  /** Decodes the given memory at the specified address. */
+  virtual QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation) const = 0;
 };
+
 
 
 /** Represents an unknown field.
@@ -640,13 +640,13 @@ public:
   /** Default constructor. */
   Q_INVOKABLE explicit UnknownFieldPattern(QObject *parent=nullptr);
 
-  bool verify() const;
-  bool serialize(QXmlStreamWriter &writer) const;
+  bool verify() const override;
+  bool serialize(QXmlStreamWriter &writer) const override;
 
   /** Sets the size of the field. */
   void setWidth(const Size &size);
 
-  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const;
+  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation) const override;
 };
 
 
@@ -661,10 +661,10 @@ public:
   /** Default constructor. */
   Q_INVOKABLE explicit UnusedFieldPattern(QObject *parent=nullptr);
 
-  bool verify() const;
-  bool serialize(QXmlStreamWriter &writer) const;
+  bool verify() const override;
+  bool serialize(QXmlStreamWriter &writer) const override;
 
-  AbstractPattern *clone() const;
+  AbstractPattern *clone() const override;
 
   /** Returns the expected content of the field. */
   const QByteArray &content() const;
@@ -675,7 +675,7 @@ public:
 
   /** Returns the section of the element corresponding to this field at the specified address.
    * This value should match the expected content. */
-  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const;
+  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation) const override;
 
 protected:
   /** The expected content. */
@@ -683,7 +683,74 @@ protected:
 };
 
 
-/** A field encoding an iteger.
+/** Represents a possible value of an enum pattern. */
+class EnumFieldPatternItem: public PatternMeta
+{
+  Q_OBJECT
+
+public:
+  /** Default constructor. */
+  Q_INVOKABLE explicit EnumFieldPatternItem(QObject *parent = nullptr);
+
+  bool serialize(QXmlStreamWriter &writer) const override;
+
+  /** Returns a copy of the item. */
+  EnumFieldPatternItem *clone() const;
+
+  /** Returns @c true, if a value is assigned to the enum entry. */
+  bool hasValue() const;
+  /** Returns the enum entry value. */
+  unsigned int value() const;
+  /** Sets the enum entry value. */
+  bool setValue(unsigned int value);
+
+protected:
+  /** The value (if set, @c std::numeric_limits<unsigned int>().max() otherwise). */
+  unsigned int _value;
+};
+
+
+
+/** Implements an abstract enumeration field pattern. That is, some value of an integer that have
+ * special meaning. This could either be a normal integer possibly with some additional special
+ * values or a generic enum field, where every value has some special meaning. */
+class AbstractEnumFieldPattern: public FieldPattern
+{
+  Q_OBJECT
+
+public:
+  /** Default constructor. */
+  AbstractEnumFieldPattern(QObject *parent=nullptr);
+
+  bool serialize(QXmlStreamWriter &writer) const override;
+
+  /** Adds an item to the enum. Takes ownership. */
+  bool addItem(EnumFieldPatternItem *item);
+  /** Returns the number of items. */
+  unsigned int numItems() const;
+  /** Returns the specified item by index. */
+  EnumFieldPatternItem *item(unsigned int n) const;
+  /** Returns the specified item by value if found and @c nullptr otherwise. */
+  EnumFieldPatternItem *itemByValue(unsigned int value) const;
+  /** Removes and deletes the n-th item. */
+  bool deleteItem(unsigned int n);
+  /** Moves an item from index source to index destination. */
+  bool moveItem(unsigned int source, unsigned int destination);
+
+signals:
+  /** Gets emitted, if an item is added. */
+  void itemAdded(unsigned int idx);
+  /** Gets emitted, once an item is removed. */
+  void itemDeleted(unsigned int idx);
+
+protected:
+  /** The list of enum entries. */
+  QList<EnumFieldPatternItem *> _items;
+};
+
+
+
+/** A field encoding an integer.
  * The width, format and endianess can be set.
  * @ingroup pattern */
 class IntegerFieldPattern: public FieldPattern
@@ -699,7 +766,7 @@ public:
   };
   Q_ENUM(Format)
 
-  /** Possible endianess. */
+  /** Possible endianness. */
   enum class Endian {
     Little,   ///< Little endian.
     Big       ///< Big endian.
@@ -710,10 +777,10 @@ public:
   /** Default constructor. */
   Q_INVOKABLE explicit IntegerFieldPattern(QObject *parent=nullptr);
 
-  bool verify() const;
-  bool serialize(QXmlStreamWriter &writer) const;
+  bool verify() const override;
+  bool serialize(QXmlStreamWriter &writer) const override;
 
-  AbstractPattern *clone() const;
+  AbstractPattern *clone() const override;
 
   /** Sets the width of the integer field. */
   void setWidth(const Offset &width);
@@ -755,11 +822,15 @@ public:
   /** Clears the default value. */
   void clearDefaultValue();
 
-  /** Decodes an iteger in the given element at the specified address. */
-  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const;
+  /** Decodes an integer in the given element at the specified address. */
+  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation) const override;
 
 protected:
   long long decode(const Element *element, const Address& address, AnnotationIssue &errmsg) const;
+  long long decode_signed(const Element *element, const Address& address, AnnotationIssue &errmsg) const;
+  long long decode_unsigned(const Element *element, const Address& address, AnnotationIssue &errmsg) const;
+  long long decode_bcd(const Element *element, const Address& address, AnnotationIssue &errmsg) const;
+
   /** Helper function to decode BCD numbers. */
   static uint16_t fromBCD4(uint16_t bcd);
   /** Helper function to decode BCD numbers. */
@@ -780,37 +851,10 @@ protected:
 
 
 
-/** Represents a possible value of an enum pattern. */
-class EnumFieldPatternItem: public PatternMeta
-{
-  Q_OBJECT
-
-public:
-  /** Default constructor. */
-  Q_INVOKABLE explicit EnumFieldPatternItem(QObject *parent = nullptr);
-
-  bool serialize(QXmlStreamWriter &writer) const;
-
-  /** Returns a copy of the item. */
-  EnumFieldPatternItem *clone() const;
-
-  /** Returns @c true, if a value is assigned to the enum entry. */
-  bool hasValue() const;
-  /** Returns the enum entry value. */
-  unsigned int value() const;
-  /** Sets the enum entry value. */
-  bool setValue(unsigned int value);
-
-protected:
-  /** The value (if set, @c std::numeric_limits<unsigned int>().max() otherwise). */
-  unsigned int _value;
-};
-
-
-/** Represets a enum field pattern. This is just a unsigned integer field of variable width,
+/** Represents an enum field pattern. This is just an unsigned integer field of variable width,
  * where some possible values are assigned to enum entries.
  * @ingroup pattern */
-class EnumFieldPattern: public FieldPattern
+class EnumFieldPattern: public AbstractEnumFieldPattern
 {
   Q_OBJECT
 
@@ -818,42 +862,20 @@ public:
   /** Default constructor. */
   Q_INVOKABLE explicit EnumFieldPattern(QObject *parent=nullptr);
 
-  bool verify() const;
-  bool serialize(QXmlStreamWriter &writer) const;
+  bool verify() const override;
+  bool serialize(QXmlStreamWriter &writer) const override;
 
-  AbstractPattern *clone() const;
+  AbstractPattern *clone() const override;
 
-  /** Adds an item to the enum. Takes ownership. */
-  bool addItem(EnumFieldPatternItem *item);
-  /** Returns the number of items. */
-  unsigned int numItems() const;
-  /** Returns the specified item by index. */
-  EnumFieldPatternItem *item(unsigned int n) const;
-  /** Returns the specified item by value if found and @c nullptr otherwise. */
-  EnumFieldPatternItem *itemByValue(unsigned int value) const;
-  /** Removes and deletes the n-th item. */
-  bool deleteItem(unsigned int n);
-  /** Moves an item from index source to index destination. */
-  bool moveItem(unsigned int source, unsigned int destination);
   /** Specifies the exact width of the field. */
   void setWidth(const Size &size);
 
   /** Decodes the enum value within the given element at the specified address. */
-  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const;
-
-signals:
-  /** Gets emitted, if an item is added. */
-  void itemAdded(unsigned int idx);
-  /** Gets emitted, once an item is removed. */
-  void itemDeleted(unsigned int idx);
+  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation) const override;
 
 protected:
   /** Decodes the enum value (e.g., integer). */
   unsigned int decode(const Element *element, const Address &address, AnnotationIssue &errmsg) const;
-
-protected:
-  /** The list of enum entries. */
-  QList<EnumFieldPatternItem *> _items;
 };
 
 
@@ -876,13 +898,13 @@ public:
   /** Default constructor. */
   Q_INVOKABLE explicit StringFieldPattern(QObject *parent = nullptr);
 
-  bool verify() const;
-  bool serialize(QXmlStreamWriter &writer) const;
+  bool verify() const override;
+  bool serialize(QXmlStreamWriter &writer) const override;
 
-  AbstractPattern *clone() const;
+  AbstractPattern *clone() const override;
 
   /** Decodes the string in the given element at the specified address. */
-  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation=nullptr) const;
+  QVariant value(const Element *element, const Address &address, FieldAnnotation *annotation) const override;
 
   /** Returns the string format. */
   Format format() const;
