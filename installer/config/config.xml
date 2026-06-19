@@ -6,4 +6,9 @@
     <Publisher>DM3MAT</Publisher>
     <StartMenuDir>AnyTone-Emu</StartMenuDir>
     <TargetDir>@ApplicationsDirUser@/anytone-emu</TargetDir>
+    <RemoteRepositories>
+        <Repository>
+            <Url>https://static.dm3mat.de/anytone-emu/repository</Url>
+	</Repository>
+    </RemoteRepositories>	    
 </Installer>
