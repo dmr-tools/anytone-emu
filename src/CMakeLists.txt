@@ -43,7 +43,8 @@ qt_add_executable(anytone-emu-gui WIN32
   uniondialog.hh uniondialog.cc uniondialog.ui
   spellcheckedtextedit.hh spellcheckedtextedit.cc
   spellcheckhighlighter.hh spellcheckhighlighter.cc
-  spellchecker.hh spellchecker.cc)
+  spellchecker.hh spellchecker.cc
+  enumitemseditor.cc enumitemseditor.hh enumitemseditor.ui)
 
 
 generate_icons(
