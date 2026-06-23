@@ -157,7 +157,20 @@ RadtelWriteRequest::page() const {
 
 uint32_t
 RadtelWriteRequest::address() const {
-  return (((uint32_t)_segment) << 24) + (((uint32_t)_page)<<10);
+  uint32_t offset = ((uint32_t)_page)<<10;
+  switch (_segment) {
+    case 0: return 0x00002000 + offset;
+    case 1: return 0x00004000 + offset;
+    case 2: return 0x00010000 + offset;
+    case 3: return 0x0001e000 + offset;
+    case 4: return 0x0005e000 + offset;
+    case 5: return 0x0006c000 + offset;
+    case 6: return 0x000d0000 + offset;
+    case 7: return 0x000d6000 + offset;
+    case 8: return 0x000f0000 + offset;
+    default: break;
+  }
+  return (((uint32_t)_segment) << 24) + offset;
 }
 
 const QByteArray &
